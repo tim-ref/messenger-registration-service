@@ -1,0 +1,232 @@
+{
+  "realm": "timref",
+  "enabled": true,
+  "registrationAllowed": false,
+  "bruteForceProtected": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "actionTokenGeneratedByAdminLifespan": 604800,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "de",
+    "en"
+  ],
+  "defaultLocale": "de",
+  "clients": [
+    {
+      "clientId": "registrationservice-frontend",
+      "name": "Registration-Service Frontend",
+      "description": "",
+      "rootUrl": "http://localhost:4200",
+      "adminUrl": "",
+      "baseUrl": "",
+      "redirectUris": [
+        "http://localhost:80/*",
+        "http://localhost:4200/*",
+        "http://localhost/*"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:4200/*"
+      },
+      "webOrigins": [
+        "+"
+      ],
+      "directAccessGrantsEnabled": true,
+      "publicClient": true,
+      "frontchannelLogout": true,
+      "protocolMappers": [
+        {
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "name": "Organisationsname",
+          "config": {
+            "user.attribute": "Organisationsname",
+            "claim.name": "organisation_name",
+            "jsonType.label": "",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "multivalued": false,
+            "aggregate.attrs": false
+          }
+        },
+        {
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "name": "ProfessionOID",
+          "config": {
+            "user.attribute": "ProfessionOID",
+            "claim.name": "profession_oid",
+            "jsonType.label": "",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "multivalued": false,
+            "aggregate.attrs": "false"
+          }
+        },
+        {
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "name": "TelematikID",
+          "config": {
+            "user.attribute": "TelematikID",
+            "claim.name": "telematik_id",
+            "jsonType.label": "",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "multivalued": false,
+            "aggregate.attrs": false
+          }
+        },
+        {
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "name": "Bestelldatum",
+          "config": {
+            "user.attribute": "Bestelldatum",
+            "claim.name": "date_of_order",
+            "jsonType.label": "",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "multivalued": false,
+            "aggregate.attrs": false
+          }
+        },
+        {
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "name": "Laufzeit",
+          "config": {
+            "user.attribute": "Laufzeit",
+            "claim.name": "runtime",
+            "jsonType.label": "",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "multivalued": false,
+            "aggregate.attrs": false
+          }
+        },
+        {
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "name": "Anzahl Messenger-Service Instanzen",
+          "config": {
+            "user.attribute": "Instanzen",
+            "claim.name": "instances",
+            "jsonType.label": "",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false",
+            "multivalued": false,
+            "aggregate.attrs": false
+          }
+        }
+      ]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "default-roles-timref",
+        "description": "${role_default-roles}",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "offline_access",
+            "uma_authorization"
+          ],
+          "client": {
+            "account": [
+              "manage-account",
+              "view-profile"
+            ]
+          }
+        },
+        "clientRole": false,
+        "attributes": {}
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "test",
+      "email": "test@example.de",
+      "enabled": true,
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test"
+        }
+      ],
+      "attributes": {
+        "Organisationsname": [
+          "Beispiel-Firma"
+        ],
+        "TelematikID": [
+          "29dh92gs33jd"
+        ],
+        "ProfessionOID": [
+          "399283432394"
+        ],
+        "Bestelldatum": [
+          "15.03.2023"
+        ],
+        "Laufzeit": [
+          "120"
+        ],
+        "Instanzen": [
+          "10"
+        ]
+      }
+    }
+  ],
+  "requiredActions": [
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": true,
+      "priority": 10,
+      "config": {}
+    },
+    {
+      "alias": "UPDATE_PASSWORD",
+      "name": "Update Password",
+      "providerId": "UPDATE_PASSWORD",
+      "enabled": true,
+      "defaultAction": true,
+      "priority": 30,
+      "config": {}
+    },
+    {
+      "alias": "VERIFY_EMAIL",
+      "name": "Verify Email",
+      "providerId": "VERIFY_EMAIL",
+      "enabled": true,
+      "defaultAction": true,
+      "priority": 50,
+      "config": {}
+    }
+  ],
+  "smtpServer": {
+    "from": "timref@akquinet.de",
+    "fromDisplayName": "[LOKAL] TIMRef Registrierungsdienst",
+    "replyTo": "ehealth-servicedesk@akquinet.de",
+    "replyToDisplayName": "Akquinet eHealth Servicedesk",
+    "host": "smtp.office365.com",
+    "port": "587",
+    "ssl": "false",
+    "starttls": "true",
+    "auth": "true",
+    "user": "svc.tim@akquinet.de",
+    "password": ""
+  },
+  "emailTheme": "akquinet"
+}

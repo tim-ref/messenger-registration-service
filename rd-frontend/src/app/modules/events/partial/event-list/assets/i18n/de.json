@@ -1,0 +1,107 @@
+{
+  "ADMIN": {
+    "INSTANCE_LIST": {
+      "INSTANCES_HEADING": "Instanzen",
+      "ADD": "Instanz erstellen",
+      "SEARCH": "Suchen",
+      "CAPTION": "Instanz-Tabelle",
+      "TABLE_HEADS": {
+        "ACTIVE": "AKTIV",
+        "SERVER_NAME": "Servername",
+        "PUBLIC_BASE_URL": "Basis-URL",
+        "DELETE": "Instanz Löschen",
+        "ADMIN": "Admin-Nutzer erstellen",
+        "LOGS": {
+          "CHANGE": "Loglevel",
+          "PROXY": "Proxy-Logs",
+          "HOMESERVER": "Homeserver-Logs"
+        },
+        "USER_MANAGEMENT": "Nutzerverwaltung"
+      },
+      "PAGINATION": {
+        "ITEMS_PER_PAGE": "Einträge pro Seite",
+        "OF": "von"
+      },
+      "ADMIN_CREATED_DIALOG": {
+        "TEXT": "Nach dem Schließen des Dialogs ist der Admin Account nicht mehr einsehbar. \nDer erstellte Admin Account: ",
+        "USERNAME": "Nutzername: ",
+        "PASSWORD": "Password: "
+      },
+      "DELETE_INSTANCE_DIALOG": {
+        "TEXT": "Möchten Sie die Instanz wirklich löschen?",
+        "DELETE": "Löschen",
+        "CANCEL": "Abbrechen",
+        "ERROR": {
+          "DELETE": "Löschen der Instanz fehlgeschlagen",
+          "BAD_REQUEST": "Ein Eingabewert enthält nicht erlaubte Zeichen.",
+          "NOT_FOUND": "Die Instanz wurde nicht gefunden.",
+          "INTERNAL_SERVER_ERROR": "Fehler beim Ansprechen der Operator-API."
+        }
+      },
+      "CHANGE_LOGLEVEL_DIALOG": {
+        "TEXT": "Durch das bestätigen wird das Loglevel für 30 Minuten auf DEBUG mit erweitertem Request Logging gesetzt.",
+        "TEXTWARN": "Das Hochstufen dauert bis zu 5 Minuten.",
+        "SUCCESS": "Loglevel für 30 Minuten hoch gestuft. Das Hochstufen dauert bis zu 5 Minuten.",
+        "CHANGE": "Ändern",
+        "CANCEL": "Abbrechen",
+        "ERROR": {
+          "UNKNOWN": "Ändern des Loglevels fehlgeschlagen",
+          "NOT_FOUND": "Die Instanz wurde nicht gefunden.",
+          "INTERNAL_SERVER_ERROR": "Fehler beim Ansprechen der Operator-API."
+        }
+      },
+      "CREATE_ADMIN_DIALOG": {
+        "ERROR": {
+          "CONFLICT": "Admin-Nutzer existiert bereits",
+          "LOCKED": "Instanz ist noch nicht bereit. Versuchen Sie es bitte in fünf Minuten erneut.",
+          "NOT_FOUND": "Die Instanz wurde nicht gefunden.",
+          "INTERNAL_SERVER_ERROR": "Fehler beim Ansprechen der Operator-API."
+        }
+      },
+      "LOG_DOWNLOAD": {
+        "ERROR": {
+          "UNKNOWN": "Ein unbekannter Fehler ist aufgetreten.",
+          "BAD_REQUEST": "Ein Eingabewert enthält nicht erlaubte Zeichen.",
+          "NOT_FOUND": "Die Instanz wurde nicht gefunden.",
+          "INTERNAL_SERVER_ERROR": "Fehler beim Ansprechen der Operator-API."
+        }
+      },
+      "CREATE_INSTANCE_DIALOG": {
+        "TITLE": "Neue Instanz anlegen",
+        "INPUT_SERVER_NAME": "Servername",
+        "INPUT_PUBLIC_BASE_URL": "Basis-URL",
+        "SAVE": "Anlegen",
+        "ERROR": {
+          "SERVER_NAME_REQUIRED": "Bitte geben Sie einen Servernamen ein.",
+          "SERVER_NAME_MAX_LENGTH": "Der Servername darf nicht mehr als 200 Zeichen enthalten.",
+          "SERVER_NAME_PATTERN": "Der Servername darf nur Zahlen und Kleinbuchstaben enthalten. Er muss aus mehreren von Punkten getrennten Teilen bestehen. Beispiel: tim.messenger.instance",
+          "PUBLIC_BASE_URL_REQUIRED": "Bitte geben Sie eine Basis-URL ein.",
+          "PUBLIC_BASE_URL_MAX_LENGTH": "Die Basis-URL darf nicht mehr als 200 Zeichen enthalten.",
+          "PUBLIC_BASE_URL_PATTERN": "Der Basis-URL muss eine gültige URL sein, darf nicht mit http:// oder https:// beginnen und keine Großbuchstaben enthalten.",
+          "SAVE": "Anlegen der Instanz fehlgeschlagen. Versuchen Sie es bitte in fünf Minuten erneut. Sollte der Fehler bestehen bleiben, wenden Sie sich bitte an den Support.",
+          "BAD_REQUEST": "Ein Eingabewert enthält nicht erlaubte Zeichen.",
+          "INTERNAL_SERVER_ERROR": "Fehler beim Ansprechen der Operator-API.",
+          "CONFLICT": "Eine Instanz mit dem gewählten Servernamen oder Basis-URL existiert bereits.",
+          "NOT_FOUND": "Der Nutzer wurde nicht gefunden.",
+          "PRECONDITION_FAILED": "Die maximale Laufzeit Ihrer Messenger-Services ist bereits erreicht: Sie können keine weiteren Instanzen bestellen.",
+          "FORBIDDEN": "Die maximale Anzahl Messenger-Service Instanzen ist bereits erreicht: Sie können keine weiteren Instanzen bestellen."
+        }
+      },
+      "LOG_DOWNLOAD_DIALOG": {
+        "TITLE": "Zeitraum für Logdownload festlegen",
+        "START": "Startzeitpunkt (UTC)",
+        "TIMESPAN": "Zeitspanne in Minuten",
+        "DOWNLOAD": "Herunterladen",
+        "ERROR": {
+          "DOWNLOAD": "Fehler beim Herunterladen",
+          "START_REQUIRED": "Bitte geben Sie einen Startpunkt an.",
+          "TIMESPAN_REQUIRED": "Bitte geben Sie eine Zeitspanne an.",
+          "TIMESPAN_PATTERN": "Die Zeitspanne muss eine ganze Zahl in Minuten sein.",
+          "TIMESPAN_MAX": "Die maximale Zeitspanne ist 4320 Minuten",
+          "BAD_REQUEST": "Ein Eingabewert enthält nicht erlaubte Zeichen.",
+          "INTERNAL_SERVER_ERROR": "Fehler beim Ansprechen der API."
+        }
+      }
+    }
+  }
+}

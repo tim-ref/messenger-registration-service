@@ -1,0 +1,46 @@
+###
+POST https://auth-{{env}}.vzd.ti-dienste.de:9443/auth/realms/TI-Provider/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id={{clientId}}&client_secret={{clientSecret}}&grant_type=client_credentials
+
+// Saving the access token
+> {%
+    client.global.set("accessToken", response.body.access_token);
+%}
+
+###
+GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/ti-provider-authenticate
+Authorization: Bearer {{accessToken}}
+
+// Saving the access token
+> {%
+    client.global.set("providerServicesToken", response.body.access_token);
+%}
+
+### Documentation for the following requests: https://github.com/gematik/api-vzd/blob/main/src/openapi/I_VZD_TIM_Provider_Services.yaml
+
+### Get role of matrix user ('none', 'pract', 'org', 'orgPract')
+### this request is at the moment not spec conform, see comments in InvitePermissionService.kt
+GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/localization?mxid=@example:test.eu.timref.akquinet.nx2.dev
+Authorization: Bearer {{providerServicesToken}}
+
+### Add domain to federation list
+POST https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/federation
+Authorization: Bearer {{providerServicesToken}}
+Content-Type: application/json
+
+{
+"domain": "test.eu.timref.akquinet.nx2.dev",
+"isInsurance": false,
+"telematikID": "test"
+}
+
+### Delete domain from federation list
+DELETE https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/federation/test.eu.timref.akquinet.nx2.dev
+Authorization: Bearer {{providerServicesToken}}
+
+
+### Get federation list from VZD
+GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/FederationList/federationList.jws
+Authorization: Bearer {{providerServicesToken}}

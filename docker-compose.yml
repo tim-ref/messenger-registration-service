@@ -1,0 +1,113 @@
+#
+# Copyright (C) 2023 akquinet GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+version: "3.9"
+name: "registrierungsdienst"
+
+services:
+  backend:
+   container_name: registration_service_backend
+   build:
+    context: ./rd-backend
+    args:
+      - JAR_FILE=target/rd-backend-*-standalone.jar
+   volumes:
+     - ./rd-backend/config/:/app/config/
+   ports:
+    - "8080:8080"
+    - "8081:8081"
+   networks:
+     - default
+     - timref-network
+   depends_on:
+    - db
+   environment:
+    SPRING_PROFILES_ACTIVE: local-docker
+   extra_hosts:
+     - "host.docker.internal:host-gateway"
+
+  frontend:
+   container_name: registration_service_frontend
+   build:
+     context: ./rd-frontend
+     args:
+       - TAR_GZ_FILE=target/rd-frontend-*-docker.tar.gz
+   ports:
+     - "4200:80"
+
+  db:
+    container_name: registration_service_db
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: registration-service-db
+      POSTGRES_USER: registration-service
+      POSTGRES_PASSWORD: password
+
+  keycloak-db:
+    container_name: registration_service_keycloak_db
+    image: postgres:15
+    ports:
+      - "5435:5435"
+    environment:
+      POSTGRES_DB: registration-service-keycloak-db
+      POSTGRES_USER: registration-service-keycloak
+      POSTGRES_PASSWORD: password
+    command: -p 5435
+
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.5
+    container_name: keycloak
+    build:
+      context: ./keycloak
+    environment:
+      KC_DB: registration-service-keycloak-db
+      KC_DB_URL: "jdbc:postgresql://keycloak-db:5435/registration-service-keycloak-db"
+      KC_DB_USERNAME: registration-service-keycloak
+      KC_DB_PASSWORD: password
+      KC_HEALTH_ENABLED: true
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HOSTNAME: host.docker.internal
+      KC_HOSTNAME_PORT: 8180
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+    entrypoint: "/opt/keycloak/bin/kc.sh start-dev --db=postgres --proxy=edge"
+    ports:
+      - "8180:8080"
+    depends_on:
+      - keycloak-db
+      - keycloak-config-cli
+
+  keycloak-config-cli:
+    image: quay.io/adorsys/keycloak-config-cli:5.9.0-22.0.4
+    container_name: keycloak-config-cli
+    environment:
+      KEYCLOAK_URL: "http://keycloak:8080"
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_AVAILABILITYCHECK_ENABLED: "true"
+      KEYCLOAK_AVAILABILITYCHECK_TIMEOUT: 120s
+      IMPORT_FILES: "/config/*"
+    volumes:
+      - ./keycloak/import:/config
+
+networks:
+  timref-network:
+    name: timref-network
+    external: true

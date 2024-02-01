@@ -1,0 +1,37 @@
+<!--
+  ~ Copyright (C) 2023 akquinet GmbH
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<div class="background pb-safe-inset flex flex-col max-h-screen">
+  <admin-toolbar class="flex grow-0 shrink-0"></admin-toolbar>
+  <div class="flex flex-row grow overflow-hidden">
+    <div
+      class="relative h-full flex grow shrink shadow-inner-md p-3 bg-accent/10"
+    >
+      <div class="w-full">
+        <router-outlet></router-outlet>
+        <generic-dialog
+          class="absolute inset-0 pointer-events-none z-30"
+        ></generic-dialog>
+        <generic-toast
+          class="absolute inset-0 pointer-events-none z-50"
+        ></generic-toast>
+      </div>
+    </div>
+  </div>
+
+  <admin-footer></admin-footer>
+</div>

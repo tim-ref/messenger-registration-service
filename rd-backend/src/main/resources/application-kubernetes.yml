@@ -1,0 +1,118 @@
+#
+# Copyright (C) 2023 akquinet GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${REGISTRATION_SERVICE_DB_HOST}:${REGISTRATION_SERVICE_DB_PORT}/${REGISTRATION_SERVICE_DB_NAME}
+    password: ${REGISTRATION_SERVICE_DB_PASSWORD}
+    username: ${REGISTRATION_SERVICE_DB_USER}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-test-query: SELECT 1
+
+  flyway:
+    locations: classpath:/db/migration
+    clean-on-validation-error: ${REGISTRATION_SERVICE_CLEAN_ON_ERROR}   # do NOT paste into prod-config
+    baseline-on-migrate: true # Makes already migrated versions new base on migrate allowing incremental migration
+
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${REGISTRATION_SERVICE_ISSUER_URI}
+          jwk-set-uri: ${REGISTRATION_SERVICE_JWK_SET_URI}
+
+keycloak-admin:
+  url: ${KEYCLOAK_URL}
+  readinessEndpoint: ${KEYCLOAK_READINESS_ENDPOINT}
+  realm: "master"
+  clientId: "registration-service"
+  clientSecret: ${KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET}
+  smtp:
+    from: ${SMTP_FROM_ADDRESS}
+    fromDisplayName: ${SMTP_FROM_DISPLAY_NAME}
+    password: ${SMTP_PASSWORD}
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+operator:
+  host: ${OPERATOR_HOST_URL}
+  port: ${OPERATOR_HOST_PORT}
+  createPath: ${OPERATOR_CREATE_PATH}
+  deletePath: ${OPERATOR_DELETE_PATH}
+  baseFQDN: ${OPERATOR_PARTIAL_FQDN}
+  credentials:
+    username: ${OPERATOR_REGISTRATION_SERVICE_USERNAME}
+    password: ${OPERATOR_REGISTRATION_SERVICE_PASSWORD}
+
+frontend:
+  host: ${FRONTEND_HOST_URL}
+
+vzd:
+  serviceUrl: ${REGISTRATION_SERVICE_VZD_URL}
+  tokenUrl: ${REGISTRATION_SERVICE_VZD_TOKEN_URL}
+  tokenPath: ${REGISTRATION_SERVICE_VZD_TOKEN_PATH}
+  authenticationPath: ${REGISTRATION_SERVICE_VZD_AUTHENTICATION_PATH}
+  healthPath: ${REGISTRATION_SERVICE_VZD_HEALTH_PATH}
+  federationListPath: ${REGISTRATION_SERVICE_VZD_FEDERATIONLIST_PATH}
+  federationCheckPath: ${REGISTRATION_SERVICE_VZD_FEDERATIONCHECK_PATH}
+  userWhereIsPath: ${REGISTRATION_SERVICE_VZD_USER_WHERE_PATH}
+  checkRevocationStatus: ${REGISTRATION_SERVICE_VZD_FEDERATIONLIST_CHECK_REVOCATION_STATUS}
+  addDomainPath: ${REGISTRATION_SERVICE_VZD_ADD_DOMAIN_TO_FEDERATIONLIST_PATH}
+  deleteDomainPath: ${REGISTRATION_SERVICE_VZD_DELETE_DOMAIN_FROM_FEDERATIONLIST_PATH}
+  clientId: ${REGISTRATION_SERVICE_VZD_CLIENT_ID}
+  clientSecret: ${REGISTRATION_SERVICE_VZD_CLIENT_SECRET}
+  trustStorePath: ${REGISTRATION_SERVICE_VZD_TRUST_STORE_PATH}
+  trustStorePassword: ${REGISTRATION_SERVICE_VZD_TRUST_STORE_PASSWORD}
+
+server:
+  servlet:
+    context-path: "/backend"
+
+log-info-service:
+  protocol: ${LOGGING_SERVICE_PROTOCOL}
+  host: ${LOGGING_SERVICE_HOST}
+  path: ${LOGGING_SERVICE_PATH}
+  port: ${LOGGING_SERVICE_PORT}
+  instanceId: ${LOGGING_SERVICE_INSTANCE_ID}
+
+log-download-loki:
+  protocol: ${LOKI_SERVICE_PROTOCOL}
+  host: ${LOKI_SERVICE_HOST}
+  path: ${LOKI_SERVICE_PATH}
+  port: ${LOKI_SERVICE_PORT}
+
+regservice:
+  openid:
+    key:
+      privKey: ${REGISTRATION_SERVICE_OPENID_TOKEN_PRIVKEY}
+      cert: ${REGISTRATION_SERVICE_OPENID_TOKEN_CERT}
+      caCert: ${REGISTRATION_SERVICE_OPENID_TOKEN_CACERT}
+    claims:
+      issuer: ${REGISTRATION_SERVICE_OPENID_TOKEN_ISSUER}
+      audience: ${REGISTRATION_SERVICE_OPENID_TOKEN_AUDIENCE}
+      validitySeconds: 3600
+  matrix:
+    clientScheme: https
+    clientPort: 443
+    serverScheme: https
+    serverPort: 443
+  callExternalServices: true

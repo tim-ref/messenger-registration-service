@@ -1,0 +1,181 @@
+<!--
+  ~ Copyright (C) 2023 akquinet GmbH
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<div class="m-2 h-full bg-white rounded shadow p-4">
+  <div class="flex justify-between">
+    <h2 id="instances-list-heading" class="text-xl">
+      {{("ADMIN.INSTANCE_LIST.INSTANCES_HEADING" | translate)}}
+    </h2>
+    <generic-button
+      id="add-instance-button"
+      variant="outline"
+      icon="fa-plus-circle"
+      iconColor="primary"
+      color="accent"
+      (click)="createMessengerInstance()"
+    >{{ "ADMIN.INSTANCE_LIST.ADD" | translate }}</generic-button>
+  </div>
+
+  <table class="mt-5" aria-label='Instanz-Tabelle'>
+    <thead class="border-b-0.5 table table-fixed w-[calc(100%_-_1em)]">
+    <tr>
+      <th class="text-left">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.ACTIVE" | translate }}</th>
+      <th class="text-left">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.SERVER_NAME" | translate }}</th>
+      <th class="text-left">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.PUBLIC_BASE_URL" | translate }}</th>
+      <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.LOGS.CHANGE" | translate }}</th>
+      <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.LOGS.PROXY" | translate }}</th>
+      <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.LOGS.HOMESERVER" | translate }}</th>
+      <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.ADMIN" | translate }}</th>
+      <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.USER_MANAGEMENT" | translate }}</th>
+      <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.DELETE" | translate }}</th>
+    </tr>
+    </thead>
+    <tbody class="block max-h-[500px] w-full overflow-auto">
+    <tr
+      *ngIf="loading; else content"
+      class="pointer-events-none hover:bg-white table w-full table-fixed"
+    >
+      <td colspan="5">
+        <div class="h-10 m-2 flex flex-row justify-center columns-3">
+          <generic-loading-indicator
+            class="basis-12"
+          ></generic-loading-indicator>
+        </div>
+      </td>
+    </tr>
+    <ng-template #content>
+      <tr
+        *ngFor="let messengerInstance of getPaginatedMessengerInstances()"
+        class="border-b-0.5 border-accent/40 table w-full table-fixed"
+      >
+        <td>{{ messengerInstance.active }}</td>
+        <td class="p-2">{{ messengerInstance.serverName }}</td>
+        <td>{{ messengerInstance.publicBaseUrl }}</td>
+        <td class="text-right">
+          <generic-button
+            id="log-change-button-{{messengerInstance.serverName.replace('.', '')}}"
+            variant="icon"
+            icon="fa-info-circle"
+            color="white"
+            iconColor="primary"
+
+            (click)="openLogLevelChangeDialog(messengerInstance.serverName)"
+          ></generic-button>
+        </td> <td class="text-right">
+          <generic-button
+            variant="icon"
+            icon="fa-info-circle"
+            color="white"
+            iconColor="primary"
+            id="log-server-button-{{messengerInstance.serverName.replace('.', '')}}"
+
+            (click)="openLogDownloadDialog(messengerInstance.serverName,'messenger-proxy')"
+          ></generic-button>
+        </td>
+        <td class="text-right">
+          <generic-button
+            variant="icon"
+            icon="fa-info-circle"
+            color="white"
+            iconColor="primary"
+            (click)="openLogDownloadDialog(messengerInstance.serverName, 'synapse')"
+          ></generic-button>
+        </td>
+        <td class="text-right">
+          <generic-button
+            variant="icon"
+            icon="fa-id-card"
+            color="white"
+            iconColor="primary"
+            (click)="createAdmin(messengerInstance.serverName)"
+          ></generic-button>
+        </td>
+        <td class="text-right">
+          <generic-button
+            id="open-keycloak-console-button-{{messengerInstance.serverName}}"
+            variant="icon"
+            icon="fa-arrow-up-right-from-square"
+            color="white"
+            iconColor="primary"
+            (click)="openKeycloakRealmConsole(messengerInstance.serverName)"
+          ></generic-button>
+        </td>
+        <td class="text-right">
+          <generic-button
+            id="delete-instance-button-{{messengerInstance.serverName.replace('.', '')}}"
+            variant="icon"
+            icon="fa-trash"
+            color="white"
+            iconColor="primary"
+            (click)="openDeleteDialog($event, messengerInstance.serverName)"
+          ></generic-button>
+        </td>
+      </tr>
+    </ng-template>
+    </tbody>
+  </table>
+
+  <div
+    class="w-full p-2 flex flex-row justify-end items-center gap-4 text-accent/80"
+  >
+    <label for="itemsPerPage">{{
+      "ADMIN.INSTANCE_LIST.PAGINATION.ITEMS_PER_PAGE" | translate
+      }}</label>
+    <select
+      id="itemsPerPage"
+      [(ngModel)]="itemsPerPage"
+      (change)="calculatePaginationNumbers()"
+    >
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+    <span
+    >{{ getCurrentStartItemIndex() }} - {{ getCurrentEndItemIndex() }}
+      {{ "ADMIN.INSTANCE_LIST.PAGINATION.OF" | translate }} {{ totalCount }}</span
+    >
+    <generic-button
+      variant="icon"
+      icon="fa-angles-left"
+      color="white"
+      (click)="firstPage()"
+      [disabled]="currentPageNumber >= 1"
+    ></generic-button>
+    <generic-button
+      variant="icon"
+      icon="fa-angle-left"
+      color="white"
+      (click)="previousPage()"
+      [disabled]="currentPageNumber >= 1"
+    ></generic-button>
+    <generic-button
+      variant="icon"
+      icon="fa-angle-right"
+      color="white"
+      (click)="nextPage()"
+      [disabled]="maxPageNumber <= currentPageNumber"
+    ></generic-button>
+    <generic-button
+      variant="icon"
+      icon="fa-angles-right"
+      color="white"
+      (click)="finalPage()"
+      [disabled]="maxPageNumber <= currentPageNumber"
+    ></generic-button>
+  </div>
+</div>

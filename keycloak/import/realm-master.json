@@ -1,0 +1,46 @@
+{
+  "realm": "master",
+  "bruteForceProtected": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "de",
+    "en"
+  ],
+  "defaultLocale": "de",
+  "clients": [
+    {
+      "clientId": "registration-service",
+      "name": "Registrierungsdienst",
+      "description": "",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "publicClient": false
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-registration-service",
+      "enabled": true,
+      "serviceAccountClientId": "registration-service",
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "create-realm",
+        "default-roles-master"
+      ],
+      "clientRoles": {
+        "registration-service": [
+          "uma_protection"
+        ]
+      }
+    }
+  ]
+}

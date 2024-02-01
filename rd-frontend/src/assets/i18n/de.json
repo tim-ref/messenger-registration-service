@@ -1,0 +1,9 @@
+{
+  "ERROR": {
+    "GENERIC_LOADING": "Laden des Inhalts fehlgeschlagen."
+  },
+  "CONFIRM_DIALOG": {
+    "CONFIRM": "Bestätigen",
+    "CANCEL": "Abbrechen"
+  }
+}

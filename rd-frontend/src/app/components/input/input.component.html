@@ -1,0 +1,46 @@
+<!--
+  ~ Copyright (C) 2023 akquinet GmbH
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<div class="pt-6 w-full">
+  <div class="input-field">
+    <i
+      *ngIf="icon && iconPosition === 'left'"
+      class="fa-solid {{ icon }}"
+      (click)="iconClick.emit()"
+      [class.cursor-pointer]="iconClick.observed"
+    ></i>
+    <div class="flex-grow">
+      <input #inputElement
+        placeholder="placeholder"
+        [formControl]="getControl()"
+        [type]="type"
+        (click) = "$event.preventDefault()"
+        [required]="inputElement.type === 'date'"
+      />
+      <label
+        [innerHTML]="name | translate"
+        [class.prefix-label]="icon && iconPosition === 'left'"
+      ></label>
+    </div>
+    <i
+      *ngIf="icon && iconPosition === 'right'"
+      class="fa-solid {{ icon }}"
+      (click)="iconClick.emit()"
+      [class.cursor-pointer]="iconClick.observed"
+    ></i>
+  </div>
+</div>

@@ -1,0 +1,136 @@
+#
+# Copyright (C) 2023 akquinet GmbH
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak.tu.timref.akquinet.nx2.dev/realms/timref
+          jwk-set-uri: https://keycloak.tu.timref.akquinet.nx2.dev/realms/timref/registrationservice-backend/protocol/openid-connect/certs
+  flyway:
+    enabled: false # flyway is configured in code
+
+zonky:
+  test:
+    database:
+      provider: ZONKY # default is DOCKER but Docker cannot be used in pipeline
+
+operator:
+  host: "http://localhost"
+  port: "8080"
+  createPath: "/homeserver"
+  deletePath: "/homeserver"
+  baseFQDN: ".localhost"
+  credentials:
+    username: "user"
+    password: "pass"
+
+vzd:
+  serviceUrl: "https://fhir-directory-test.vzd.ti-dienste.de"
+  tokenUrl: "https://auth-test.vzd.ti-dienste.de:9443"
+  tokenPath: "/auth/realms/TI-Provider/protocol/openid-connect/token"
+  authenticationPath: "/ti-provider-authenticate"
+  healthPath: "/tim-provider-services/health/"
+  federationListPath: "/tim-provider-services/FederationList/federationList.jws"
+  federationCheckPath: "/tim-provider-services/federationCheck"
+  userWhereIsPath: "/tim-provider-services/localization"
+  checkRevocationStatus: false
+  addDomainPath: "/tim-provider-services/federation"
+  deleteDomainPath: "/tim-provider-services/federation/"
+  clientId: "akquinet_timref"
+  clientSecret: ${TEST_VZD_CLIENT_SECRET}
+  trustStorePath: "config/ru-komp-truststore.p12"
+  trustStorePassword: "secret"
+
+server:
+  servlet:
+    context-path: "/backend"
+
+backend:
+  federationCheck:
+    cron: "0 0 0 * * *"
+
+frontend:
+  host: "http://localhost:8080"
+
+log-info-service:
+  protocol: "http"
+  host: "localhost"
+  path: "/add-performance-data"
+  port: 9020
+  instanceId: "TIM-registration-service"
+
+log-download-loki:
+  protocol: "http"
+  host: "localhost"
+  path: "/loki/api/v1/query_range"
+  port: "3100" # can be changed depending on local Loki Azure binding
+
+keycloak-admin:
+  url: "http://localhost:2696/"
+  readinessEndpoint: "health/ready"
+  realm: "master"
+  clientId: "registration-service"
+  clientSecret: "client-secret"
+  smtp:
+    from: "timref@akquinet.de"
+    fromDisplayName: "[LOKAL] TIMRef Registrierungsdienst"
+    password: ""
+
+regservice:
+  openid:
+    key:
+      privKey: |
+        -----BEGIN PRIVATE KEY-----
+        MIGIAgEAMBQGByqGSM49AgEGCSskAwMCCAEBBwRtMGsCAQEEIKLkl5iqMgeHB4MS
+        DEY+6YMezDW1/gKAHHMZLFdo71GHoUQDQgAEANy7YN285VwAqybcUGu18bSodYpi
+        zO0rrzLopEnPF26GpxpfyVQDRDG8jOpu3YwBvv2Vkp3HmnpSe5hnPXzbXA==
+        -----END PRIVATE KEY-----
+      cert: |
+        -----BEGIN CERTIFICATE-----
+        MIIBzTCCAXSgAwIBAgIUH9x9BkEq3Yhj7tdCPYE4mMMsSY0wCgYIKoZIzj0EAwIw
+        EzERMA8GA1UEAwwIYWtxdWluZXQwHhcNMjMxMTAyMTY1NjM3WhcNMjgxMDMxMTY1
+        NjM3WjBlMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UE
+        CgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMR4wHAYDVQQDDBVha3F1aW5ldC1p
+        bnRlcm1lZGlhdGUwWjAUBgcqhkjOPQIBBgkrJAMDAggBAQcDQgAEANy7YN285VwA
+        qybcUGu18bSodYpizO0rrzLopEnPF26GpxpfyVQDRDG8jOpu3YwBvv2Vkp3HmnpS
+        e5hnPXzbXKNTMFEwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUMN4FxRKRLsgM
+        Sx/cRkki59jDf+8wHwYDVR0jBBgwFoAUYeBUz/aDS8Kw6C+wPeTPxDnh0VwwCgYI
+        KoZIzj0EAwIDRwAwRAIgFtF+HAnBqn6GT60M6+KoFnTMWIQb4WIfpu888iZuvyQC
+        ICHT70IJ8GGECKgjdaLAFaJOEOMhYSE6xJV5Ol/CkI3v
+        -----END CERTIFICATE-----
+      caCert: |
+        -----BEGIN CERTIFICATE-----
+        MIIBZDCCAQugAwIBAgIUDhdn91A8+HnxJHuf3npAlFnV5eowCgYIKoZIzj0EAwIw
+        EzERMA8GA1UEAwwIYWtxdWluZXQwHhcNMjMxMTAyMTYxNzU5WhcNMzMxMDMwMTYx
+        NzU5WjATMREwDwYDVQQDDAhha3F1aW5ldDBaMBQGByqGSM49AgEGCSskAwMCCAEB
+        BwNCAAR3nIHdN/8+QbeuP3kHOqe35WY8TVWpV8lPBgSD1agCRke1rbOb+shBzfKo
+        JaAV4W97EMxhDQtv5YBOxWRRhvuCozwwOjALBgNVHQ8EBAMCAqQwDAYDVR0TBAUw
+        AwEB/zAdBgNVHQ4EFgQUYeBUz/aDS8Kw6C+wPeTPxDnh0VwwCgYIKoZIzj0EAwID
+        RwAwRAIgY4qK7kdHEx/v2scPp0xX/l4sWBss7ZdDvhglpbj69ngCIEtGu7EZHsaf
+        CoXxhY+fyPIZacABjlkWKxYka8ICapDd
+        -----END CERTIFICATE-----
+    claims:
+      issuer: "issuer"
+      audience: "aud1"
+      validitySeconds: 3600
+  matrix:
+    clientScheme: http
+    clientPort: 8083
+    serverScheme: http
+    serverPort: 8083
+  callExternalServices: true

@@ -1,0 +1,13 @@
+{
+  "ADMIN": {
+    "LAYOUT": {
+      "TITLE": "Registrierungsdienst-Instanzmanagement"
+    },
+    "SUCCESS": {
+      "LOGOUT": "Logout war erfolgreich"
+    },
+    "ERROR": {
+      "LOGOUT": "Logout war leider nicht erfolgreich"
+    }
+  }
+}
