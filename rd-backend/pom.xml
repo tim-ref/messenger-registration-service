@@ -22,12 +22,12 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.1.5</version>
+        <version>0.1.6</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-backend</artifactId>
-    <version>0.1.5</version>
+    <version>0.1.6</version>
     <name>Registrierungsdienst - Backend</name>
     <description>Backend für den Registrierungsdienst der TIM-Referenzimplementierung</description>
 
@@ -36,7 +36,7 @@
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
 
         <bouncycastle.version>1.70</bouncycastle.version>
-        <keycloak.version>23.0.5</keycloak.version>
+        <keycloak.version>23.0.6</keycloak.version>
 
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
@@ -121,17 +121,17 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>10.7.1</version>
+            <version>10.8.1</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-            <version>10.7.1</version>
+            <version>10.8.1</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.1</version>
+            <version>42.7.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -194,7 +194,7 @@
         <dependency>
             <groupId>org.bitbucket.b_c</groupId>
             <artifactId>jose4j</artifactId>
-            <version>0.9.4</version>
+            <version>0.9.5</version>
         </dependency>
 
         <dependency>
