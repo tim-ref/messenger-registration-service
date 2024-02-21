@@ -33,6 +33,7 @@ import { AdminCreatedDialogComponent } from './partial/admin-created-dialog/admi
 import { LogLevelDialogComponent } from './partial/log-level-dialog/log-level-dialog.component';
 import { LogDownloadDialogComponent } from './partial/log-download-dialog/log-download-dialog.component';
 import { environment } from '../../../../../environments/environment';
+import {AppConfigurationService} from "../../../../services/appConfiguration.service";
 
 @Component({
   selector: 'admin-messenger-service-list',
@@ -54,7 +55,8 @@ export class MessengerInstancesListComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
     private restService: RestService,
     private appService: AppService,
-    private dialogService: DialogService
+    private dialogService: DialogService,
+    private readonly appConfigService: AppConfigurationService
   ) {}
 
   ngOnInit(): void {
@@ -190,7 +192,7 @@ export class MessengerInstancesListComponent implements OnInit {
   openKeycloakRealmConsole(serverName: string): void {
     // TODO better approach would be to fetch the home URL from the keycloak client directly
     const url =
-      environment.keycloakUrl +
+      this.appConfigService.appConfig.keycloakUrl +
       '/admin/' +
       serverName.replace(/\./g, '') +
       '/console';

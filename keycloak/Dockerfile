@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FROM quay.io/keycloak/keycloak:22.0.5
+FROM quay.io/keycloak/keycloak:23.0.5
+
+USER 1000
 
 COPY theme /opt/keycloak/themes/
 

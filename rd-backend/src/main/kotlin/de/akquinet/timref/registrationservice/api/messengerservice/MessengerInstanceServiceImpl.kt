@@ -23,8 +23,8 @@ import de.akquinet.timref.registrationservice.api.federation.FederationService
 import de.akquinet.timref.registrationservice.api.federation.model.Domain
 import de.akquinet.timref.registrationservice.api.messengerservice.MessengerInstanceCreateService.Companion.X_HEADER_INSTANCE_RANDOM
 import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.AdminUser
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.SynapseSpec
 import de.akquinet.timref.registrationservice.config.KeycloakAdminConfig
+import de.akquinet.timref.registrationservice.config.MessengerProxyConfig
 import de.akquinet.timref.registrationservice.config.OperatorConfig
 import de.akquinet.timref.registrationservice.config.RegServiceConfig
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstance
@@ -51,18 +51,16 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import java.lang.Thread.sleep
+import java.net.URI
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import java.util.Timer
-import kotlin.concurrent.schedule
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
@@ -79,6 +77,7 @@ class MessengerInstanceServiceImpl(
     private val keycloak: Keycloak,
     private val keycloakAdminConfig: KeycloakAdminConfig,
     private val regServiceConfig: RegServiceConfig,
+    private val messengerProxyConfig: MessengerProxyConfig,
     private val messengerInstanceCreateService: MessengerInstanceCreateService,
     @Value("classpath:realm-template.json") val realmTemplate: Resource
 ) : MessengerInstanceService {
@@ -197,7 +196,7 @@ class MessengerInstanceServiceImpl(
                         } catch (exception: Exception) {
                             statusCode = HttpStatus.INTERNAL_SERVER_ERROR
                             logger.error("Error creating messenger instance: database")
-                            deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId!!)
+                            deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId)
                         }
 
                         if (statusCode == HttpStatus.CREATED) {
@@ -213,7 +212,7 @@ class MessengerInstanceServiceImpl(
                                     ).httpStatus
                                 } catch (e: Exception) {
                                     logger.error("Exception creating messenger instance", e)
-                                    deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId!!)
+                                    deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId)
                                     messengerInstanceRepository.delete(messengerInstanceEntityToSave)
                                     HttpStatus.INTERNAL_SERVER_ERROR
                                 }
@@ -233,7 +232,7 @@ class MessengerInstanceServiceImpl(
                                     if (statusCode != HttpStatus.CREATED) {
                                         logger.error("Error creating messenger instance: operator")
                                         statusCode = HttpStatus.INTERNAL_SERVER_ERROR
-                                        deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId!!)
+                                        deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId)
                                         messengerInstanceRepository.delete(messengerInstanceEntityToSave)
                                         federationService.deleteDomainFromVZDFederationList(
                                             messengerInstanceEntityToSave.serverName
@@ -244,14 +243,14 @@ class MessengerInstanceServiceImpl(
                                 }
                             } else {
                                 logger.error("Error creating messenger instance: vzd")
-                                deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId!!)
+                                deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId)
                                 messengerInstanceRepository.delete(messengerInstanceEntityToSave)
                                 statusCode = HttpStatus.INTERNAL_SERVER_ERROR
                             }
                         }
                     } else {
                         logger.error("Error creating messenger instance: keycloak realm")
-                        deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId!!)
+                        deleteRealmKeycloak(messengerInstanceEntityToSave.instanceId)
                         statusCode = HttpStatus.INTERNAL_SERVER_ERROR
                     }
                 }
@@ -330,7 +329,7 @@ class MessengerInstanceServiceImpl(
 
 //          delete keycloak realm
             val keycloakSuccess = try {
-                this.deleteRealmKeycloak(instanceEntity.instanceId!!) == HttpStatus.OK
+                this.deleteRealmKeycloak(instanceEntity.instanceId) == HttpStatus.OK
             } catch (exception: Exception) {
                 logger.error("Error deleting keycloak realm for ${instanceEntity.serverName}")
                 false
@@ -361,7 +360,7 @@ class MessengerInstanceServiceImpl(
             } else {
                 val userBaseData = prepareBaseUserData()
 
-                if (createKeycloakAdminUser(instanceEntity.instanceId!!, userBaseData)) {
+                if (createKeycloakAdminUser(instanceEntity.instanceId, userBaseData)) {
                     val operatorResponse = if (regServiceConfig.callExternalServices) {
                         createAdminOperatorCall(serverName, userBaseData)
                     } else {
@@ -409,24 +408,19 @@ class MessengerInstanceServiceImpl(
         return ResponseEntity(responseString, statusCode)
     }
 
-    override fun changeLogLevel(serverName: String, logLevel: String): ResponseEntity<String> {
+    override fun changeLogLevel(serverName: String, logLevel: String, loggerIdentifier: String): ResponseEntity<String> {
         val statusCode: HttpStatus
         val instanceEntity = messengerInstanceRepository.findDistinctFirstByServerNameAndUserId(
             serverName,
             userService.getUserIdFromContext()!!
         )
         statusCode = if (instanceEntity != null) {
-
-            val operatorResponse = changeLogLevelOperatorCall(instanceEntity.serverName, logLevel)
-            if (operatorResponse == HttpStatus.OK) {
-                scheduleLogLevelToInfo(instanceEntity.serverName)
+            val proxyResponse = changeProxyInstanceLogLevel(instanceEntity.instanceId, logLevel.uppercase(), loggerIdentifier)
+            if (proxyResponse.is2xxSuccessful) {
                 return ResponseEntity(HttpStatus.OK)
             } else {
-
                 HttpStatus.INTERNAL_SERVER_ERROR
             }
-
-
         } else {
             HttpStatus.NOT_FOUND
         }
@@ -488,22 +482,6 @@ class MessengerInstanceServiceImpl(
         return ResponseEntity(responseString, statusCode)
     }
 
-    private fun scheduleLogLevelToInfo(serverName: String) = Timer().schedule(30.minutes.inWholeMilliseconds) {
-        var extraTries = 0
-        while (changeLogLevelOperatorCall(serverName, "INFO") != HttpStatus.OK && extraTries < 11) {
-            logger.debug("Failed to Change loglevel für $serverName back to INFO, trying again in 10 Minutes.")
-            extraTries++
-            sleep(10.minutes.inWholeMilliseconds)
-        }
-        if (extraTries < 11) {
-            logger.debug("Successfully changed loglevel for $serverName back to INFO.")
-        } else {
-            logger.debug("Final Failure to change loglevel for $serverName back to INFO.")
-        }
-
-    }
-
-
     private fun prepareBaseUserData(): AdminUser {
         val userCharPool: List<Char> = ('a'..'z') + ('0'..'9')
         val passwordCharPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
@@ -527,22 +505,27 @@ class MessengerInstanceServiceImpl(
 
     }
 
-    private fun changeLogLevelOperatorCall(serverName: String, logLevel: String): HttpStatus {
-        if (regServiceConfig.callExternalServices) {
-            logger.debug("Changing LogLevel of $serverName to $logLevel")
-            val logLevelJson = gson.toJson(SynapseSpec(proxyConfig = null, synapseConfig = null, logLevel = logLevel))
-            val request: HttpEntity<String> = HttpEntity<String>(logLevelJson, basicHeaders())
-            val operatorResponse: ResponseEntity<String> = restTemplate.postForEntity(
-                operatorConfig.let { "${it.host}:${it.port}${it.createPath}/${serverName.replace(".", "")}" },
-                request,
-                String::class.java
-            )
-            if (operatorResponse.statusCode != HttpStatus.OK) {
-                logger.error("Error changing instance logLevel through operator, status: ${operatorResponse.statusCode} , message:  ${operatorResponse.body}")
-                return HttpStatus.INTERNAL_SERVER_ERROR
-            }
+    private fun changeProxyInstanceLogLevel(
+        serverName: String,
+        logLevel: String,
+        loggerIdentifier: String
+    ): HttpStatusCode {
+        val requestSpecificPath = "$logLevel/$loggerIdentifier"
+        val internalProxyInstanceUrl = buildInternalProxyInstanceUrl(serverName, requestSpecificPath)
+        val proxyResponse = restTemplate.exchange(
+            internalProxyInstanceUrl,
+            HttpMethod.PUT,
+            HttpEntity.EMPTY,
+            String::class.java
+        )
+
+        if (proxyResponse.statusCode.is2xxSuccessful) {
+            logger.info("Changed log level to {} for logger {} at proxy instance {}", logLevel, loggerIdentifier, serverName)
+            return HttpStatus.OK
         }
-        return HttpStatus.OK
+
+        logger.error("Error changing instance logLevel through operator, status: ${proxyResponse.statusCode}")
+        return HttpStatus.INTERNAL_SERVER_ERROR
     }
 
     private fun createAdminOperatorCall(serverName: String, user: AdminUser): HttpStatus {
@@ -731,5 +714,13 @@ class MessengerInstanceServiceImpl(
             return HttpStatus.INTERNAL_SERVER_ERROR
         }
         return HttpStatus.OK
+    }
+
+    fun buildInternalProxyInstanceUrl(serverName: String, specificPath: String): URI {
+        val scheme = messengerProxyConfig.scheme
+        val host = "${messengerProxyConfig.hostNamePrefix}.$serverName.${messengerProxyConfig.hostNameSuffix}"
+        val port = messengerProxyConfig.actuatorPort
+        val path = "${messengerProxyConfig.actuatorLoggingBasePath}/$specificPath"
+        return URI.create("$scheme$host:$port$path")
     }
 }

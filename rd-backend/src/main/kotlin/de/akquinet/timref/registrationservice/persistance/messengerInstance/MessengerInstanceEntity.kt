@@ -69,7 +69,7 @@ class MessengerInstanceEntity(
     var professionId: String? = null,
 
     @Column(name = "instance_Id")
-    var instanceId: String? = null,
+    var instanceId: String = "instanceId",
 
     @Column(name = "active")
     var active: Boolean = true,
@@ -90,7 +90,7 @@ class MessengerInstanceEntity(
                     )
                 )
             ),
-            proxyConfig = ProxyConfig(RawDataIDs(instanceId!!, telematikId!!, professionId!!)),
+            proxyConfig = ProxyConfig(RawDataIDs(instanceId, telematikId!!, professionId!!)),
             logLevel = "INFO",
         )
 

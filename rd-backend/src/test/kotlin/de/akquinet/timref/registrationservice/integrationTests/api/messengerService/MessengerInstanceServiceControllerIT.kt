@@ -19,7 +19,9 @@ package de.akquinet.timref.registrationservice.integrationTests.api.messengerSer
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.ninjasquad.springmockk.SpykBean
 import de.akquinet.timref.registrationservice.api.messengerservice.MessengerInstanceCreateService.Companion.X_HEADER_INSTANCE_RANDOM
+import de.akquinet.timref.registrationservice.api.messengerservice.MessengerInstanceServiceImpl
 import de.akquinet.timref.registrationservice.integrationTests.configuration.IntegrationTestConfiguration
 import de.akquinet.timref.registrationservice.integrationTests.configuration.WiremockConfiguration
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstance
@@ -32,6 +34,7 @@ import jakarta.annotation.PostConstruct
 import org.flywaydb.core.Flyway
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.logging.LogLevel
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
@@ -44,6 +47,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.delete
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
+import java.net.URI
 import javax.sql.DataSource
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -55,6 +59,7 @@ class MessengerInstanceServiceControllerIT(
     @Qualifier("Operator") val operatorWireMock: WireMockServer,
     @Qualifier("VZD") val vzdWireMock: WireMockServer,
     @Qualifier("Keycloak") val keycloakWireMock: WireMockServer,
+    @Qualifier("Proxy") val messengerProxyWireMock: WireMockServer,
 ) : DescribeSpec() {
     override fun extensions() = listOf(SpringExtension)
 
@@ -66,6 +71,9 @@ class MessengerInstanceServiceControllerIT(
 
     @Autowired
     lateinit var embeddedDatasource: DataSource
+
+    @SpykBean
+    lateinit var messengerInstanceService: MessengerInstanceServiceImpl
 
     private val telematikId = "telematikId"
     private val telematikIdLowercase: String = telematikId.lowercase()
@@ -84,6 +92,7 @@ class MessengerInstanceServiceControllerIT(
             operatorWireMock.start()
             rawdataWireMock.start()
             keycloakWireMock.start()
+            messengerProxyWireMock.start()
         }
 
         afterContainer {
@@ -91,6 +100,7 @@ class MessengerInstanceServiceControllerIT(
             operatorWireMock.stop()
             rawdataWireMock.stop()
             keycloakWireMock.stop()
+            messengerProxyWireMock.stop()
         }
 
         beforeEach {
@@ -113,8 +123,8 @@ class MessengerInstanceServiceControllerIT(
         this.describe("Messenger Instance Controller") {
 
             val adminMessengerInstanceEntity = MessengerInstance(
-                serverName = "proxy-test.eu.timref.akquinet.nx2.dev",
-                publicBaseUrl = "proxy-test.eu.timref.akquinet.nx2.dev"
+                serverName = "proxy-test.timref.example.com",
+                publicBaseUrl = "proxy-test.timref.example.com"
             )
 
             it("should get all already created messenger instances") {
@@ -169,9 +179,8 @@ class MessengerInstanceServiceControllerIT(
                 }
                     .andDo { print() }
                     .andExpect { status { isLocked() } }
-
-
             }
+
             it("it should fail to create a second admin user") {
                 val result = mockMvc.post("/messengerInstance/create") {}
                     .andDo { print() }
@@ -188,13 +197,17 @@ class MessengerInstanceServiceControllerIT(
                 }
                     .andDo { print() }
                     .andExpect { status { isConflict() } }
-
-
             }
+
             it("it should change logLevel") {
+                val newLogLevel = LogLevel.DEBUG
+                every {
+                    messengerInstanceService.buildInternalProxyInstanceUrl(any(), any())
+                } returns URI.create("http://localhost:${messengerProxyWireMock.port()}/actuator/logging/${newLogLevel.name}/ROOT")
+
                 mockMvc.post("/messengerInstance/${adminMessengerInstanceEntity.serverName}/loglevel") {
                     contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(adminMessengerInstanceEntity.serverName)
+                    content = newLogLevel.name
                 }
                     .andDo { print() }
                     .andExpect { status { isOk() } }

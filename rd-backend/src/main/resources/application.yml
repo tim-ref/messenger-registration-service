@@ -73,3 +73,10 @@ management:
     web:
       exposure:
         include: health
+
+messengerproxy:
+  scheme: "http://"
+  host-name-prefix: "synapse-messengerproxy"
+  host-name-suffix: "svc.cluster.local"
+  actuator-port: "1233"
+  actuator-logging-base-path: "/actuator/logging"

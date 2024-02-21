@@ -22,12 +22,12 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.1.3-SNAPSHOT</version>
+        <version>0.1.5</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-frontend</artifactId>
-    <version>0.1.3-SNAPSHOT</version>
+    <version>0.1.5</version>
     <name>Registrierungsdienst - Frontend</name>
     <description>Frontend für den Registrierungsdienst der TIM-Referenzimplementierung</description>
 
@@ -172,6 +172,10 @@
                                 <descriptor>assembly.xml</descriptor>
                             </descriptors>
                         </configuration>
+                    </execution>
+                    <execution>
+                        <id>assemble</id>
+                        <phase />
                     </execution>
                 </executions>
             </plugin>

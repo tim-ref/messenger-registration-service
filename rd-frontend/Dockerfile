@@ -15,14 +15,10 @@
 #
 FROM nginx:1.25-alpine-slim
 
-ARG TAR_GZ_FILE
-
 LABEL maintainer="TIMREF Maintainers"
 
-RUN apk add --no-cache bash
+VOLUME /usr/share/nginx/config
 
-USER root
+ARG TAR_GZ_FILE
 
 ADD ${TAR_GZ_FILE} /
-
-ENTRYPOINT ["/entrypoint.sh"]

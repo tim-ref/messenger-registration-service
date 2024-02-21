@@ -15,28 +15,35 @@
  *
  */
 
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AppComponent } from './app.component';
-import { ToolbarComponent } from './components/toolbar/toolbar.component';
-import { AppRoutingModule } from './app-routing.module';
-import { BrowserModule } from '@angular/platform-browser';
-import { ButtonModule } from './components/button/button.module';
-import { DialogModule } from './components/dialog/dialog.module';
-import { MessengerInstanceModule } from './modules/events/messenger-instance.module';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
-import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
-import { APP_INITIALIZER } from '@angular/core';
-import { initializeKeycloak } from './init/keycloak-init.factory';
-import { AppAuthguard } from './authGuard/app.authguard';
-import { ToastComponent } from './components/toast/toast.component';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {AppComponent} from './app.component';
+import {ToolbarComponent} from './components/toolbar/toolbar.component';
+import {AppRoutingModule} from './app-routing.module';
+import {BrowserModule} from '@angular/platform-browser';
+import {ButtonModule} from './components/button/button.module';
+import {DialogModule} from './components/dialog/dialog.module';
+import {MessengerInstanceModule} from './modules/events/messenger-instance.module';
+import {HTTP_INTERCEPTORS, HttpClient, HttpStatusCode} from '@angular/common/http';
+import {TranslateModule} from '@ngx-translate/core';
+import {KeycloakAngularModule, KeycloakService} from 'keycloak-angular';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {TimeoutInterceptor} from './interceptors/timeout.interceptor';
+import {APP_INITIALIZER, InjectionToken} from '@angular/core';
+import {initializeKeycloak} from './init/keycloak.factory';
+import {AppAuthguard} from './authGuard/app.authguard';
+import {ToastComponent} from './components/toast/toast.component';
 import {FooterComponent} from "./components/footer/footer.component";
+import {appConfigurationFactory} from "./init/app-config.factory";
+import {AppConfigurationService} from "./services/appConfiguration.service";
+import {AppConfig} from "./models/appConfig";
+import {HttpClientTestingModule, HttpTestingController} from "@angular/common/http/testing";
+
+const ConfigDependentServices = new InjectionToken<(() => Function)[]>('ConfigDependentServices');
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
   let component: AppComponent;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -48,7 +55,7 @@ describe('AppComponent', () => {
         ButtonModule,
         DialogModule,
         MessengerInstanceModule,
-        HttpClientModule,
+        HttpClientTestingModule,
         AppRoutingModule,
         NoopAnimationsModule,
         TranslateModule.forRoot(),
@@ -61,16 +68,37 @@ describe('AppComponent', () => {
         },
         {
           provide: APP_INITIALIZER,
-          useFactory: initializeKeycloak,
+          useFactory: appConfigurationFactory,
           multi: true,
-          deps: [KeycloakService],
+          deps: [HttpClient, AppConfigurationService, ConfigDependentServices],
+        },
+        {
+          provide: ConfigDependentServices,
+          useFactory: (
+            keycloakService: KeycloakService,
+            appConfigService: AppConfigurationService
+          ) => {
+            return [
+              initializeKeycloak(keycloakService, appConfigService)
+            ];
+          },
+          deps: [KeycloakService, AppConfigurationService]
         },
         AppAuthguard,
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppComponent);
+    httpMock = TestBed.inject(HttpTestingController);
     component = fixture.componentInstance;
+
+    // mock app config GET request
+    const getAppConfigRequest = httpMock.expectOne("/runtimeconfig.json");
+    expect(getAppConfigRequest.request.method).toBe('GET');
+    getAppConfigRequest.flush(new AppConfig(), {
+      status: HttpStatusCode.Ok,
+      statusText: "passt schon"
+    });
   });
 
   it('should create the app', () => {

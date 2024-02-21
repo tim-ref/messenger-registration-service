@@ -17,12 +17,7 @@
 
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {FooterComponent} from './footer.component';
-import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
-import {TimeoutInterceptor} from '../../interceptors/timeout.interceptor';
-import {APP_INITIALIZER} from '@angular/core';
-import {initializeKeycloak} from '../../init/keycloak-init.factory';
-import {KeycloakAngularModule, KeycloakService} from 'keycloak-angular';
-import {AppAuthguard} from '../../authGuard/app.authguard';
+import {HttpClientModule} from '@angular/common/http';
 import {AppRoutingModule} from '../../app-routing.module';
 import {BrowserModule} from '@angular/platform-browser';
 import {ButtonModule} from '../button/button.module';
@@ -40,7 +35,6 @@ describe('FooterComponent', () => {
       declarations: [FooterComponent],
       imports: [
         AppRoutingModule,
-        KeycloakAngularModule,
         BrowserModule,
         ButtonModule,
         DialogModule,
@@ -50,20 +44,7 @@ describe('FooterComponent', () => {
         NoopAnimationsModule,
         TranslateModule.forRoot(),
       ],
-      providers: [
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: TimeoutInterceptor,
-          multi: true,
-        },
-        {
-          provide: APP_INITIALIZER,
-          useFactory: initializeKeycloak,
-          multi: true,
-          deps: [KeycloakService],
-        },
-        AppAuthguard,
-      ],
+      providers: [],
     }).compileComponents();
 
     fixture = TestBed.createComponent(FooterComponent);
@@ -87,4 +68,11 @@ describe('FooterComponent', () => {
     expect(divElements[1].textContent).toContain('Registration Dienst: 2.0');
   });
 
+  it('should contain link to site-notice', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    const divSiteNotice = compiled.querySelector('#site-notice');
+    const linkToSiteNotice = divSiteNotice!.getElementsByTagName("a")
+    expect(linkToSiteNotice[0].href).toBe("https://akquinet.com/impressum.html");
+    expect(linkToSiteNotice[0].textContent).toBe("Impressum & Datenschutz");
+  });
 });

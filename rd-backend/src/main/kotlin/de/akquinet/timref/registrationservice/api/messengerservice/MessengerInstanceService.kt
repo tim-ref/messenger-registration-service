@@ -19,6 +19,7 @@ package de.akquinet.timref.registrationservice.api.messengerservice
 
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstance
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.Logger
 import org.springframework.http.ResponseEntity
 
 interface MessengerInstanceService {
@@ -27,6 +28,6 @@ interface MessengerInstanceService {
 
     fun getAllInstancesForUser(): List<MessengerInstance>
     fun createAdminUser(serverName: String): ResponseEntity<String>
-    fun changeLogLevel(serverName: String, logLevel: String): ResponseEntity<String>
+    fun changeLogLevel(serverName: String, logLevel: String, loggerIdentifier: String = Logger.ROOT_LOGGER_NAME): ResponseEntity<String>
     fun instanceReadyCheck(serverName: String): ResponseEntity<String>
 }

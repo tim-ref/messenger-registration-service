@@ -169,7 +169,7 @@
           "Beispiel-Firma"
         ],
         "TelematikID": [
-          "29dh92gs33jd"
+          "faketelematikid"
         ],
         "ProfessionOID": [
           "399283432394"
@@ -216,17 +216,18 @@
     }
   ],
   "smtpServer": {
-    "from": "timref@akquinet.de",
-    "fromDisplayName": "[LOKAL] TIMRef Registrierungsdienst",
-    "replyTo": "ehealth-servicedesk@akquinet.de",
-    "replyToDisplayName": "Akquinet eHealth Servicedesk",
-    "host": "smtp.office365.com",
+    "from": "",
+    "fromDisplayName": "",
+    "replyTo": "",
+    "replyToDisplayName": "",
+    "host": "",
     "port": "587",
     "ssl": "false",
     "starttls": "true",
     "auth": "true",
-    "user": "svc.tim@akquinet.de",
+    "user": "",
     "password": ""
   },
-  "emailTheme": "akquinet"
+  "emailTheme": "Akquinet",
+  "loginTheme": "Akquinet"
 }

@@ -56,12 +56,12 @@
   "smtpServer": {
     "from": "TO_BE_SET",
     "fromDisplayName": "TO_BE_SET",
-    "host": "smtp.office365.com",
+    "host": "",
     "port": "587",
     "ssl": "false",
     "starttls": "true",
     "auth": "true",
-    "user": "svc.tim@akquinet.de",
+    "user": "",
     "password": "TO_BE_SET"
   }
 }

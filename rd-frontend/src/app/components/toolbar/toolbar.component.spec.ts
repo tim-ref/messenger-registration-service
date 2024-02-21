@@ -15,21 +15,17 @@
  *
  */
 
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ToolbarComponent } from './toolbar.component';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { TimeoutInterceptor } from '../../interceptors/timeout.interceptor';
-import { APP_INITIALIZER } from '@angular/core';
-import { initializeKeycloak } from '../../init/keycloak-init.factory';
-import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
-import { AppAuthguard } from '../../authGuard/app.authguard';
-import { AppRoutingModule } from '../../app-routing.module';
-import { BrowserModule } from '@angular/platform-browser';
-import { ButtonModule } from '../button/button.module';
-import { DialogModule } from '../dialog/dialog.module';
-import { MessengerInstanceModule } from '../../modules/events/messenger-instance.module';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { TranslateModule } from '@ngx-translate/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {ToolbarComponent} from './toolbar.component';
+import {HttpClientModule} from '@angular/common/http';
+import {AppRoutingModule} from '../../app-routing.module';
+import {BrowserModule} from '@angular/platform-browser';
+import {ButtonModule} from '../button/button.module';
+import {DialogModule} from '../dialog/dialog.module';
+import {MessengerInstanceModule} from '../../modules/events/messenger-instance.module';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {TranslateModule} from '@ngx-translate/core';
+import {KeycloakAngularModule} from "keycloak-angular";
 
 describe('ToolbarComponent', () => {
   let fixture: ComponentFixture<ToolbarComponent>;
@@ -50,20 +46,7 @@ describe('ToolbarComponent', () => {
         NoopAnimationsModule,
         TranslateModule.forRoot(),
       ],
-      providers: [
-        {
-          provide: HTTP_INTERCEPTORS,
-          useClass: TimeoutInterceptor,
-          multi: true,
-        },
-        {
-          provide: APP_INITIALIZER,
-          useFactory: initializeKeycloak,
-          multi: true,
-          deps: [KeycloakService],
-        },
-        AppAuthguard,
-      ],
+      providers: [],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ToolbarComponent);

@@ -16,11 +16,16 @@
   -->
 
 <footer>
-  <div>
     <div class="w-full flex flex-row flex-nowrap justify-between">
-      <ng-container *ngFor="let version of versionList">
-        <div class="module-info m-6 text-xs" id="module-{{version.component}}">{{ getModuleName(version.component) }}: {{ version.version }}</div>
-      </ng-container>
+        <ng-container *ngFor="let version of versionList">
+            <div class="module-info m-6 text-xs"
+                 id="module-{{version.component}}">{{ getModuleName(version.component) }}: {{ version.version }}
+            </div>
+        </ng-container>
+        <div class="site-notice m-6 text-xs"
+             id="site-notice"
+             style="text-align: center;">
+            <a href="https://akquinet.com/impressum.html">Impressum &amp; Datenschutz</a>
+        </div>
     </div>
-  </div>
 </footer>

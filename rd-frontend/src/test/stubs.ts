@@ -19,6 +19,7 @@ import { Observable, of } from 'rxjs';
 import { Toast } from '../app/components/toast/model/toast';
 import { Injectable } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import {AppConfig} from "../app/models/appConfig";
 
 export class DialogServiceStub {
   public dialogClose$: Observable<any> = new Observable<any>();
@@ -28,6 +29,10 @@ export class DialogServiceStub {
 
 export class AppServiceStub {
   public showToast(toastConfig: Toast): void {}
+}
+
+export class AppConfigurationServiceStub {
+  appConfig: AppConfig = new AppConfig();
 }
 
 @Injectable({

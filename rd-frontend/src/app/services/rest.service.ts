@@ -15,7 +15,7 @@
  *
  */
 
-import { Injectable } from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import { Observable } from 'rxjs';
 import {
   HttpClient,
@@ -25,13 +25,18 @@ import {
 } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import {Version} from "../models/version";
+import {AppConfigurationService} from "./appConfiguration.service";
 
 @Injectable({
   providedIn: 'root',
 })
 export class RestService {
   readonly contentType = 'application/json';
-  constructor(private http: HttpClient) {}
+
+  constructor(
+    private http: HttpClient,
+    private readonly appConfigService: AppConfigurationService
+  ) {}
 
   public postToApi<T>(
     data: any,
@@ -39,7 +44,7 @@ export class RestService {
     options: any = {}
   ): Observable<T> {
     return this.http.post<T>(
-      environment.apiUrl + route,
+      this.appConfigService.appConfig.apiUrl + route,
       data,
       options
     ) as Observable<T>;
@@ -52,25 +57,25 @@ export class RestService {
   ): Observable<T | HttpEvent<T>> {
     let headers = new HttpHeaders({ 'Content-Type': this.contentType });
 
-    return this.http.put<T>(environment.apiUrl + route, data, {
+    return this.http.put<T>(this.appConfigService.appConfig.apiUrl + route, data, {
       ...options,
       headers: headers,
     });
   }
 
   public getFromApi<T>(route: string): Observable<T> {
-    return this.http.get<T>(environment.apiUrl + route);
+    return this.http.get<T>(this.appConfigService.appConfig.apiUrl + route);
   }
   public getFileFromApi<T>(route: string): Observable<any> {
-    return this.http.get(environment.apiUrl + route,
+    return this.http.get(this.appConfigService.appConfig.apiUrl + route,
       {responseType: 'blob'});
   }
 
   public deleteFromApi(route: string): Observable<any> {
-    return this.http.delete(environment.apiUrl + route);
+    return this.http.delete(this.appConfigService.appConfig.apiUrl + route);
   }
 
   public getVersion(route: string): Observable<Version[]> {
-    return this.http.get<Version[]>(environment.fachdienstMetaUrl + route);
+    return this.http.get<Version[]>(this.appConfigService.appConfig.fachdienstMetaUrl + route);
   }
 }

@@ -23,7 +23,7 @@ export const environment = {
   keycloakUrl: 'NOT_SET_KEYCLOAK_URL',
   redirectUri: 'NOT_SET_REDIRECT_URI',
   version: require('../../tmp/version'),
-  accountUrl: 'NOT_SET_KEYCLOAK_URL/realms/timref/account/#/personal-info',
+  accountPath: '/realms/timref/account/#/personal-info',
   orgAdminUri: 'NOT_SET_ORG_ADMIN_URI',
   fachdienstMetaUrl: 'NOT_SET_FACHDIENST_META_URL'
 };

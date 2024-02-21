@@ -22,7 +22,7 @@ Authorization: Bearer {{accessToken}}
 
 ### Get role of matrix user ('none', 'pract', 'org', 'orgPract')
 ### this request is at the moment not spec conform, see comments in InvitePermissionService.kt
-GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/localization?mxid=@example:test.eu.timref.akquinet.nx2.dev
+GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/localization?mxid=@example:test.example.com
 Authorization: Bearer {{providerServicesToken}}
 
 ### Add domain to federation list
@@ -31,13 +31,13 @@ Authorization: Bearer {{providerServicesToken}}
 Content-Type: application/json
 
 {
-"domain": "test.eu.timref.akquinet.nx2.dev",
+"domain": "test.example.com",
 "isInsurance": false,
 "telematikID": "test"
 }
 
 ### Delete domain from federation list
-DELETE https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/federation/test.eu.timref.akquinet.nx2.dev
+DELETE https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/federation/test.example.com
 Authorization: Bearer {{providerServicesToken}}
 
 

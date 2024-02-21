@@ -15,12 +15,14 @@
  *
  */
 
-import { KeycloakEventType, KeycloakService } from 'keycloak-angular';
-import { environment } from '../../environments/environment';
-import { filter } from 'rxjs';
+import {KeycloakEventType, KeycloakService} from 'keycloak-angular';
+import {environment} from '../../environments/environment';
+import {filter} from 'rxjs';
+import {AppConfigurationService} from "../services/appConfiguration.service";
 
 export function initializeKeycloak(
-  keycloak: KeycloakService
+  keycloak: KeycloakService,
+  appConfigService: AppConfigurationService
 ): () => Promise<any> {
   return (): Promise<any> => {
     return new Promise( (resolve, reject) => {
@@ -28,15 +30,15 @@ export function initializeKeycloak(
         try {
           await keycloak.init({
             config: {
-              url: environment.keycloakUrl,
+              url: appConfigService.appConfig.keycloakUrl,
               realm: environment.keycloakRealm,
               clientId: environment.keycloakClientId,
             },
             initOptions: {
-              redirectUri: environment.redirectUri,
+              redirectUri: appConfigService.appConfig.redirectUrl,
               checkLoginIframe: false,
             },
-            bearerExcludedUrls: [environment.fachdienstMetaUrl],
+            bearerExcludedUrls: [appConfigService.appConfig.fachdienstMetaUrl],
           });
 
           // If the refresh token expired, re-login to get new tokens if session is still active or ask to re-authenticate

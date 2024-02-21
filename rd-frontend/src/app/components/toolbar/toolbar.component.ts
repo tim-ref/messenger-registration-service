@@ -21,6 +21,7 @@ import { AppService } from '../../services/app.service';
 import { I18nService } from '../../services/i18n.service';
 import de from './assets/de.json';
 import { environment } from '../../../environments/environment';
+import {AppConfigurationService} from "../../services/appConfiguration.service";
 
 @Component({
   selector: 'admin-toolbar',
@@ -31,7 +32,8 @@ export class ToolbarComponent implements OnInit {
   constructor(
     private keycloakService: KeycloakService,
     private appService: AppService,
-    private i18nService: I18nService
+    private i18nService: I18nService,
+    private readonly appConfigService: AppConfigurationService
   ) {}
 
   ngOnInit() {
@@ -39,15 +41,16 @@ export class ToolbarComponent implements OnInit {
   }
 
   openAccountPage() {
-    window.open(environment.accountUrl, '_blank')?.focus();
+    let url = this.appConfigService.appConfig.keycloakUrl + environment.accountPath;
+    window.open(url, '_blank')?.focus();
   }
 
   openOrgAdminApp() {
-    window.open(environment.orgAdminUri, '_blank')?.focus();
+    window.open(this.appConfigService.appConfig.orgAdminUrl, '_blank')?.focus();
   }
 
   logout() {
-    this.keycloakService.logout(environment.redirectUri).catch((error) => {
+    this.keycloakService.logout(this.appConfigService.appConfig.redirectUrl).catch((error) => {
       this.appService.showToast({
         icon: 'fa-triangle-exclamation',
         iconColor: 'primary',

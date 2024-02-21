@@ -19,8 +19,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://keycloak.tu.timref.akquinet.nx2.dev/realms/timref
-          jwk-set-uri: https://keycloak.tu.timref.akquinet.nx2.dev/realms/timref/registrationservice-backend/protocol/openid-connect/certs
+          issuer-uri: https://keycloak.timref.example.com/realms/timref
+          jwk-set-uri: https://keycloak.timref.example.com/realms/timref/registrationservice-backend/protocol/openid-connect/certs
   flyway:
     enabled: false # flyway is configured in code
 
@@ -87,7 +87,7 @@ keycloak-admin:
   clientId: "registration-service"
   clientSecret: "client-secret"
   smtp:
-    from: "timref@akquinet.de"
+    from: "timref@example.com"
     fromDisplayName: "[LOKAL] TIMRef Registrierungsdienst"
     password: ""
 
@@ -134,3 +134,10 @@ regservice:
     serverScheme: http
     serverPort: 8083
   callExternalServices: true
+
+messengerproxy:
+  scheme: "http://"
+  host-name-prefix: ""
+  host-name-suffix: ""
+  actuator-port: "1233"
+  actuator-logging-base-path: "/actuator/logging"

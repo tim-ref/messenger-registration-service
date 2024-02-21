@@ -25,9 +25,6 @@ spring:
 
   flyway:
     locations: classpath:/db/migration
-    clean-on-validation-error: ${REGISTRATION_SERVICE_CLEAN_ON_ERROR}   # do NOT paste into prod-config
-    baseline-on-migrate: true # Makes already migrated versions new base on migrate allowing incremental migration
-
 
   security:
     oauth2:

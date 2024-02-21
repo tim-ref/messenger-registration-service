@@ -1,0 +1,7 @@
+{
+  "apiUrl": "http://localhost:8080",
+  "fachdienstMetaUrl": "http://host.docker.internal:8070",
+  "keycloakUrl": "http://host.docker.internal:8180",
+  "orgAdminUrl": "http://localhost:8280/",
+  "redirectUrl": "http://localhost:4200/"
+}

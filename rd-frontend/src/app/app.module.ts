@@ -15,26 +15,30 @@
  *
  */
 
-import { APP_INITIALIZER, NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { KeycloakAngularModule, KeycloakService } from 'keycloak-angular';
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
-import { MessengerInstanceModule } from './modules/events/messenger-instance.module';
-import { ToolbarComponent } from './components/toolbar/toolbar.component';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { TimeoutInterceptor } from './interceptors/timeout.interceptor';
-import { TranslateModule } from '@ngx-translate/core';
-import { ButtonModule } from './components/button/button.module';
-import { DialogModule } from './components/dialog/dialog.module';
-import { initializeKeycloak } from './init/keycloak-init.factory';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { AppAuthguard } from './authGuard/app.authguard';
-import { ToastComponent } from './components/toast/toast.component';
+import {APP_INITIALIZER, InjectionToken, NgModule} from '@angular/core';
+import {BrowserModule} from '@angular/platform-browser';
+import {KeycloakAngularModule, KeycloakService} from 'keycloak-angular';
+import {AppComponent} from './app.component';
+import {AppRoutingModule} from './app-routing.module';
+import {MessengerInstanceModule} from './modules/events/messenger-instance.module';
+import {ToolbarComponent} from './components/toolbar/toolbar.component';
+import {HTTP_INTERCEPTORS, HttpClient, HttpClientModule} from '@angular/common/http';
+import {TimeoutInterceptor} from './interceptors/timeout.interceptor';
+import {TranslateModule} from '@ngx-translate/core';
+import {ButtonModule} from './components/button/button.module';
+import {DialogModule} from './components/dialog/dialog.module';
+import {initializeKeycloak} from './init/keycloak.factory';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {AppAuthguard} from './authGuard/app.authguard';
+import {ToastComponent} from './components/toast/toast.component';
 import {FooterComponent} from "./components/footer/footer.component";
+import {appConfigurationFactory} from "./init/app-config.factory";
+import {AppConfigurationService} from "./services/appConfiguration.service";
+
+const ConfigDependentServices = new InjectionToken<(() => Function)[]>('ConfigDependentServices');
 
 @NgModule({
-  declarations: [AppComponent, ToolbarComponent, ToastComponent,FooterComponent],
+  declarations: [AppComponent, ToolbarComponent, ToastComponent, FooterComponent],
   imports: [
     AppRoutingModule,
     KeycloakAngularModule,
@@ -46,7 +50,6 @@ import {FooterComponent} from "./components/footer/footer.component";
     AppRoutingModule,
     NoopAnimationsModule,
     TranslateModule.forRoot(),
-
   ],
   providers: [
     {
@@ -56,12 +59,25 @@ import {FooterComponent} from "./components/footer/footer.component";
     },
     {
       provide: APP_INITIALIZER,
-      useFactory: initializeKeycloak,
+      useFactory: appConfigurationFactory,
       multi: true,
-      deps: [KeycloakService],
+      deps: [HttpClient, AppConfigurationService, ConfigDependentServices],
+    },
+    {
+      provide: ConfigDependentServices,
+      useFactory: (
+        keycloakService: KeycloakService,
+        appConfigService: AppConfigurationService
+      ) => {
+        return [
+          initializeKeycloak(keycloakService, appConfigService)
+        ];
+      },
+      deps: [KeycloakService, AppConfigurationService]
     },
     AppAuthguard,
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule {
+}

@@ -27,16 +27,23 @@ import {DialogModule} from '../../../../components/dialog/dialog.module';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {LoadingIndicatorModule} from '../../../../components/loading-indicator/loading-indicator.module';
 import {HttpClientTestingModule, HttpTestingController,} from '@angular/common/http/testing';
-import {DeleteMessengerInstancesDialogComponent} from './partial/delete-messenger-instance-dialog/delete-messenger-instances-dialog.component';
+import {
+  DeleteMessengerInstancesDialogComponent
+} from './partial/delete-messenger-instance-dialog/delete-messenger-instances-dialog.component';
 import {DialogService} from '../../../../services/dialog.service';
 import {MessengerInstance} from '../../../../models/messengerInstance';
 import ApiRoutes from '../../../../resources/api/api-routes';
 import {HttpStatusCode} from '@angular/common/http';
-import {environment} from '../../../../../environments/environment';
 import {AppService} from '../../../../services/app.service';
-import {AppServiceStub, DialogServiceStub, TranslateServiceStub,} from '../../../../../test/stubs';
-import {LogDownloadDialogComponent} from "./partial/log-download-dialog/log-download-dialog.component";
+import {
+  AppConfigurationServiceStub,
+  AppServiceStub,
+  DialogServiceStub,
+  TranslateServiceStub,
+} from '../../../../../test/stubs';
 import {LogLevelDialogComponent} from "./partial/log-level-dialog/log-level-dialog.component";
+import {AppConfigurationService} from "../../../../services/appConfiguration.service";
+import {AppConfig} from "../../../../models/appConfig";
 
 let instances: MessengerInstance[] = [
   {
@@ -69,6 +76,7 @@ describe('MessengerInstancesListComponent', () => {
   let fixture: ComponentFixture<MessengerInstancesListComponent>;
   let component: MessengerInstancesListComponent;
   let dialogService: DialogService;
+  let appConfigService: AppConfigurationService;
   let appService: AppService;
   let httpMock: HttpTestingController;
 
@@ -95,6 +103,7 @@ describe('MessengerInstancesListComponent', () => {
       providers: [
         {provide: DialogService, useClass: DialogServiceStub},
         {provide: AppService, useClass: AppServiceStub},
+        {provide: AppConfigurationService, useClass: AppConfigurationServiceStub},
         {provide: TranslateService, useClass: TranslateServiceStub},
       ],
     }).compileComponents();
@@ -102,15 +111,17 @@ describe('MessengerInstancesListComponent', () => {
     fixture = TestBed.createComponent(MessengerInstancesListComponent);
     component = fixture.componentInstance;
     dialogService = TestBed.inject(DialogService);
+    appConfigService = TestBed.inject(AppConfigurationService);
     appService = TestBed.inject(AppService);
     httpMock = TestBed.inject(HttpTestingController);
     fixture.detectChanges(); // run ngOnInit
 
-    const req = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstance
+    // mock instances GET request
+    const getInstancesRequest = httpMock.expectOne(
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance
     );
-    expect(req.request.method).toBe('GET');
-    req.flush(instances, {
+    expect(getInstancesRequest.request.method).toBe('GET');
+    getInstancesRequest.flush(instances, {
       status: HttpStatusCode.Ok,
       statusText: 'Retrieved all instances for the user',
     });
@@ -191,7 +202,7 @@ describe('MessengerInstancesListComponent', () => {
     component.deleteInstance(akquinetTestServer);
 
     const deleteRequest = httpMock.expectOne(
-      environment.apiUrl +
+      appConfigService.appConfig.apiUrl +
       ApiRoutes.messengerInstance +
       '/' +
       akquinetTestServer +
@@ -219,7 +230,7 @@ describe('MessengerInstancesListComponent', () => {
     );
 
     const getRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstance
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance
     );
     expect(getRequest.request.method).toBe('GET');
     getRequest.flush(
@@ -262,7 +273,7 @@ describe('MessengerInstancesListComponent', () => {
     component.deleteInstance('asdf&');
 
     const deleteRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstance + '/asdf&' + '/'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance + '/asdf&' + '/'
     );
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush('A input value contains wrong characters', {
@@ -284,7 +295,7 @@ describe('MessengerInstancesListComponent', () => {
     component.deleteInstance('asdf');
 
     const deleteRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstance + '/asdf' + '/'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance + '/asdf' + '/'
     );
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush('Messenger Instance not found', {
@@ -305,7 +316,7 @@ describe('MessengerInstancesListComponent', () => {
     component.deleteInstance('asdf');
 
     const deleteRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstance + '/asdf' + '/'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance + '/asdf' + '/'
     );
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush(component.internalServerErrorDescription, {
@@ -327,7 +338,7 @@ describe('MessengerInstancesListComponent', () => {
     component.deleteInstance('asdf');
 
     const deleteRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstance + '/asdf' + '/'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance + '/asdf' + '/'
     );
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush(
@@ -351,7 +362,7 @@ describe('MessengerInstancesListComponent', () => {
     component.logDownload('', 'synapse');
 
     const logRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceLogs + '//synapse'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogs + '//synapse'
     );
     expect(logRequest.request.method).toBe('GET');
     logRequest.flush(new Blob(), {
@@ -372,7 +383,7 @@ describe('MessengerInstancesListComponent', () => {
     component.logDownload('asdf', 'synapse');
 
     const logRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceLogs + '/asdf/synapse'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogs + '/asdf/synapse'
     );
     expect(logRequest.request.method).toBe('GET');
     logRequest.flush(new Blob(), {
@@ -393,7 +404,7 @@ describe('MessengerInstancesListComponent', () => {
     component.logDownload('asdf', 'synapse');
 
     const logRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceLogs + '/asdf/synapse'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogs + '/asdf/synapse'
     );
     expect(logRequest.request.method).toBe('GET');
     logRequest.flush(new Blob(), {
@@ -415,7 +426,7 @@ describe('MessengerInstancesListComponent', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      environment.apiUrl +
+      appConfigService.appConfig.apiUrl +
       ApiRoutes.messengerInstance +
       '/' +
       akquinetTestServer +
@@ -446,7 +457,7 @@ describe('MessengerInstancesListComponent', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      environment.apiUrl +
+      appConfigService.appConfig.apiUrl +
       ApiRoutes.messengerInstance +
       '/' +
       akquinetTestServer +
@@ -471,7 +482,7 @@ describe('MessengerInstancesListComponent', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      environment.apiUrl +
+      appConfigService.appConfig.apiUrl +
       ApiRoutes.messengerInstance +
       '/' +
       akquinetTestServer +
@@ -496,7 +507,7 @@ it('should return Locked if instance is not ready', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      environment.apiUrl +
+      appConfigService.appConfig.apiUrl +
       ApiRoutes.messengerInstance +
       '/' +
       akquinetTestServer +
@@ -521,7 +532,7 @@ it('should return Locked if instance is not ready', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      environment.apiUrl +
+      appConfigService.appConfig.apiUrl +
       ApiRoutes.messengerInstance +
       '/' +
       akquinetTestServer +
@@ -546,7 +557,7 @@ it('should return Locked if instance is not ready', () => {
     component.createMessengerInstance();
 
     const adminRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
     );
     expect(adminRequest.request.method).toBe('POST');
     adminRequest.flush(
@@ -563,7 +574,7 @@ it('should return Locked if instance is not ready', () => {
     component.createMessengerInstance();
 
     const createRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -584,7 +595,7 @@ it('should return Locked if instance is not ready', () => {
     component.createMessengerInstance();
 
     const createRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -604,7 +615,7 @@ it('should return Locked if instance is not ready', () => {
     component.createMessengerInstance();
 
     const createRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -624,7 +635,7 @@ it('should return Locked if instance is not ready', () => {
     component.createMessengerInstance();
 
     const createRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -645,7 +656,7 @@ it('should return Locked if instance is not ready', () => {
     component.createMessengerInstance();
 
     const createRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -665,7 +676,7 @@ it('should return Locked if instance is not ready', () => {
     component.createMessengerInstance();
 
     const createRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush(component.internalServerErrorDescription, {
@@ -686,7 +697,7 @@ it('should return Locked if instance is not ready', () => {
     component.createMessengerInstance();
 
     const createRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -781,7 +792,7 @@ it('should return Locked if instance is not ready', () => {
     component.changeLogLevel(akquinetTestServer);
     spyOn(appService, 'showToast');
     const postRequest = httpMock.expectOne(
-      environment.apiUrl +
+      appConfigService.appConfig.apiUrl +
       ApiRoutes.messengerInstance +
       '/' +
       akquinetTestServer +

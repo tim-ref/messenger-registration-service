@@ -21,10 +21,6 @@ spring:
 
   flyway:
     locations: classpath:/db/migration,classpath:/db/testdata-dev
-    clean-on-validation-error: true   # do NOT paste into prod-config
-    clean-disabled: false
-    create-schemas: true
-    baseline-on-migrate: true # Makes already migrated versions new base on migrate, allowing incremental migration
 
   security:
     oauth2:
@@ -40,7 +36,7 @@ keycloak-admin:
   clientId: "registration-service"
   clientSecret: "client-secret"
   smtp:
-    from: "timref@akquinet.de"
+    from: "timref@example.com"
     fromDisplayName: "[LOKAL] TIMRef Registrierungsdienst"
     password: ""
 

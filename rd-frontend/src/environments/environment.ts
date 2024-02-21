@@ -22,14 +22,13 @@
 export const environment = {
   production: false,
   fachdienstMetaUrl: 'http://host.docker.internal:8070',
-  apiUrl: 'http://localhost:8080',
+  apiUrl: 'http://host.docker.internal:8080',
   keycloakRealm: 'timref',
   keycloakClientId: 'registrationservice-frontend',
   keycloakUrl: 'http://host.docker.internal:8180',
   redirectUri: 'http://localhost:4200/',
   version: require('../../tmp/version'),
-  accountUrl:
-    'http://host.docker.internal:8180/realms/timref/account/#/personal-info',
+  accountPath: '/realms/timref/account/#/personal-info',
   orgAdminUri: 'http://localhost:8280/',
 };
 

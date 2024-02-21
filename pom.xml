@@ -21,7 +21,7 @@
 
     <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
     <artifactId>rd-parent</artifactId>
-    <version>0.1.3-SNAPSHOT</version>
+    <version>0.1.5</version>
     <packaging>pom</packaging>
 
     <name>Registrierungsdienst - Parent</name>
@@ -125,6 +125,7 @@
                 <configuration>
                     <preparationGoals>clean verify scm:checkin</preparationGoals>
                     <completionGoals>clean verify scm:checkin</completionGoals>
+                    <releaseProfiles>release</releaseProfiles>
                 </configuration>
             </plugin>
         </plugins>
@@ -187,6 +188,35 @@
                 <activeProfile>integration-tests-with-vzd-test</activeProfile>
             </properties>
         </profile>
+        <profile>
+            <id>release</id>
+            <properties>
+                <activeProfile /> <!-- run tests with default profile -->
+            </properties>
+            <build>
+                <plugins>
+                    <!-- maven-assembly-plugin -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>assembly/assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>assemble</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
     <!-- maven deploy information -->
@@ -212,7 +242,7 @@
     <scm>
         <connection>${env.CI_SCM_CONNECTION}</connection>
         <developerConnection>${env.CI_SCM_DEVELOPER_CONNECTION}</developerConnection>
-        <tag>HEAD</tag>
+        <tag>0.1.5</tag>
         <url>${env.CI_SCM_URL}</url>
     </scm>
 

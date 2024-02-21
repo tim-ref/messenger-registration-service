@@ -31,15 +31,19 @@ import {InputModule} from '../../../../../../components/input/input.module';
 import {DialogModule} from '../../../../../../components/dialog/dialog.module';
 import {DialogService} from '../../../../../../services/dialog.service';
 import {
+  AppConfigurationServiceStub,
   AppServiceStub,
   DialogServiceStub,
   TranslateServiceStub,
 } from '../../../../../../../test/stubs';
+import {AppConfigurationService} from "../../../../../../services/appConfiguration.service";
+import {AppConfig} from "../../../../../../models/appConfig";
 
 describe('LogDownloadDialogComponent', () => {
   let fixture: ComponentFixture<LogDownloadDialogComponent>;
   let component: LogDownloadDialogComponent;
   let dialogService: DialogService;
+  let appConfigService: AppConfigurationService;
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
@@ -60,6 +64,7 @@ describe('LogDownloadDialogComponent', () => {
       providers: [
         {provide: DialogService, useClass: DialogServiceStub},
         {provide: AppService, useClass: AppServiceStub},
+        {provide: AppConfigurationService, useClass: AppConfigurationServiceStub},
         {provide: TranslateService, useClass: TranslateServiceStub}
       ],
     }).compileComponents();
@@ -67,6 +72,7 @@ describe('LogDownloadDialogComponent', () => {
     fixture = TestBed.createComponent(LogDownloadDialogComponent);
     component = fixture.componentInstance;
     dialogService = TestBed.inject(DialogService);
+    appConfigService = TestBed.inject(AppConfigurationService);
     httpMock = TestBed.inject(HttpTestingController);
 
     component.data = ["component", "serverName"]
@@ -106,7 +112,7 @@ describe('LogDownloadDialogComponent', () => {
     component.logDownload();
 
     const getRequest = httpMock.expectOne(
-      environment.apiUrl + ApiRoutes.messengerInstanceLogs + `/${component.data[0]}/${component.data[1]}?start=1688015127&end=1688016927`
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogs + `/${component.data[0]}/${component.data[1]}?start=1688015127&end=1688016927`
     );
     expect(getRequest.request.method).toBe('GET');
   });

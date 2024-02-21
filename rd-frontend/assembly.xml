@@ -41,11 +41,6 @@
       <outputDirectory>/etc/nginx/conf.d/</outputDirectory>
       <destName>default.conf</destName>
     </file>
-    <file>
-      <source>${project.basedir}/entrypoint.sh</source>
-      <outputDirectory>/</outputDirectory>
-      <fileMode>0755</fileMode>
-    </file>
   </files>
 </assembly>
 
