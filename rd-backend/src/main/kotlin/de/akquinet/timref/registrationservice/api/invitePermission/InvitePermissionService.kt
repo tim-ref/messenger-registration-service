@@ -20,24 +20,19 @@ package de.akquinet.timref.registrationservice.api.invitePermission
 import com.google.gson.Gson
 import de.akquinet.timref.registrationservice.api.federation.FederationServiceImpl
 import de.akquinet.timref.registrationservice.config.VZDConfig
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
 import java.io.BufferedInputStream
 
 
 @Service
 class InvitePermissionService(
+    private val logger: Logger,
     private val federationService: FederationServiceImpl,
     private val vzdConfig: VZDConfig
 ) {
-    companion object {
-        @Suppress("JAVA_CLASS_ON_COMPANION")
-        @JvmStatic
-        private val logger = LoggerFactory.getLogger(javaClass.enclosingClass)
-    }
 
     private val gson = Gson()
-
 
     fun checkUserInvitePermissions(inviter: String, invited: String): Boolean {
         val invitedDirectory = checkUserDirectoryAtVZD(invited)
@@ -53,13 +48,9 @@ class InvitePermissionService(
     private fun checkUserDirectoryAtVZD(userString: String): String {
         val paramMap = mutableMapOf<String, Any>()
         paramMap["mxid"] = userString
-//TODO ADD BACK IN ONCE VZD IS SPEC CONFORM
-//        paramMap["mxid"] = mxidForQueryParam(userString)
         val uri = vzdConfig.serviceUrl + vzdConfig.userWhereIsPath
         val connection = federationService.connectToVzd(uri, paramMap)
         val responseBody = BufferedInputStream(connection.inputStream).bufferedReader().use { it.readText() }
         return gson.fromJson(responseBody, String::class.java)
     }
-//TODO ADD BACK IN ONCE VZD IS SPEC CONFORM
-//    private fun mxidForQueryParam(mxid: String): String = "matrix:user${mxid.replace("@", "/")}"
 }

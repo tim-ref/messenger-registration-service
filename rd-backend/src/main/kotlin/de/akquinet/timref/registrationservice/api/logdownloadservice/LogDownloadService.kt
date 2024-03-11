@@ -35,20 +35,24 @@ private fun String.toInputStreamResource() = InputStreamResource(this.byteInputS
 internal fun LogDownloadResult.toResponseEntity(): ResponseEntity<InputStreamResource> =
     when (this) {
         is LogDownloadResult.Unauthorized ->
-            ResponseEntity(
-                "not an instance: $serverName".toInputStreamResource(),
-                HttpStatus.UNAUTHORIZED
-            )
+            ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(
+                    "not an instance: $serverName".toInputStreamResource()
+                )
+
         is LogDownloadResult.InvalidInput ->
-            ResponseEntity(
-                "invalid input: $hint".toInputStreamResource(),
-                HttpStatus.BAD_REQUEST
-            )
+            ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body("invalid input: $hint".toInputStreamResource()
+                )
+
         is LogDownloadResult.Unexpected ->
-            ResponseEntity(
-                "an unexpected response occurred: $hint".toInputStreamResource(),
-                HttpStatus.INTERNAL_SERVER_ERROR
+            ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("an unexpected response occurred: $hint".toInputStreamResource()
             )
+
         is LogDownloadResult.LogStream ->
             ResponseEntity
                 .ok()

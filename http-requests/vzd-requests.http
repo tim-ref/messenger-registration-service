@@ -21,8 +21,7 @@ Authorization: Bearer {{accessToken}}
 ### Documentation for the following requests: https://github.com/gematik/api-vzd/blob/main/src/openapi/I_VZD_TIM_Provider_Services.yaml
 
 ### Get role of matrix user ('none', 'pract', 'org', 'orgPract')
-### this request is at the moment not spec conform, see comments in InvitePermissionService.kt
-GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/localization?mxid=@example:test.example.com
+GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/localization?mxid=matrix:u/example:test.example.com
 Authorization: Bearer {{providerServicesToken}}
 
 ### Add domain to federation list
@@ -43,4 +42,8 @@ Authorization: Bearer {{providerServicesToken}}
 
 ### Get federation list from VZD
 GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/FederationList/federationList.jws
+Authorization: Bearer {{providerServicesToken}}
+
+### Find Healthcare service for telematikID
+GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/search/HealthcareService?identifier=1111-akq
 Authorization: Bearer {{providerServicesToken}}

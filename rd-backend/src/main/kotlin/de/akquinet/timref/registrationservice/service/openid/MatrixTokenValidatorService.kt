@@ -18,7 +18,7 @@
 package de.akquinet.timref.registrationservice.service.openid
 
 import de.akquinet.timref.registrationservice.config.MatrixConfig
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
@@ -31,16 +31,10 @@ internal class InvalidTokenException(msg: String, cause: Throwable? = null) : Ru
 
 @Component
 class MatrixTokenValidatorService(
+    private val logger: Logger,
     private val config: MatrixConfig,
+    private val restTemplate: RestTemplate
 ) {
-
-    companion object {
-        @Suppress("JAVA_CLASS_ON_COMPANION")
-        @JvmStatic
-        private val logger = LoggerFactory.getLogger(javaClass.enclosingClass)
-    }
-
-    private val restTemplate = RestTemplate()
 
     fun validateToken(userId: String, requestToken: String, synapseServerName: String): String {
         val subject: String = getSubjectViaTokenIntrospection(requestToken, synapseServerName)

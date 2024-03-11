@@ -27,7 +27,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -67,12 +66,6 @@ private const val RESULT_EXAMPLE: String = "{\n" +
 class RegServiceOpenIdTokenController(
     private val tokenConverter: MatrixTokenToRegServiceOpenIdTokenConverterService
 ) {
-
-    companion object {
-        @Suppress("JAVA_CLASS_ON_COMPANION")
-        @JvmStatic
-        private val logger = LoggerFactory.getLogger(javaClass.enclosingClass)
-    }
 
     @PostMapping(value = ["/regservice/openid/user/{userId}/requesttoken"])
     @Operation(summary = "Obtain Regservice-OpenId-Token.")

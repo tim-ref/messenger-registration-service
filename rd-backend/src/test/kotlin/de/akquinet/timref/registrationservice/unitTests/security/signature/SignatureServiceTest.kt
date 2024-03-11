@@ -31,6 +31,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.slf4j.LoggerFactory
 import java.security.Security
 import java.security.cert.PKIXParameters
 import java.security.cert.TrustAnchor
@@ -39,6 +40,7 @@ import java.security.cert.X509Certificate
 private class TestSignatureServiceImpl(
     val useTrustAnchors: Set<TrustAnchor> = setOf()
 ) : SignatureServiceImpl(
+    logger = LoggerFactory.getLogger(TestSignatureServiceImpl::class.java),
     vzdConfig = VZDConfig(
         serviceUrl = "url",
         tokenUrl = "url",

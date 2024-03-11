@@ -20,12 +20,9 @@ package de.akquinet.timref.registrationservice.api.messengerservice
 import com.google.gson.Gson
 import de.akquinet.timref.registrationservice.api.federation.FederationServiceImpl
 import de.akquinet.timref.registrationservice.api.federation.model.Domain
-import de.akquinet.timref.registrationservice.config.OperatorConfig
 import de.akquinet.timref.registrationservice.config.VZDConfig
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
-import org.slf4j.LoggerFactory
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
+import org.slf4j.Logger
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -36,22 +33,12 @@ import java.time.Instant
 @EnableScheduling
 @Service
 class OrganizationCheckService(
-    private val operatorConfig: OperatorConfig,
+    private val logger: Logger,
     private val messengerInstanceRepository: MessengerInstanceRepository,
     private val federationService: FederationServiceImpl,
     private val vzdConfig: VZDConfig
 ) {
     private val gson = Gson()
-    private fun basicHeaders() = HttpHeaders().apply {
-        contentType = MediaType.APPLICATION_JSON
-        setBasicAuth(operatorConfig.username, operatorConfig.password)
-    }
-
-    companion object {
-        @Suppress("JAVA_CLASS_ON_COMPANION")
-        @JvmStatic
-        private val logger = LoggerFactory.getLogger(javaClass.enclosingClass)
-    }
 
     @Scheduled(cron = "\${backend.federationCheck.cron}", zone = "Europe/Berlin")
     fun getInactiveFederations() {

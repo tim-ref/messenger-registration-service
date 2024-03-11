@@ -18,8 +18,11 @@
 package de.akquinet.timref.registrationservice.api.messengerservice
 
 import com.google.gson.Gson
+import de.akquinet.timref.registrationservice.api.keycloak.KeycloakUserService
+import de.akquinet.timref.registrationservice.api.messengerproxy.MessengerProxyLogLevelService
+import de.akquinet.timref.registrationservice.extension.toJson
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstance
-import de.akquinet.timref.registrationservice.rawdata.RawDataServiceImpl
+import de.akquinet.timref.registrationservice.rawdata.RawDataService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -50,8 +53,12 @@ import kotlin.time.ExperimentalTime
     )]
 )
 class MessengerServiceController(
-    private val messengerInstanceService: MessengerInstanceServiceImpl,
-    private val rawDataService: RawDataServiceImpl
+    private val messengerInstanceService: MessengerInstanceService,
+    private val messengerInstanceCreateService: MessengerInstanceCreateService,
+    private val messengerInstanceDeleteService: MessengerInstanceDeleteService,
+    private val messengerProxyLogLevelService: MessengerProxyLogLevelService,
+    private val keycloakUserService: KeycloakUserService,
+    private val rawDataService: RawDataService
 ) {
     private val gson = Gson()
 
@@ -61,13 +68,13 @@ class MessengerServiceController(
         value = [ApiResponse(description = "Retrieved all instances for the user", responseCode = "200")]
     )
     fun get(): ResponseEntity<List<MessengerInstance>> {
-        val responseEntity = ResponseEntity(messengerInstanceService.getAllInstancesForUser(), HttpStatus.OK)
+        val responseEntity = ResponseEntity.ok(messengerInstanceService.getAllInstancesForCurrentUser())
         rawDataService.responseBodySize = gson.toJson(responseEntity.body).length
         return responseEntity
     }
 
     @OptIn(ExperimentalTime::class)
-    @PostMapping("/create")
+    @PostMapping("/create", produces = [MediaType.TEXT_PLAIN_VALUE])
     @Operation(summary = "Creates a new messenger service with given parameter.")
     @ApiResponses(
         value = [
@@ -84,24 +91,24 @@ class MessengerServiceController(
     fun createMessengerService(
         httpServletRequest: HttpServletRequest
     ): ResponseEntity<String> {
-        val responseEntity = messengerInstanceService.createNewInstance(httpServletRequest)
+        val responseEntity = messengerInstanceCreateService.createNewInstance(httpServletRequest)
         rawDataService.responseBodySize = responseEntity.body?.length ?: 0
         return responseEntity
     }
 
-    @DeleteMapping("/{serverName}/")
+    @DeleteMapping("/{serverName}/", produces = [MediaType.TEXT_PLAIN_VALUE])
     @Operation(summary = "Deletes a messenger service with given parameter.")
     @ApiResponses(
         value = [ApiResponse(
-            description = "A new messenger service instance is successfully deleted",
-            responseCode = "200"
+            description = "A messenger service instance is successfully deleted",
+            responseCode = "204"
         ),
             ApiResponse(description = "A input value contains wrong characters", responseCode = "400"),
             ApiResponse(description = "Messenger Instance not found", responseCode = "404"),
             ApiResponse(description = "Error on deleting new instance through operator", responseCode = "500")]
     )
     fun deleteMessengerService(@PathVariable serverName: String): ResponseEntity<String> {
-        val responseEntity = messengerInstanceService.deleteInstance(serverName)
+        val responseEntity = messengerInstanceDeleteService.deleteInstance(serverName)
         rawDataService.responseBodySize = responseEntity.body?.length ?: 0
         return responseEntity
     }
@@ -116,12 +123,13 @@ class MessengerServiceController(
             ApiResponse(description = "Admin user for for Instance already Exists", responseCode = "409"),
             ApiResponse(description = "Error on creating admin user through operator", responseCode = "500")]
     )
-    fun createAdminUser(@PathVariable serverName: String): ResponseEntity<String> {
-        return if (messengerInstanceService.instanceReadyCheck(serverName).statusCode == HttpStatus.OK)
-            messengerInstanceService.createAdminUser(serverName)
-        else
-            ResponseEntity("Instance is not ready yet", HttpStatus.LOCKED)
-    }
+    fun createAdminUser(@PathVariable serverName: String): ResponseEntity<String> =
+        if (messengerInstanceService.getInstanceState(serverName).isReady) {
+            keycloakUserService.createAdminUser(serverName)
+        } else {
+            ResponseEntity.status(HttpStatus.LOCKED).body("Instance is not ready yet".toJson())
+        }
+
 
     @PostMapping("/{serverName}/loglevel")
     @Operation(summary = "Change Loglevel")
@@ -130,9 +138,8 @@ class MessengerServiceController(
             ApiResponse(description = "Messenger Instance not found", responseCode = "404"),
             ApiResponse(description = "Error changing logLevel through operator", responseCode = "500")]
     )
-    fun changeInstanceLogLevel(@PathVariable serverName: String, @RequestBody logLevel: String): ResponseEntity<String> {
-        return messengerInstanceService.changeLogLevel(serverName, logLevel)
-    }
-
+    fun changeInstanceLogLevel(
+        @PathVariable serverName: String,
+        @RequestBody logLevel: String
+    ): ResponseEntity<String> = messengerProxyLogLevelService.changeLogLevel(serverName, logLevel)
 }
-
