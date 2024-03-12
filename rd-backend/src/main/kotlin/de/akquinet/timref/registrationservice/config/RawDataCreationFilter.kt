@@ -17,7 +17,7 @@
 
 package de.akquinet.timref.registrationservice.config
 
-import de.akquinet.timref.registrationservice.rawdata.RawDataServiceImpl
+import de.akquinet.timref.registrationservice.rawdata.RawDataService
 import de.akquinet.timref.registrationservice.rawdata.model.Operation
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -27,7 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
 
-class RawDataCreationFilter(private val rawdataService: RawDataServiceImpl) : OncePerRequestFilter() {
+class RawDataCreationFilter(private val rawdataService: RawDataService) : OncePerRequestFilter() {
 
     @ExperimentalTime
     override fun doFilterInternal(

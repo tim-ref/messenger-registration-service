@@ -31,6 +31,9 @@ import de.akquinet.timref.registrationservice.service.openid.MatrixTokenValidato
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
+import io.mockk.spyk
+import org.springframework.web.client.RestTemplate
 
 private const val USERINFO_URL = "/_matrix/federation/v1/openid/userinfo"
 
@@ -67,7 +70,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
                     body = """{"sub": "$mxId"}"""
                 }
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
 
                 val result = subjectUnderTest.validateToken(mxId, token, mockName)
 
@@ -85,7 +88,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
                     body = """{"sub": "$anotherMxId"}"""
                 }
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
                 shouldThrow<InvalidTokenException> {
                     subjectUnderTest.validateToken(mxId, token, mockName)
                 }
@@ -94,7 +97,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
             it("throws InvalidTokenException if token is unauthorized") {
                 val token = "abc"
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
 
                 shouldThrow<InvalidTokenException> {
                     subjectUnderTest.validateToken(mxId, token, mockName)
@@ -104,7 +107,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
             it("throws InvalidTokenException if token is not valid at all") {
                 val token = "abc"
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
 
                 shouldThrow<InvalidTokenException> {
                     subjectUnderTest.validateToken(mxId, token, mockName)
@@ -122,7 +125,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
                     statusCode = 401
                 }
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
                 shouldThrow<InvalidTokenException> {
                     subjectUnderTest.validateToken(mxId, token, mockName)
                 }
@@ -138,7 +141,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
                     body = """{"youDidNot": "see this one coming"}"""
                 }
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
                 shouldThrow<RuntimeException> {
                     subjectUnderTest.validateToken(mxId, token, mockName)    // code in here that you expect to throw an IllegalAccessException
                 }
@@ -154,7 +157,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
                     statusCode = 200
                 }
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
                 shouldThrow<RuntimeException> {
                     subjectUnderTest.validateToken(mxId, token, mockName)
                 }
@@ -163,7 +166,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
             it("throws RuntimeException if matrix request_token returns unexpected stuff") {
                 val token = "abc"
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
                 shouldThrow<RuntimeException> {
                     subjectUnderTest.validateToken(mxId, token, mockName)
                 }
@@ -172,7 +175,7 @@ class MatrixTokenValidatorServiceIT : DescribeSpec() {
             it("throws RuntimeException if matrix request_token returns no body") {
                 val token = "abc"
 
-                val subjectUnderTest = MatrixTokenValidatorService(config)
+                val subjectUnderTest = MatrixTokenValidatorService(spyk {}, config, spyk {})
                 shouldThrow<RuntimeException> {
                     subjectUnderTest.validateToken(mxId, token, mockName)
                 }

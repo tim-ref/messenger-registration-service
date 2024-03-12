@@ -17,17 +17,33 @@
 
 package de.akquinet.timref.registrationservice.util
 
+import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.web.bind.annotation.ResponseStatus
 
 @Service
 class UserService {
     fun getPrincipal(): Jwt? =
         SecurityContextHolder.getContext().authentication?.principal as Jwt?
 
-    fun getUserIdFromContext(): String? =
+    fun getUserIdFromContext(): String =
         getPrincipal()?.getClaimAsString("preferred_username")
-    fun loadUserAttributeByClaim(claim: String): String? =
-        getPrincipal()?.getClaimAsString(claim)
+            ?: throw NotLoggedInException()
+
+    fun loadUserAttributeByClaim(claim: String): String =
+        getPrincipal()?.getClaimAsString(claim) ?: throw ClaimNotFoundException("Claim $claim was not found.")
+}
+
+@ResponseStatus(value = HttpStatus.UNAUTHORIZED)
+class NotLoggedInException : RuntimeException {
+
+    constructor(message: String = "No user could be found in security context.") : super(message)
+}
+
+@ResponseStatus(value = HttpStatus.FORBIDDEN)
+class ClaimNotFoundException : RuntimeException {
+
+    constructor(message: String) : super(message)
 }

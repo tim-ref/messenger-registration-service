@@ -17,7 +17,7 @@
 
 package de.akquinet.timref.registrationservice.config
 
-import de.akquinet.timref.registrationservice.rawdata.RawDataServiceImpl
+import de.akquinet.timref.registrationservice.rawdata.RawDataService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -35,7 +35,7 @@ const val INVITE_PERMISSION_PATH = "/vzd/invite"
 @EnableMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 class WebSecurityConfig(
-    private val rawdataService: RawDataServiceImpl
+    private val rawdataService: RawDataService
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain = http

@@ -21,7 +21,7 @@
 
     <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
     <artifactId>rd-parent</artifactId>
-    <version>0.1.6</version>
+    <version>0.2.1</version>
     <packaging>pom</packaging>
 
     <name>Registrierungsdienst - Parent</name>
@@ -85,7 +85,7 @@
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -242,7 +242,7 @@
     <scm>
         <connection>${env.CI_SCM_CONNECTION}</connection>
         <developerConnection>${env.CI_SCM_DEVELOPER_CONNECTION}</developerConnection>
-        <tag>0.1.6</tag>
+        <tag>0.2.1</tag>
         <url>${env.CI_SCM_URL}</url>
     </scm>
 

@@ -28,23 +28,14 @@ class OrgAdminEntity(
     @Column(name = "id", columnDefinition = "uuid", updatable = false)
     var id: UUID? = null,
 
-    @Column(name = "telematik_id") var telematikId: String? = "telematikID",
+    @Column(name = "telematik_id") var telematikId: String,
 
-    @Column(name = "mx_id", unique = true) var mxId: String? = "mxid",
+    @Column(name = "mx_id", unique = true) var mxId: String,
 
-    @Column(name = "profession_oid", unique = true) var professionOid: String? = "professionOID",
+    @Column(name = "profession_oid", unique = true) var professionOid: String,
 
-    @Column(name = "server_name", unique = true) var serverName: String? = "server_name",
-
-    ) {
-
-    init {
-        require(telematikId!!.isNotBlank()) { "TelematikId darf nicht leer sein." }
-        require(mxId!!.isNotBlank()) { "MX-Id darf nicht leer sein." }
-        require(serverName!!.isNotBlank()) { "serverName darf nicht leer sein." }
-        require(professionOid!!.isNotBlank()) { "ProfessionOid darf nicht leer sein." }
-    }
-}
+    @Column(name = "server_name", unique = true) var serverName: String,
+)
 
 fun extractSynapseServerNameFromMxId(userId: String): String? = if (userId.contains(":")) {
     userId.split(":").last()

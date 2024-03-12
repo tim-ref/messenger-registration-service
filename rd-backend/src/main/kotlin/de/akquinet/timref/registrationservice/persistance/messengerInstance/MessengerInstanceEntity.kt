@@ -17,15 +17,15 @@
 
 package de.akquinet.timref.registrationservice.persistance.messengerInstance
 
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.HomeServer
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.OidcProvider
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.ProxyConfig
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.RawDataIDs
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.SingleSignOn
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.SynapseConfig
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.SynapseSpec
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.UserMappingConfig
-import de.akquinet.timref.registrationservice.api.messengerservice.operatormodels.UserMappingProvider
+import de.akquinet.timref.registrationservice.api.operator.HomeServer
+import de.akquinet.timref.registrationservice.api.operator.OidcProvider
+import de.akquinet.timref.registrationservice.api.operator.ProxyConfig
+import de.akquinet.timref.registrationservice.api.operator.RawDataIDs
+import de.akquinet.timref.registrationservice.api.operator.SingleSignOn
+import de.akquinet.timref.registrationservice.api.operator.SynapseConfig
+import de.akquinet.timref.registrationservice.api.operator.SynapseSpec
+import de.akquinet.timref.registrationservice.api.operator.UserMappingConfig
+import de.akquinet.timref.registrationservice.api.operator.UserMappingProvider
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -45,31 +45,31 @@ class MessengerInstanceEntity(
 
     @Version
     @Column(name = "version")
-    var version: Long? = null,
+    var version: Long = 0L,
 
     @Column(name = "server_name", unique = true)
-    var serverName: String = "servername",
+    var serverName: String,
 
     @Column(name = "public_base_url", unique = true)
-    var publicBaseUrl: String = "publicBaseUrl",
+    var publicBaseUrl: String,
 
     @Column(name = "user_id")
-    var userId: String? = null,
+    var userId: String,
 
     @Column(name = "date_of_order")
-    var dateOfOrder: LocalDate = LocalDate.now(),
+    var dateOfOrder: LocalDate,
 
     @Column(name = "end_of_life_date")
-    var endDate: LocalDate = LocalDate.now(),
+    var endDate: LocalDate,
 
     @Column(name = "telematik_id")
-    var telematikId: String? = null,
+    var telematikId: String,
 
     @Column(name = "profession_id")
-    var professionId: String? = null,
+    var professionId: String,
 
     @Column(name = "instance_Id")
-    var instanceId: String = "instanceId",
+    var instanceId: String,
 
     @Column(name = "active")
     var active: Boolean = true,
@@ -90,7 +90,7 @@ class MessengerInstanceEntity(
                     )
                 )
             ),
-            proxyConfig = ProxyConfig(RawDataIDs(instanceId, telematikId!!, professionId!!)),
+            proxyConfig = ProxyConfig(RawDataIDs(instanceId, telematikId, professionId)),
             logLevel = "INFO",
         )
 
@@ -119,7 +119,7 @@ class MessengerInstanceEntity(
 
 data class MessengerInstance(
     val id: UUID? = null,
-    val version: Long? = null,
+    val version: Long = 0L,
     val serverName: String,
     val publicBaseUrl: String,
     val userId: String? = null,

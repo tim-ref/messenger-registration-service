@@ -27,6 +27,7 @@ import io.kotest.matchers.string.shouldHaveLength
 import io.kotest.matchers.string.shouldMatch
 import io.mockk.every
 import io.mockk.mockk
+import java.time.LocalDate
 
 class MessengerInstanceCreateServiceTest: DescribeSpec() {
 
@@ -37,7 +38,19 @@ class MessengerInstanceCreateServiceTest: DescribeSpec() {
                 val repo: MessengerInstanceRepository = mockk {
                     every { findAllByServerNameOrPublicBaseUrl(any(), any()) } returns emptyList()
                 }
-                val sut = MessengerInstanceCreateService(messengerInstanceRepository = repo)
+                val sut = MessengerInstanceCreateService(
+                    messengerInstanceRepository = repo,
+                    userService = mockk {},
+                    rawdataService = mockk {},
+                    federationService = mockk {},
+                    logger = mockk {},
+                    operatorService = mockk {},
+                    regServiceConfig = mockk {},
+                    operatorConfig = mockk {},
+                    keycloakAdminConfig = mockk {},
+                    keycloakRealmService = mockk {},
+                    messengerInstanceService = mockk {}
+                )
 
                 val actual = sut.generateAvailableInstanceName("localhost")
                 actual shouldHaveLength 3
@@ -46,9 +59,32 @@ class MessengerInstanceCreateServiceTest: DescribeSpec() {
 
             it("can throw if MAX_ROUNDS is exceeded") {
                 val repo: MessengerInstanceRepository = mockk {
-                    every { findAllByServerNameOrPublicBaseUrl(any(), any()) } returns listOf(MessengerInstanceEntity())
+                    every { findAllByServerNameOrPublicBaseUrl(any(), any()) } returns listOf(
+                        MessengerInstanceEntity(
+                            dateOfOrder = LocalDate.now(),
+                            endDate = LocalDate.now().plusMonths(1),
+                            userId = "someUser",
+                            professionId = "someProfessionId",
+                            publicBaseUrl = "some.server.name",
+                            instanceId = "some.server.name".replace(".", ""),
+                            serverName = "some.server.name",
+                            telematikId = "someTelematikId"
+                        )
+                    )
                 }
-                val sut = MessengerInstanceCreateService(messengerInstanceRepository = repo)
+                val sut = MessengerInstanceCreateService(
+                    messengerInstanceRepository = repo,
+                    userService = mockk {},
+                    rawdataService = mockk {},
+                    federationService = mockk {},
+                    logger = mockk {},
+                    operatorService = mockk {},
+                    regServiceConfig = mockk {},
+                    operatorConfig = mockk {},
+                    keycloakAdminConfig = mockk {},
+                    keycloakRealmService = mockk {},
+                    messengerInstanceService = mockk {}
+                )
 
                 val exception = shouldThrow<IllegalStateException> { sut.generateAvailableInstanceName("localhost")  }
                 exception.message shouldBe "Could not find an available instance name (tries=${MessengerInstanceCreateService.MAX_ROUNDS})"

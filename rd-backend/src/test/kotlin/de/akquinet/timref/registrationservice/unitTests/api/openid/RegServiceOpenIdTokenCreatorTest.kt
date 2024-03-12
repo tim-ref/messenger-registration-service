@@ -32,11 +32,13 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.longs.shouldBeInRange
 import io.kotest.matchers.shouldBe
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.slf4j.LoggerFactory
 import java.security.Security
 import java.time.Instant
 import java.util.*
 
 class TestSignatureServiceImpl : SignatureServiceImpl(
+    logger = LoggerFactory.getLogger(TestSignatureServiceImpl::class.java),
     vzdConfig = VZDConfig(
         serviceUrl = "url",
         tokenUrl = "url",
@@ -116,8 +118,12 @@ class RegServiceOpenIdTokenCreatorTest : DescribeSpec({
         }
 
         fun createToken(orgAdmin: OrgAdminEntity = defaultAdmin): String =
-            RegServiceOpenIdTokenCreatorService(keyConfig = keyConfig, tokenConfig = tokenConfig, signatureService)
-                .createToken(orgAdmin)
+            RegServiceOpenIdTokenCreatorService(
+                logger = LoggerFactory.getLogger(RegServiceOpenIdTokenCreatorService::class.java),
+                keyConfig = keyConfig,
+                tokenConfig = tokenConfig,
+                signatureService
+            ).createToken(orgAdmin)
 
         it("can create a token that has correct sub") {
             val token = createToken(defaultAdmin)

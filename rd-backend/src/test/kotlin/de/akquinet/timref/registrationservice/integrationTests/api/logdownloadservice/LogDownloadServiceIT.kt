@@ -26,7 +26,7 @@ import de.akquinet.timref.registrationservice.api.logdownloadservice.LogDownload
 import de.akquinet.timref.registrationservice.api.logdownloadservice.LogDownloadServiceImpl
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstanceEntity
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
-import de.akquinet.timref.registrationservice.rawdata.RawDataServiceImpl
+import de.akquinet.timref.registrationservice.rawdata.RawDataService
 import de.akquinet.timref.registrationservice.util.UserService
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -34,8 +34,10 @@ import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.every
 import io.mockk.mockk
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import java.time.Instant
+import java.time.LocalDate
 
 class LogDownloadServiceIT : DescribeSpec() {
 
@@ -43,7 +45,7 @@ class LogDownloadServiceIT : DescribeSpec() {
 
     private var messengerInstanceRepository: MessengerInstanceRepository = mockk()
 
-    private val rawDataService: RawDataServiceImpl = mockk(relaxed = true)
+    private val rawDataService: RawDataService = mockk(relaxed = true)
     private val lokiWiremockPort = 7777
     private val lokiTestUrl = "/loki"
     private val testLokiConfig = LogDownloadLokiConfig(
@@ -53,7 +55,13 @@ class LogDownloadServiceIT : DescribeSpec() {
         port =  lokiWiremockPort
     )
 
-    private val logDownloadService = LogDownloadServiceImpl(testLokiConfig, userService, messengerInstanceRepository, rawDataService)
+    private val logDownloadService = LogDownloadServiceImpl(
+        LoggerFactory.getLogger(javaClass.name),
+        testLokiConfig,
+        userService,
+        messengerInstanceRepository,
+        rawDataService
+    )
     init {
         val lokiWiremock = WireMockServer(lokiWiremockPort)
 
@@ -65,7 +73,16 @@ class LogDownloadServiceIT : DescribeSpec() {
             every { userService.getUserIdFromContext() } returns someUser
             every {
                 messengerInstanceRepository.findDistinctFirstByServerNameAndUserId(someServerName, someUser)
-            } returns MessengerInstanceEntity()
+            } returns MessengerInstanceEntity(
+                dateOfOrder = LocalDate.now(),
+                endDate = LocalDate.now().plusMonths(1),
+                userId = someUser,
+                professionId = "someProfessionId",
+                publicBaseUrl = someServerName,
+                instanceId = someServerName.replace(".", ""),
+                serverName = someServerName,
+                telematikId = "someTelematikId"
+            )
 
             lokiWiremock.start()
         }

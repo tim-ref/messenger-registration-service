@@ -24,11 +24,19 @@ import org.jose4j.jwa.AlgorithmConstraints
 import org.jose4j.jws.JsonWebSignature
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.io.FileInputStream
-import java.security.*
-import java.security.cert.*
+import java.security.GeneralSecurityException
+import java.security.KeyStore
+import java.security.PrivateKey
+import java.security.PublicKey
+import java.security.cert.CertPathValidator
+import java.security.cert.CertPathValidatorException
+import java.security.cert.CertificateException
+import java.security.cert.CertificateFactory
+import java.security.cert.PKIXParameters
+import java.security.cert.TrustAnchor
+import java.security.cert.X509Certificate
 
 
 sealed interface JwsVerificationResult {
@@ -51,9 +59,9 @@ sealed interface CertPathValidationResult {
 
 @Service
 class SignatureServiceImpl(
+    private val logger: Logger,
     val vzdConfig: VZDConfig,
 ) : SignatureService {
-    private val logger: Logger = LoggerFactory.getLogger(SignatureServiceImpl::class.java)
 
     fun getTrustAnchors(): Set<TrustAnchor> {
         val keyStore = loadTrustStore()
