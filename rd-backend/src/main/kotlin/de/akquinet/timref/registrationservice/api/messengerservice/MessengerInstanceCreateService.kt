@@ -43,6 +43,7 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.measureTimedValue
@@ -90,10 +91,9 @@ class MessengerInstanceCreateService @Autowired constructor(
 
         val telematikId = userService.loadUserAttributeByClaim("telematik_id")
 
-        val nextInstanceRandom = generateAvailableInstanceName(operatorConfig.baseFQDN)
-        val nextInstanceName = telematikId.lowercase() + nextInstanceRandom
-        val nextInstanceFQDN = nextInstanceName + operatorConfig.baseFQDN
-        logger.debug("FQDN: {}", nextInstanceFQDN)
+        val instanceName = UUID.randomUUID().toString()
+        val instanceFQDN = instanceName + operatorConfig.baseFQDN
+        logger.debug("FQDN: {}", instanceFQDN)
 
         return InstanceCreateParams(
             userId = userService.getUserIdFromContext(),
@@ -101,9 +101,8 @@ class MessengerInstanceCreateService @Autowired constructor(
             endDate = endDate,
             currentInstanceCount = instancesSize,
             telematikId = telematikId,
-            nextInstanceRandom = nextInstanceRandom,
-            nextInstanceName = nextInstanceName,
-            nextInstanceFQDN = nextInstanceFQDN,
+            instanceName = instanceName,
+            instanceFQDN = instanceFQDN,
             professionOid = professionOid,
             active = true,
             startOfInactivity = null
@@ -126,7 +125,7 @@ class MessengerInstanceCreateService @Autowired constructor(
                         createResult.messengerInstanceEntity?.serverName?.let { serverName = it }
                         ResponseEntity
                             .status(HttpStatus.CREATED)
-                            .header(X_HEADER_INSTANCE_RANDOM, createParams.nextInstanceRandom)
+                            .header(X_HEADER_INSTANCE_RANDOM, createParams.instanceName)
                             .body("Erstelle Instanz mit Servername: $serverName und URL: $serverName".toJson())
                     } else {
                         val message = performRollbackWhereNecessary(createParams, createResult).joinToString(", ")
@@ -168,8 +167,8 @@ class MessengerInstanceCreateService @Autowired constructor(
     ): List<String> {
         val result = mutableListOf<String>()
         if (createResults.keycloakRealmCreated) {
-            keycloakRealmService.deleteRealmKeycloak(createParams.nextInstanceName)
-            result.add("Keycloak realm ${createParams.nextInstanceName} rolled back.")
+            keycloakRealmService.deleteRealmKeycloak(createParams.instanceName)
+            result.add("Keycloak realm ${createParams.instanceName} rolled back.")
         } else {
             result.add("Keycloak realm was not created.")
         }

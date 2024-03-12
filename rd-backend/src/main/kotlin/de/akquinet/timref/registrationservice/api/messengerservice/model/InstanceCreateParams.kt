@@ -26,16 +26,15 @@ data class InstanceCreateParams(
     val endDate: LocalDate,
     val currentInstanceCount: Int,
     val telematikId: String,
-    val nextInstanceRandom: String,
-    val nextInstanceName: String,
-    val nextInstanceFQDN: String,
+    val instanceName: String,
+    val instanceFQDN: String,
     val professionOid: String,
     val active: Boolean,
     val startOfInactivity: Long?
 ) {
 
     val instanceId: String
-        get() = nextInstanceFQDN.replace(".", "")
+        get() = instanceFQDN.replace(".", "")
 
     fun toMessengerInstanceEntity() = MessengerInstanceEntity(
         userId = userId,
@@ -44,8 +43,8 @@ data class InstanceCreateParams(
         instanceId = instanceId,
         dateOfOrder = dateOfOrder,
         endDate = endDate,
-        serverName = nextInstanceFQDN,
-        publicBaseUrl = nextInstanceFQDN,
+        serverName = instanceFQDN,
+        publicBaseUrl = instanceFQDN,
         active = active,
         startOfInactivity = startOfInactivity
     )

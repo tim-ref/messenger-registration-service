@@ -155,21 +155,19 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName = telematikIdLowercase + instanceRandom
-                    val instanceId = telematikIdLowercaseWithoutDots + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
 
                     getAllInstancesForCurrentUser().also {
                         // also count instances fom testdata
                         it shouldHaveSize 1
 
                         val instance = it.last()
-                        instance.serverName shouldBe "$serverName.localhost"
-                        instance.publicBaseUrl shouldBe "$serverName.localhost"
+                        instance.serverName shouldBe "$instanceName.localhost"
+                        instance.publicBaseUrl shouldBe "$instanceName.localhost"
                         instance.id.shouldNotBeNull()
                         instance.telematikId shouldBe telematikId
                         instance.professionId shouldBe "professionOid"
-                        instance.instanceId shouldBe "${instanceId}localhost"
+                        instance.instanceId shouldBe "${instanceName}localhost"
                         instance.dateOfOrder shouldBe dateOfOrder.toString()
                         instance.endDate shouldBe endDate.toString()
                     }
@@ -181,12 +179,11 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName = telematikIdLowercase + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
 
-                    keycloakUserService.createAdminUser("$serverName.localhost").statusCode shouldBe HttpStatus.CREATED
+                    keycloakUserService.createAdminUser("$instanceName.localhost").statusCode shouldBe HttpStatus.CREATED
 
-                    messengerInstanceDeleteService.deleteInstance("$serverName.localhost").statusCode shouldBe HttpStatus.NO_CONTENT
+                    messengerInstanceDeleteService.deleteInstance("$instanceName.localhost").statusCode shouldBe HttpStatus.NO_CONTENT
                 }
 
             }
@@ -197,9 +194,8 @@ class MessengerInstanceServiceIT(
                     response.statusCode shouldBe HttpStatus.CREATED
 
                     val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName = telematikIdLowercase + instanceRandom
 
-                    messengerInstanceDeleteService.deleteInstance("$serverName.localhost").statusCode shouldBe HttpStatus.NO_CONTENT
+                    messengerInstanceDeleteService.deleteInstance("$instanceRandom.localhost").statusCode shouldBe HttpStatus.NO_CONTENT
                 }
 
             }
@@ -210,17 +206,17 @@ class MessengerInstanceServiceIT(
                 messengerInstanceService.run {
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    serverName1 = telematikIdLowercase + instanceRandom
-                    instanceId1 = telematikIdLowercaseWithoutDots + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first().toString()
+                    serverName1 = instanceName
+                    instanceId1 = instanceName
                 }
 
                 messengerInstanceService.run {
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName2 = telematikIdLowercase + instanceRandom
+                    val instanceName2 = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
+                    val serverName2 = instanceName2
 
                     keycloakUserService.createAdminUser("$serverName2.localhost").statusCode shouldBe HttpStatus.CREATED
 
@@ -260,20 +256,18 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName = telematikIdLowercase + instanceRandom
-                    val instanceId = telematikIdLowercaseWithoutDots + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
 
                     getAllInstancesForCurrentUser().also {
                         it shouldHaveSize 1
 
                         val instance = it.single()
-                        instance.serverName shouldBe "$serverName.localhost"
-                        instance.publicBaseUrl shouldBe "$serverName.localhost"
+                        instance.serverName shouldBe "$instanceName.localhost"
+                        instance.publicBaseUrl shouldBe "$instanceName.localhost"
                         instance.id.shouldNotBeNull()
                         instance.telematikId shouldBe telematikId
                         instance.professionId shouldBe "professionOid"
-                        instance.instanceId shouldBe "${instanceId}localhost"
+                        instance.instanceId shouldBe "${instanceName}localhost"
                     }
                 }
 
@@ -281,20 +275,18 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName = telematikIdLowercase + instanceRandom
-                    val instanceId = telematikIdLowercaseWithoutDots + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
 
                     getAllInstancesForCurrentUser().also {
                         it shouldHaveSize 2
 
                         val instance = it.last()
-                        instance.serverName shouldBe "$serverName.localhost"
-                        instance.publicBaseUrl shouldBe "$serverName.localhost"
+                        instance.serverName shouldBe "$instanceName.localhost"
+                        instance.publicBaseUrl shouldBe "$instanceName.localhost"
                         instance.id.shouldNotBeNull()
                         instance.telematikId shouldBe telematikId
                         instance.professionId shouldBe "professionOid"
-                        instance.instanceId shouldBe "${instanceId}localhost"
+                        instance.instanceId shouldBe "${instanceName}localhost"
                     }
                 }
 
@@ -305,10 +297,10 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
 
-                    serverName3 = telematikIdLowercase + instanceRandom
-                    instanceId3 = telematikIdLowercaseWithoutDots + instanceRandom
+                    serverName3 = instanceName
+                    instanceId3 = instanceName
 
                     getAllInstancesForCurrentUser().also {
                         it shouldHaveSize 3
@@ -346,20 +338,18 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName = telematikIdLowercase + instanceRandom
-                    val instanceId = telematikIdLowercaseWithoutDots + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
 
                     getAllInstancesForCurrentUser().also {
                         it shouldHaveSize 1
 
                         val instance = it.single()
-                        instance.serverName shouldBe "$serverName.localhost"
-                        instance.publicBaseUrl shouldBe "$serverName.localhost"
+                        instance.serverName shouldBe "$instanceName.localhost"
+                        instance.publicBaseUrl shouldBe "$instanceName.localhost"
                         instance.id.shouldNotBeNull()
                         instance.telematikId shouldBe telematikId
                         instance.professionId shouldBe "professionOid"
-                        instance.instanceId shouldBe "${instanceId}localhost"
+                        instance.instanceId shouldBe "${instanceName}localhost"
                     }
                 }
 
@@ -369,9 +359,9 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    serverName2 = telematikIdLowercase + instanceRandom
-                    instanceId2 = telematikIdLowercaseWithoutDots + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
+                    serverName2 = instanceName
+                    instanceId2 = instanceName
 
                     getAllInstancesForCurrentUser().also {
                         it shouldHaveSize 2
@@ -390,20 +380,18 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName = telematikIdLowercase + instanceRandom
-                    val instanceId = telematikIdLowercaseWithoutDots + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
 
                     getAllInstancesForCurrentUser().also {
                         it shouldHaveSize 3
 
                         val instance = it.last()
-                        instance.serverName shouldBe "$serverName.localhost"
-                        instance.publicBaseUrl shouldBe "$serverName.localhost"
+                        instance.serverName shouldBe "$instanceName.localhost"
+                        instance.publicBaseUrl shouldBe "$instanceName.localhost"
                         instance.id.shouldNotBeNull()
                         instance.telematikId shouldBe telematikId
                         instance.professionId shouldBe "professionOid"
-                        instance.instanceId shouldBe "${instanceId}localhost"
+                        instance.instanceId shouldBe "${instanceName}localhost"
                     }
                 }
 
@@ -417,20 +405,18 @@ class MessengerInstanceServiceIT(
                     val response = messengerInstanceCreateService.createNewInstance(request)
                     response.statusCode shouldBe HttpStatus.CREATED
 
-                    val instanceRandom = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
-                    val serverName = telematikIdLowercase + instanceRandom
-                    val instanceId = telematikIdLowercaseWithoutDots + instanceRandom
+                    val instanceName = response.headers[X_HEADER_INSTANCE_RANDOM]?.first()
 
                     getAllInstancesForCurrentUser().also {
                         it shouldHaveSize 3
 
                         val instance = it.last()
-                        instance.serverName shouldBe "$serverName.localhost"
-                        instance.publicBaseUrl shouldBe "$serverName.localhost"
+                        instance.serverName shouldBe "$instanceName.localhost"
+                        instance.publicBaseUrl shouldBe "$instanceName.localhost"
                         instance.id.shouldNotBeNull()
                         instance.telematikId shouldBe telematikId
                         instance.professionId shouldBe "professionOid"
-                        instance.instanceId shouldBe "${instanceId}localhost"
+                        instance.instanceId shouldBe "${instanceName}localhost"
                     }
                 }
             }

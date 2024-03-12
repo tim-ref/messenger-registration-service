@@ -155,12 +155,11 @@ class MessengerInstanceServiceControllerIT(
                     .andDo { print() }
                     .andExpect { status { isCreated() } }
                     .andReturn()
-                val instanceRandom = result.response.getHeaderValue(X_HEADER_INSTANCE_RANDOM)
-                val serverName = telematikIdLowercase + instanceRandom
-                mockMvc.get("/messengerInstance/$serverName.localhost/admin")
+                val instanceName = result.response.getHeaderValue(X_HEADER_INSTANCE_RANDOM)
+                mockMvc.get("/messengerInstance/$instanceName.localhost/admin")
                     .andDo { print() }
                     .andExpect { status { isCreated() } }
-                mockMvc.delete("/messengerInstance/$serverName.localhost/")
+                mockMvc.delete("/messengerInstance/$instanceName.localhost/")
                     .andDo { print() }
                     .andExpect { status { isNoContent() } }
             }
@@ -191,14 +190,13 @@ class MessengerInstanceServiceControllerIT(
                     .andDo { print() }
                     .andExpect { status { isCreated() } }
                     .andReturn()
-                val instanceRandom = result.response.getHeaderValue(X_HEADER_INSTANCE_RANDOM)
-                val serverName = telematikIdLowercase + instanceRandom
-                mockMvc.get("/messengerInstance/$serverName.localhost/admin") {
+                val instanceName = result.response.getHeaderValue(X_HEADER_INSTANCE_RANDOM)
+                mockMvc.get("/messengerInstance/$instanceName.localhost/admin") {
                 }
                     .andDo { print() }
                     .andExpect { status { isCreated() } }
 
-                mockMvc.get("/messengerInstance/$serverName.localhost/admin") {
+                mockMvc.get("/messengerInstance/$instanceName.localhost/admin") {
                 }
                     .andDo { print() }
                     .andExpect { status { isConflict() } }
