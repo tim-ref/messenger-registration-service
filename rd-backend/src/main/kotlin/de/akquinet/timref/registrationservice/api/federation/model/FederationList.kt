@@ -32,8 +32,8 @@ data class FederationListResponse(
 ) {
     fun toResponseEntity(gson: Gson): ResponseEntity<String> =
         federationList?.let {
-            ResponseEntity(gson.toJson(it), httpStatus)
-        } ?: ResponseEntity(errorMessage!!, httpStatus)
+            ResponseEntity.status(httpStatus).body(gson.toJson(it))
+        } ?: ResponseEntity.status(httpStatus).body(errorMessage)
 }
 
 data class FederationListBase64Header(
@@ -57,8 +57,8 @@ data class AddDomainResponse(
 ) {
     fun toResponseEntity(gson: Gson): ResponseEntity<String> =
         domain?.let {
-            ResponseEntity(gson.toJson(it), httpStatus)
-        } ?: ResponseEntity(errorMessage!!, httpStatus)
+            ResponseEntity.status(httpStatus).body(gson.toJson(it))
+        } ?: ResponseEntity.status(httpStatus).body(errorMessage)
 }
 
 data class DeleteDomainResponse(
@@ -67,8 +67,8 @@ data class DeleteDomainResponse(
 ) {
     fun toResponseEntity(): ResponseEntity<String> =
         errorMessage?.let {
-            ResponseEntity(errorMessage, httpStatus)
-        } ?: ResponseEntity("", httpStatus)
+            ResponseEntity.status(httpStatus).body(errorMessage)
+        } ?: ResponseEntity.status(httpStatus).body("")
 }
 
 @Schema(name = "FederationList", description = "The federation list for the Messengerproxy")

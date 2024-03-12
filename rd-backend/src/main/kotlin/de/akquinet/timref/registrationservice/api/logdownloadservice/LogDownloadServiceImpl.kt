@@ -18,10 +18,11 @@
 package de.akquinet.timref.registrationservice.api.logdownloadservice
 
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
-import de.akquinet.timref.registrationservice.rawdata.RawDataServiceImpl
+import de.akquinet.timref.registrationservice.rawdata.RawDataService
+import de.akquinet.timref.registrationservice.util.NotLoggedInException
 import de.akquinet.timref.registrationservice.util.TrivialResponseErrorHandler
 import de.akquinet.timref.registrationservice.util.UserService
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -33,12 +34,12 @@ import java.time.Instant
 
 @Service
 class LogDownloadServiceImpl(
+    private val logger: Logger,
     private val lokiConfig: LogDownloadLokiConfig,
     private val userService: UserService,
     private val messengerInstanceRepository: MessengerInstanceRepository,
-    private val rawDataService: RawDataServiceImpl
+    private val rawDataService: RawDataService
 ) : LogDownloadService {
-    private val logger = LoggerFactory.getLogger(this::class.java)
 
     private val restTemplate =
         RestTemplateBuilder()
@@ -82,10 +83,14 @@ class LogDownloadServiceImpl(
         start: Long?,
         end: Long?
     ): LogDownloadResult {
-        messengerInstanceRepository.findDistinctFirstByServerNameAndUserId(
-            serverName = serverName,
-            userId = userService.getUserIdFromContext()!!
-        ) ?: return LogDownloadResult.Unauthorized(serverName)
+        try {
+            messengerInstanceRepository.findDistinctFirstByServerNameAndUserId(
+                serverName = serverName,
+                userId = userService.getUserIdFromContext()
+            ) ?: return LogDownloadResult.Unauthorized(serverName)
+        } catch (e: NotLoggedInException) {
+            return LogDownloadResult.Unauthorized(serverName)
+        }
 
         val now = Instant.now().epochSecond
         val endOrDefault = end ?: now

@@ -17,6 +17,8 @@
 
 package de.akquinet.timref.registrationservice.config
 
+import de.akquinet.timref.registrationservice.util.TrivialResponseErrorHandler
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
@@ -26,16 +28,33 @@ import org.springframework.web.client.RestTemplate
 import java.time.Duration
 
 @Configuration
-class RestTemplateConfig {
+class RestTemplateConfig @Autowired constructor(
+    private val operatorConfig: OperatorConfig
+) {
+
     @Bean
     @Primary
-    fun restTemplate(builder: RestTemplateBuilder): RestTemplate = builder.build()
+    fun restTemplatePrimary(
+        builder: RestTemplateBuilder
+    ): RestTemplate = builder.errorHandler(TrivialResponseErrorHandler()).build()
+
+    @Bean
+    @Qualifier("operator")
+    fun restTemplateOperator(
+        builder: RestTemplateBuilder
+    ): RestTemplate = builder
+        .errorHandler(TrivialResponseErrorHandler())
+        .basicAuthentication(
+            operatorConfig.username,
+            operatorConfig.password
+        ).build()
 
     @Bean
     @Qualifier("healthIndicator")
-    fun restTemplateForHealthIndicators(builder: RestTemplateBuilder): RestTemplate = builder
+    fun restTemplateHealthIndicator(
+        builder: RestTemplateBuilder
+    ): RestTemplate = builder
         .setConnectTimeout(Duration.ofMillis(500))
         .setReadTimeout(Duration.ofMillis(500))
         .build()
-
 }

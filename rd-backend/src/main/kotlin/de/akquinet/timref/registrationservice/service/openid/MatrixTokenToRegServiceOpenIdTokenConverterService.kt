@@ -20,7 +20,7 @@ package de.akquinet.timref.registrationservice.service.openid
 import de.akquinet.timref.registrationservice.config.TokenConfig
 import de.akquinet.timref.registrationservice.persistance.orgAdmin.model.extractSynapseServerNameFromMxId
 import de.akquinet.timref.registrationservice.service.orgadmin.OrgAdminManagementService
-import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 import org.springframework.stereotype.Service
 
 enum class TokenConverterResultErrorType {
@@ -42,17 +42,12 @@ data class ErrorResult(
 
 @Service
 class MatrixTokenToRegServiceOpenIdTokenConverterService(
+    private val logger: Logger,
     private val tokenCreator: RegServiceOpenIdTokenCreatorService,
     private val matrixTokenValidator: MatrixTokenValidatorService,
     private val tokenConfig: TokenConfig,
     private val orgAdminService: OrgAdminManagementService
 ) {
-
-    companion object {
-        @Suppress("JAVA_CLASS_ON_COMPANION")
-        @JvmStatic
-        private val logger = LoggerFactory.getLogger(javaClass.enclosingClass)
-    }
 
     fun convertTokenForUser(
         userId: String,

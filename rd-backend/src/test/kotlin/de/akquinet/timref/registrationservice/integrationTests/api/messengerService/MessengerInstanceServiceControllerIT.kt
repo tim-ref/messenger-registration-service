@@ -20,8 +20,9 @@ package de.akquinet.timref.registrationservice.integrationTests.api.messengerSer
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.ninjasquad.springmockk.SpykBean
+import de.akquinet.timref.registrationservice.api.messengerproxy.MessengerProxyLogLevelService
 import de.akquinet.timref.registrationservice.api.messengerservice.MessengerInstanceCreateService.Companion.X_HEADER_INSTANCE_RANDOM
-import de.akquinet.timref.registrationservice.api.messengerservice.MessengerInstanceServiceImpl
+import de.akquinet.timref.registrationservice.api.messengerservice.MessengerInstanceService
 import de.akquinet.timref.registrationservice.integrationTests.configuration.IntegrationTestConfiguration
 import de.akquinet.timref.registrationservice.integrationTests.configuration.WiremockConfiguration
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstance
@@ -73,7 +74,10 @@ class MessengerInstanceServiceControllerIT(
     lateinit var embeddedDatasource: DataSource
 
     @SpykBean
-    lateinit var messengerInstanceService: MessengerInstanceServiceImpl
+    lateinit var messengerInstanceService: MessengerInstanceService
+
+    @SpykBean
+    lateinit var messengerProxyLogLevelService: MessengerProxyLogLevelService
 
     private val telematikId = "telematikId"
     private val telematikIdLowercase: String = telematikId.lowercase()
@@ -107,6 +111,7 @@ class MessengerInstanceServiceControllerIT(
             val javaWebToken = Jwt.withTokenValue("token")
                 .header("alg", "none")
                 .claim("preferred_username", "user")
+                .claim("email", "user@instance.tim")
                 .claim("telematik_id", telematikId)
                 .claim("profession_oid", "professionOid")
                 .claim("date_of_order", "15.03.2023")
@@ -157,7 +162,7 @@ class MessengerInstanceServiceControllerIT(
                     .andExpect { status { isCreated() } }
                 mockMvc.delete("/messengerInstance/$serverName.localhost/")
                     .andDo { print() }
-                    .andExpect { status { isOk() } }
+                    .andExpect { status { isNoContent() } }
             }
 
             it("should create two messenger instances and list them") {
@@ -202,7 +207,7 @@ class MessengerInstanceServiceControllerIT(
             it("it should change logLevel") {
                 val newLogLevel = LogLevel.DEBUG
                 every {
-                    messengerInstanceService.buildInternalProxyInstanceUrl(any(), any())
+                    messengerProxyLogLevelService.buildInternalProxyInstanceUrl(any(), any())
                 } returns URI.create("http://localhost:${messengerProxyWireMock.port()}/actuator/logging/${newLogLevel.name}/ROOT")
 
                 mockMvc.post("/messengerInstance/${adminMessengerInstanceEntity.serverName}/loglevel") {

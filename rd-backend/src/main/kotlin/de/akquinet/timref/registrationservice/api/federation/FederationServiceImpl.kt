@@ -25,7 +25,7 @@ import de.akquinet.timref.registrationservice.api.federation.model.FederationLis
 import de.akquinet.timref.registrationservice.api.federation.model.FederationListHeader
 import de.akquinet.timref.registrationservice.config.VZDConfig
 import de.akquinet.timref.registrationservice.persistance.federation.FederationRepository
-import de.akquinet.timref.registrationservice.rawdata.RawdataService
+import de.akquinet.timref.registrationservice.rawdata.RawDataService
 import de.akquinet.timref.registrationservice.rawdata.model.Operation
 import de.akquinet.timref.registrationservice.security.signature.CertPathValidationResult
 import de.akquinet.timref.registrationservice.security.signature.JwsSignatureVerificationResult
@@ -38,7 +38,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import org.slf4j.LoggerFactory.getLogger
+import org.slf4j.Logger
+import org.slf4j.event.Level
 import org.springframework.http.HttpStatus
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
@@ -64,16 +65,12 @@ internal class AuthenticationTokenException(msg: String, cause: Throwable? = nul
 @EnableScheduling
 @Service
 class FederationServiceImpl(
+    private val logger: Logger,
     val federationRepository: FederationRepository,
     val vzdConfig: VZDConfig,
     val signatureService: SignatureService,
-    val rawdataService: RawdataService
+    val rawdataService: RawDataService
 ) : FederationService {
-    companion object {
-        @Suppress("JAVA_CLASS_ON_COMPANION")
-        @JvmStatic
-        private val logger = getLogger(javaClass.enclosingClass)
-    }
 
     private val gson = Gson()
 
@@ -319,10 +316,11 @@ class FederationServiceImpl(
                 )
             }
 
-            logger.debug("VZD response body: {}", responseBodyString)
-            logger.debug("VZD response message when creating: {}", domainResponse.errorMessage)
-            logger.debug("VZD statuscode when creating: {}", response.code)
-
+            val logLevel = if (domainResponse.httpStatus.is2xxSuccessful) Level.DEBUG else Level.WARN
+            
+            logger.atLevel(logLevel).log("VZD response body: {}", responseBodyString)
+            logger.atLevel(logLevel).log("VZD response message when creating: {}", domainResponse.errorMessage)
+            logger.atLevel(logLevel).log("VZD statuscode when creating: {}", response.code)
 
             vzdResponse = domainResponse
             domainResponse.toResponseEntity(gson)
@@ -343,10 +341,7 @@ class FederationServiceImpl(
         val response = deleteDomainFromVzd(domain)
         val responseBodyString = response.body?.string()
 
-        logger.debug("VZD response message when deleting: {}", response.message)
-        logger.debug("VZD statuscode when deleting: {}", response.code)
-        logger.debug("VZD response body: {}", responseBodyString)
-        return when (response.code) {
+        val domainResponse = when (response.code) {
             204 -> DeleteDomainResponse(
                 httpStatus = HttpStatus.NO_CONTENT
             )
@@ -381,6 +376,14 @@ class FederationServiceImpl(
                 errorMessage = "unknown response code"
             )
         }
+
+        val logLevel = if (domainResponse.httpStatus.is2xxSuccessful) Level.DEBUG else Level.WARN
+
+        logger.atLevel(logLevel).log("VZD response message when deleting: {}", response.message)
+        logger.atLevel(logLevel).log("VZD statuscode when deleting: {}", response.code)
+        logger.atLevel(logLevel).log("VZD response body: {}", responseBodyString)
+
+        return domainResponse
     }
 
     private fun capitalizeFirstChar(input: String): String =

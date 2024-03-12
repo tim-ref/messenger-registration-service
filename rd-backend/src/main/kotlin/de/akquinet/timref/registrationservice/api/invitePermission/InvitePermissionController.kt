@@ -39,7 +39,13 @@ import org.springframework.web.bind.annotation.RestController
 class InvitePermissionController(private val invitePermissionService: InvitePermissionService) {
 
     @PostMapping("/vzd/invite", produces = [MediaType.APPLICATION_JSON_VALUE])
-    @Operation(summary = "Retrieve Invitepermission level 3 for two Users")
+    @Operation(
+        summary = "Retrieve Invitepermission level 3 for two Users",
+        requestBody = io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "A pair of userIds in uri format",
+            required = true
+        )
+    )
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Returning OK if permissible"),
@@ -47,9 +53,9 @@ class InvitePermissionController(private val invitePermissionService: InvitePerm
         ]
     )
     fun getUserPublicityFromVZD(@RequestBody userPair: Pair<String, String>): ResponseEntity<String> {
-        return if (invitePermissionService.checkUserInvitePermissions(userPair.first,userPair.second))
-            ResponseEntity(HttpStatus.OK)
+        return if (invitePermissionService.checkUserInvitePermissions(userPair.first, userPair.second))
+            ResponseEntity.status(HttpStatus.OK).build()
         else
-            ResponseEntity(HttpStatus.FORBIDDEN)
+            ResponseEntity.status(HttpStatus.FORBIDDEN).build()
     }
 }

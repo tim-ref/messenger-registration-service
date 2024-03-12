@@ -17,17 +17,70 @@
 
 package de.akquinet.timref.registrationservice.api.messengerservice
 
+import de.akquinet.timref.registrationservice.api.operator.OperatorService
+import de.akquinet.timref.registrationservice.config.RegServiceConfig
 import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstance
-import jakarta.servlet.http.HttpServletRequest
-import org.slf4j.Logger
-import org.springframework.http.ResponseEntity
+import de.akquinet.timref.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
+import de.akquinet.timref.registrationservice.util.UserService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.stereotype.Service
 
-interface MessengerInstanceService {
-    fun createNewInstance(httpServletRequest: HttpServletRequest): ResponseEntity<String>
-    fun deleteInstance(serverName: String, userId: String? = ""): ResponseEntity<String>
+@EnableScheduling
+@Service
+class MessengerInstanceService @Autowired constructor(
+    private val messengerInstanceRepository: MessengerInstanceRepository,
+    private val userService: UserService,
+    private val regServiceConfig: RegServiceConfig,
+    private val operatorService: OperatorService,
+) {
 
-    fun getAllInstancesForUser(): List<MessengerInstance>
-    fun createAdminUser(serverName: String): ResponseEntity<String>
-    fun changeLogLevel(serverName: String, logLevel: String, loggerIdentifier: String = Logger.ROOT_LOGGER_NAME): ResponseEntity<String>
-    fun instanceReadyCheck(serverName: String): ResponseEntity<String>
+    companion object {
+        const val ORG_ADMIN_ERROR_LOG_TEMPLATE = "Error creating org admin ({}): {}"
+    }
+
+    fun getAllInstancesForCurrentUser(): List<MessengerInstance> =
+        messengerInstanceRepository.findAllByUserId(userService.getUserIdFromContext())
+            .map { it.toMessengerInstance() }
+
+    fun getInstanceState(serverName: String): InstanceStateDto {
+        val instanceEntity = messengerInstanceRepository.findDistinctFirstByServerNameAndUserId(
+            serverName,
+            userService.getUserIdFromContext()
+        )
+
+        val httpStatus = instanceEntity?.let {
+            if (regServiceConfig.callExternalServices) {
+                operatorService.operatorInstanceCheck(instanceEntity.serverName)
+            } else {
+                HttpStatus.OK
+            }
+        } ?: HttpStatus.NOT_FOUND
+
+        return when (httpStatus) {
+            HttpStatus.OK -> InstanceStateDto(isReady = true)
+
+            // description of 500 is used in frontend, please change it there as well if you are making changes here
+            HttpStatus.INTERNAL_SERVER_ERROR -> InstanceStateDto(
+                isReady = false,
+                message = "Error during operator instance check"
+            )
+
+            HttpStatus.NOT_FOUND -> InstanceStateDto(
+                isReady = false,
+                message = "Messenger Instance could not be found"
+            )
+
+            else -> InstanceStateDto(
+                isReady = false,
+                message = "Interal Server Error in Backend during instance ready check"
+            )
+        }
+    }
 }
+
+data class InstanceStateDto(
+    val isReady: Boolean,
+    val message: String? = null
+)

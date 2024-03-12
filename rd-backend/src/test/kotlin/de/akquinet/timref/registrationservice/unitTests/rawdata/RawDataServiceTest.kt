@@ -18,7 +18,7 @@
 package de.akquinet.timref.registrationservice.unitTests.rawdata
 
 import de.akquinet.timref.registrationservice.integrationTests.configuration.IntegrationTestConfiguration
-import de.akquinet.timref.registrationservice.rawdata.RawDataServiceImpl
+import de.akquinet.timref.registrationservice.rawdata.RawDataService
 import de.akquinet.timref.registrationservice.rawdata.model.Operation
 import de.akquinet.timref.registrationservice.rawdata.model.RawData
 import de.akquinet.timref.registrationservice.rawdata.model.RawDataMetaData
@@ -49,7 +49,7 @@ class RawDataServiceTest : DescribeSpec() {
     override fun extensions() = listOf(SpringExtension)
 
     @Autowired
-    lateinit var rawDataService: RawDataServiceImpl
+    lateinit var rawDataService: RawDataService
 
     init {
 

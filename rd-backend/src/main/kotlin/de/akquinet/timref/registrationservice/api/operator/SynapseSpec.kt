@@ -15,7 +15,7 @@
  *
  */
 
-package de.akquinet.timref.registrationservice.api.messengerservice.operatormodels
+package de.akquinet.timref.registrationservice.api.operator
 
 
 data class SynapseSpec(

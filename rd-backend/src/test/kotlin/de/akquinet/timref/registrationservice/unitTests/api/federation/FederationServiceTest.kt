@@ -30,6 +30,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import org.slf4j.LoggerFactory
 import java.net.HttpURLConnection
 
 class FederationServiceTest : DescribeSpec({
@@ -68,7 +69,8 @@ class FederationServiceTest : DescribeSpec({
                     trustStorePassword = "trustStorePassword"
                 ),
                 signatureService = mockk(),
-                rawdataService = mockk()
+                rawdataService = mockk(),
+                logger = LoggerFactory.getLogger(javaClass.name)
             ) {
                 var saveFederationListCalls = 0
 
@@ -105,6 +107,7 @@ class FederationServiceTest : DescribeSpec({
     describe("Exception handling in Federation Service") {
         val dummyToken = Token("", "", 0L)
         val testFederationService = FederationServiceImpl(
+            logger = LoggerFactory.getLogger(FederationServiceImpl::class.java),
             federationRepository = mockk(),
             vzdConfig = VZDConfig(
                 serviceUrl = "https://fhir-directory-test.vzd.ti-dienste.de",

@@ -25,7 +25,6 @@ import de.akquinet.timref.registrationservice.security.signature.SignatureServic
 import de.akquinet.timref.registrationservice.security.toBase64String
 import de.akquinet.timref.registrationservice.security.toPrivateEcKey
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.security.PrivateKey
 import java.time.ZoneId
@@ -34,13 +33,11 @@ import java.time.ZonedDateTime
 
 @Service
 class RegServiceOpenIdTokenCreatorService(
+    private val logger: Logger,
     private val keyConfig: KeyConfig,
     private val tokenConfig: TokenConfig,
     private val signatureService: SignatureService,
 ) {
-
-    private val logger: Logger = LoggerFactory.getLogger(RegServiceOpenIdTokenCreatorService::class.java)
-
 
     private val key: PrivateKey = createECKeyFromConfig(keyConfig)
 
