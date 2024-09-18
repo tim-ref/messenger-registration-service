@@ -46,6 +46,12 @@ server:
   port: 8080
 
 management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
   health:
     keycloak:
       enabled: true
@@ -67,12 +73,11 @@ management:
             - ping
       show-components: always
       show-details: always
-  server:
-    port: 8081
-  endpoints:
-    web:
-      exposure:
-        include: health
+  prometheus:
+    metrics:
+      export:
+        enabled: false
+
 
 messengerproxy:
   scheme: "http://"

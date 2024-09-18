@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FROM quay.io/keycloak/keycloak:23.0.6
+FROM quay.io/keycloak/keycloak:24.0.2
 
 COPY --chown=keycloak:keycloak theme /opt/keycloak/themes/

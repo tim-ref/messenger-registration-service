@@ -22,18 +22,18 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.2.1</version>
+        <version>0.3.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-frontend</artifactId>
-    <version>0.2.1</version>
+    <version>0.3.0</version>
     <name>Registrierungsdienst - Frontend</name>
     <description>Frontend für den Registrierungsdienst der TIM-Referenzimplementierung</description>
 
     <properties>
-        <node.version>v18.17.1</node.version>
-        <npm.version>10.2.1</npm.version>
+        <node.version>v20.12.1</node.version>
+        <npm.version>10.5.1</npm.version>
 
         <sonar.projectName>Frontend</sonar.projectName>
         <sonar.sources>src</sonar.sources>

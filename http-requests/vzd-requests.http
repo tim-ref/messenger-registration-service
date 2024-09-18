@@ -1,4 +1,4 @@
-###
+### RS256
 POST https://auth-{{env}}.vzd.ti-dienste.de:9443/auth/realms/TI-Provider/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
@@ -9,7 +9,7 @@ client_id={{clientId}}&client_secret={{clientSecret}}&grant_type=client_credenti
     client.global.set("accessToken", response.body.access_token);
 %}
 
-###
+### BP256R1
 GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/ti-provider-authenticate
 Authorization: Bearer {{accessToken}}
 
@@ -40,7 +40,7 @@ DELETE https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/fe
 Authorization: Bearer {{providerServicesToken}}
 
 
-### Get federation list from VZD
+### Get federation list from VZD (BP256R1)
 GET https://fhir-directory-{{env}}.vzd.ti-dienste.de/tim-provider-services/FederationList/federationList.jws
 Authorization: Bearer {{providerServicesToken}}
 

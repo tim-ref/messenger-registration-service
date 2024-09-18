@@ -15,7 +15,7 @@
  *
  */
 
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 
 @Component({
   selector: 'admin-events',
@@ -23,5 +23,4 @@ import { Component } from '@angular/core';
   styleUrls: ['./messenger-instance.component.scss'],
 })
 export class MessengerInstanceComponent {
-  constructor() {}
 }

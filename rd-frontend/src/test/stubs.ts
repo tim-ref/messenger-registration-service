@@ -23,14 +23,19 @@ import {AppConfig} from "../app/models/appConfig";
 
 export class DialogServiceStub {
   public dialogClose$: Observable<any> = new Observable<any>();
-  public openDialog(): void {}
-  public closeDialog(data?: any): void {}
+  public openDialog(): void {
+    console.log("mock open dialog")
+  }
+  public closeDialog(data?: any): void {
+    console.log("mock close dialog")
+  }
 }
 
 export class AppServiceStub {
-  public showToast(toastConfig: Toast): void {}
+  public showToast(toastConfig: Toast): void {
+    console.log("mock show toast")
+  }
 }
-
 export class AppConfigurationServiceStub {
   appConfig: AppConfig = new AppConfig();
 }

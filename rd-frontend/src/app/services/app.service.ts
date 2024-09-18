@@ -26,8 +26,6 @@ export class AppService {
   private toastSource = new Subject();
   toast$: Observable<any> = this.toastSource.asObservable();
 
-  constructor() {}
-
   public showToast(toastConfig: Toast): void {
     this.toastSource.next(toastConfig);
   }

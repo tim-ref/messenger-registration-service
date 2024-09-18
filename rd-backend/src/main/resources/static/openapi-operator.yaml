@@ -1,0 +1,62 @@
+openapi: 3.0.1
+info:
+  title: Matrix Synapse Operator API.
+  description: |-
+    the purpose of this application is to provide an application
+    that is using plain go code to define an API to talk to the
+    Matrix Synapse Operator API
+  version: ${project.version}
+  contact:
+    name: TIM-Betrieb
+    url: https://karriere.akquinet.de/teams/nx2.html
+    email: nx2-operations@akquinet.de
+
+security:
+  - basicAuth: []
+
+paths:
+  /homeservers/{instanceName}/logging/{newLogLevel}:
+    put:
+      summary: Changes the Loglevel of a Messenger Proxy
+      description: "Sets the specified log level in the selected messenger proxy."
+      operationId: changeMessengerInstanceLoglevel
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+        - description: "The Loglevel to Set in the Proxy."
+          in: path
+          name: newLogLevel
+          required: true
+          schema:
+            type: string
+      responses:
+        '201':
+          description: "The new log level was accepted and set by the proxy."
+        '400':
+          description: ""
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '500':
+          description: "The request could not be processed due to an internal error."
+components:
+  securitySchemes:
+    basicAuth:
+      description: Basic HTTP Authentication
+      type: http
+      scheme: Basic
+  parameters:
+    instanceNameParam:
+      name: instanceName
+      in: path
+      description: "Messenger instance name."
+      required: true
+      schema:
+        type: string
+  responses:
+    UnauthorizedError:
+      description: "The authentication information is missing or invalid."
+    NotAllowedError:
+      description: "The user does not have the required authorizations."

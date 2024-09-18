@@ -24,7 +24,8 @@ spring:
       connection-test-query: SELECT 1
 
   flyway:
-    locations: classpath:/db/migration
+    locations:
+      - classpath:/db/migration
 
   security:
     oauth2:
@@ -113,3 +114,13 @@ regservice:
     serverScheme: https
     serverPort: 443
   callExternalServices: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: ${METRICS_ENABLED}

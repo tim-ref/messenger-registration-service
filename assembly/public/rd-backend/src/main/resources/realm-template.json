@@ -1,0 +1,67 @@
+{
+  "realm": "TO_BE_SET",
+  "enabled": true,
+  "registrationAllowed": false,
+  "bruteForceProtected": true,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "de",
+    "en"
+  ],
+  "defaultLocale": "de",
+  "clients": [
+    {
+      "clientId": "synapse",
+      "name": "Synapse Client",
+      "description": "",
+      "rootUrl": "TO_BE_SET",
+      "clientAuthenticatorType": "client-secret",
+      "redirectUris": [
+        "/_synapse/client/oidc/callback"
+      ],
+      "publicClient": false
+    }
+  ],
+  "requiredActions": [
+    {
+      "alias": "CONFIGURE_TOTP",
+      "name": "Configure OTP",
+      "providerId": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": true,
+      "priority": 10,
+      "config": {}
+    },
+    {
+      "alias": "UPDATE_PASSWORD",
+      "name": "Update Password",
+      "providerId": "UPDATE_PASSWORD",
+      "enabled": true,
+      "defaultAction": true,
+      "priority": 30,
+      "config": {}
+    },
+    {
+      "alias": "VERIFY_EMAIL",
+      "name": "Verify Email",
+      "providerId": "VERIFY_EMAIL",
+      "enabled": true,
+      "defaultAction": true,
+      "priority": 50,
+      "config": {}
+    }
+  ],
+  "smtpServer": {
+    "from": "TO_BE_SET",
+    "fromDisplayName": "TO_BE_SET",
+    "host": "",
+    "port": "587",
+    "ssl": "false",
+    "starttls": "true",
+    "auth": "true",
+    "user": "",
+    "password": "TO_BE_SET"
+  }
+}

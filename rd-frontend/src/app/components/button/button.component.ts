@@ -62,6 +62,4 @@ export class ButtonComponent {
   // Default is true
   @Input()
   shadow: boolean = true;
-
-  constructor() {}
 }

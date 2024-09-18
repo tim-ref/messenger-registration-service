@@ -20,7 +20,9 @@ spring:
     password: password
 
   flyway:
-    locations: classpath:/db/migration,classpath:/db/testdata-dev
+    locations:
+      - classpath:/db/migration
+      - classpath:/db/testdata-dev
 
   security:
     oauth2:
@@ -77,8 +79,8 @@ log-download-loki:
   port: "4242" # can be changed depending on local Loki Azure binding
 
 vzd:
-  serviceUrl: "http://localhost:8091"
-  tokenUrl: "http://localhost:8091"
+  serviceUrl: "http://host.docker.internal:8091"
+  tokenUrl: "http://host.docker.internal:8091"
   tokenPath: "/auth/realms/TI-Provider/protocol/openid-connect/token"
   authenticationPath: "/ti-provider-authenticate"
   healthPath: "/tim-provider-services/health/"
@@ -90,7 +92,7 @@ vzd:
   deleteDomainPath: "/tim-provider-services/federation/"
   clientId: "regService"
   clientSecret: "test"
-  trustStorePath: "/app/config/ru-komp-truststore.p12"
+  trustStorePath: "/app/config/eu-komp-truststore.p12"
   trustStorePassword: "secret"
 
 regservice:
@@ -136,3 +138,9 @@ regservice:
     serverScheme: http
     serverPort: 8083
   callExternalServices: false
+
+management:
+  prometheus:
+    metrics:
+      export:
+        enabled: true

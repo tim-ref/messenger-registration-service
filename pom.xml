@@ -21,7 +21,7 @@
 
     <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
     <artifactId>rd-parent</artifactId>
-    <version>0.2.1</version>
+    <version>0.3.0</version>
     <packaging>pom</packaging>
 
     <name>Registrierungsdienst - Parent</name>
@@ -70,7 +70,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.6.0</version>
+                    <version>3.7.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -80,7 +80,7 @@
                 <plugin>
                     <groupId>org.sonarsource.scanner.maven</groupId>
                     <artifactId>sonar-maven-plugin</artifactId>
-                    <version>3.10.0.2594</version>
+                    <version>3.11.0.3922</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -102,7 +102,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.3.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -111,7 +111,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-scm-plugin</artifactId>
-                <version>2.0.1</version>
+                <version>2.1.0</version>
                 <configuration>
                     <message>[maven-scm-plugin] update version in relevant files</message>
                     <includes>rd-frontend/package.json,rd-frontend/package-lock.json</includes>
@@ -126,6 +126,8 @@
                     <preparationGoals>clean verify scm:checkin</preparationGoals>
                     <completionGoals>clean verify scm:checkin</completionGoals>
                     <releaseProfiles>release</releaseProfiles>
+                    <!-- It is assumed that the CI executes a test job which must succeed prior to the release plugin invocation -->
+                    <arguments>-DskipTests=true</arguments>
                 </configuration>
             </plugin>
         </plugins>
@@ -242,7 +244,7 @@
     <scm>
         <connection>${env.CI_SCM_CONNECTION}</connection>
         <developerConnection>${env.CI_SCM_DEVELOPER_CONNECTION}</developerConnection>
-        <tag>0.2.1</tag>
+        <tag>0.3.0</tag>
         <url>${env.CI_SCM_URL}</url>
     </scm>
 

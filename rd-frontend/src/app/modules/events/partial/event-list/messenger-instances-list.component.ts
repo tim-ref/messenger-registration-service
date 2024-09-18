@@ -48,7 +48,8 @@ export class MessengerInstancesListComponent implements OnInit {
     public currentPageNumber: number = 1;
     public maxPageNumber: number = 0;
     public itemsPerPage: number = 10;
-    public loading: boolean = true;
+    public isLoading: boolean = true;
+    public isLoadingCreateInstance: boolean = false;
     public readonly internalServerErrorDescription =
         'Error on deleting new instance through operator';
 
@@ -68,21 +69,21 @@ export class MessengerInstancesListComponent implements OnInit {
     }
 
     loadMessengerInstances(): void {
-        this.loading = true;
+        this.isLoading = true;
         this.restService
             .getFromApi<MessengerInstance[]>(ApiRoutes.messengerInstance)
             .pipe(
                 tap((messengerInstances) => {
                     this.messengerInstances = messengerInstances;
                     this.calculatePaginationNumbers();
-                    this.loading = false;
+                    this.isLoading = false;
                 })
             )
             .subscribe({
                 error: () => {
                     this.messengerInstances = [];
                     this.calculatePaginationNumbers();
-                    this.loading = false;
+                    this.isLoading = false;
                     this.appService.showToast({
                         icon: 'fa-triangle-exclamation',
                         iconColor: 'primary',
@@ -204,7 +205,7 @@ export class MessengerInstancesListComponent implements OnInit {
     }
 
     deleteInstance(serverName: string) {
-        this.loading = true;
+        this.isLoading = true;
         this.restService
             .deleteFromApi(
                 ApiRoutes.messengerInstance + '/' + serverName + '/',
@@ -218,7 +219,7 @@ export class MessengerInstancesListComponent implements OnInit {
             .pipe(tap(() => this.loadMessengerInstances()))
             .subscribe({
                 error: (response) => {
-                    this.loading = false;
+                    this.isLoading = false;
 
                     let errorDescription =
                         'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.DELETE';
@@ -248,7 +249,7 @@ export class MessengerInstancesListComponent implements OnInit {
     }
 
     createAdmin(serverName: string) {
-        this.loading = true;
+        this.isLoading = true;
         this.restService
             .getFromApi<AdminUser>(ApiRoutes.messengerInstance + '/' + serverName + '/admin')
             .pipe(
@@ -265,7 +266,7 @@ export class MessengerInstancesListComponent implements OnInit {
                         iconColor: 'primary',
                         timeout: 0,
                     });
-                    this.loading = false;
+                    this.isLoading = false;
                     this.openAdminCreatedDialog(adminUser);
                 })
             )
@@ -286,7 +287,7 @@ export class MessengerInstancesListComponent implements OnInit {
                         responseDescription =
                             'ADMIN.INSTANCE_LIST.CREATE_ADMIN_DIALOG.ERROR.INTERNAL_SERVER_ERROR';
                     }
-                    this.loading = false;
+                    this.isLoading = false;
 
                     this.appService.showToast({
                         description: responseDescription,
@@ -335,7 +336,7 @@ export class MessengerInstancesListComponent implements OnInit {
             )
             .subscribe({
                 error: (response) => {
-                    this.loading = false;
+                    this.isLoading = false;
 
                     let responseDescription =
                         'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.ERROR.UNKNOWN';
@@ -370,6 +371,7 @@ export class MessengerInstancesListComponent implements OnInit {
     }
 
     createMessengerInstance(): void {
+        this.isLoadingCreateInstance = true;
         this.restService
             .postToApi<string>(
                 null,
@@ -384,6 +386,9 @@ export class MessengerInstancesListComponent implements OnInit {
             tap((response: string) => {
                 this.dialogService.closeDialog(response);
                 this.messengerInstances = [];
+
+                this.isLoadingCreateInstance = false;
+
                 this.loadMessengerInstances();
             })
         )
@@ -421,6 +426,8 @@ export class MessengerInstancesListComponent implements OnInit {
                         iconColor: 'primary',
                         timeout: 5000,
                     });
+
+                    this.isLoadingCreateInstance = false;
                 },
             });
     }

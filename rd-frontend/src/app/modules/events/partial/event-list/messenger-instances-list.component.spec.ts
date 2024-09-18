@@ -143,7 +143,7 @@ describe('MessengerInstancesListComponent', () => {
   it('should render add instance button', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('#add-instance-button')?.textContent).toBe(
-      'ADMIN.INSTANCE_LIST.ADD'
+      ' ADMIN.INSTANCE_LIST.ADD '
     );
   });
 

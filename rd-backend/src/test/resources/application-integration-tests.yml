@@ -22,7 +22,9 @@ spring:
           issuer-uri: https://keycloak.timref.example.com/realms/timref
           jwk-set-uri: https://keycloak.timref.example.com/realms/timref/registrationservice-backend/protocol/openid-connect/certs
   flyway:
-    enabled: false # flyway is configured in code
+    locations:
+      - classpath:/db/migration
+      - classpath:/db/testdata-dev
 
 zonky:
   test:

@@ -20,7 +20,9 @@ spring:
     password: password
 
   flyway:
-    locations: classpath:/db/migration,classpath:/db/testdata-dev
+    locations:
+      - classpath:/db/migration
+      - classpath:/db/testdata-dev
 
   security:
     oauth2:
@@ -136,3 +138,9 @@ regservice:
     serverScheme: http
     serverPort: 8083
   callExternalServices: false
+
+management:
+  prometheus:
+    metrics:
+      export:
+        enabled: true
