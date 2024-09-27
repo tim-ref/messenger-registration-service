@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023 akquinet GmbH
+# Copyright (C) 2023 - 2024 akquinet GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -78,16 +78,24 @@ log-download-loki:
 backend:
   federationCheck:
     cron: "0 0 0 * * *"
+  periodOfValidityCheck:
+    cron: "*/10 * * * * *"
 
 frontend:
   host: "http://localhost:8080"
 
 keycloak-admin:
-  url: "http://localhost:2696/"
   readinessEndpoint: "health/ready"
-  realm: "master"
-  clientId: "registration-service"
-  clientSecret: "client-secret"
+  master-realm:
+    url: "http://localhost:2696/"
+    realmName: "master"
+    clientId: "registration-service"
+    clientSecret: "client-secret"
+  tim-realm:
+    url: "http://localhost:2696/"
+    realmName: "timref"
+    clientId: "registration-service"
+    clientSecret: "client-secret"
   smtp:
     from: "timref@example.com"
     fromDisplayName: "[LOKAL] TIMRef Registrierungsdienst"

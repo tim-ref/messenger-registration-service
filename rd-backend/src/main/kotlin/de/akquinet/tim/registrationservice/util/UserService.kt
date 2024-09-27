@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,21 +29,16 @@ class UserService {
         SecurityContextHolder.getContext().authentication?.principal as Jwt?
 
     fun getUserIdFromContext(): String =
-        getPrincipal()?.getClaimAsString("preferred_username")
+        getPrincipal()?.getClaimAsString("preferred_username")?.trim()
             ?: throw NotLoggedInException()
 
-    fun loadUserAttributeByClaim(claim: String): String =
-        getPrincipal()?.getClaimAsString(claim) ?: throw ClaimNotFoundException("Claim $claim was not found.")
+    fun loadUserAttributeByClaim(claim: String): String = getPrincipal()?.getClaimAsString(claim)?.trim()
+        ?: throw ClaimNotFoundException("Claim $claim was not found.")
 }
 
 @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-class NotLoggedInException : RuntimeException {
-
-    constructor(message: String = "No user could be found in security context.") : super(message)
-}
+class NotLoggedInException(message: String = "No user could be found in security context.") :
+    RuntimeException(message)
 
 @ResponseStatus(value = HttpStatus.FORBIDDEN)
-class ClaimNotFoundException : RuntimeException {
-
-    constructor(message: String) : super(message)
-}
+class ClaimNotFoundException(message: String) : RuntimeException(message)

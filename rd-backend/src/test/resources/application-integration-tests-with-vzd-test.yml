@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023 akquinet GmbH
+# Copyright (C) 2023 - 2024 akquinet GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -64,6 +64,8 @@ server:
 backend:
   federationCheck:
     cron: "0 0 0 * * *"
+  periodOfValidityCheck:
+    cron: "0 0 21 * * *"
 
 frontend:
   host: "http://localhost:8080"
@@ -82,11 +84,17 @@ log-download-loki:
   port: "3100" # can be changed depending on local Loki Azure binding
 
 keycloak-admin:
-  url: "http://localhost:2696/"
   readinessEndpoint: "health/ready"
-  realm: "master"
-  clientId: "registration-service"
-  clientSecret: "client-secret"
+  master-realm:
+    url: "http://localhost:2696/"
+    realmName: "master"
+    clientId: "registration-service"
+    clientSecret: "client-secret"
+  tim-realm:
+    url: "http://localhost:2696/"
+    realmName: "master"
+    clientId: "registration-service"
+    clientSecret: "client-secret"
   smtp:
     from: "timref@example.com"
     fromDisplayName: "[LOKAL] TIMRef Registrierungsdienst"

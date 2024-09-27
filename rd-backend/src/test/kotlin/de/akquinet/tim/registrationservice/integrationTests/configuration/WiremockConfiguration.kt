@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023 - 2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ internal class WiremockConfiguration(
     val rawDataServiceConfig: RawDataServiceConfig,
     val vzdConfig: VZDConfig,
     val operatorConfig: OperatorConfig,
-    val keycloakAdminConfig: KeycloakAdminConfig,
+    val keycloakProperties: KeycloakAdminConfig.Properties,
     val proxyConfig: MessengerProxyConfig
 ) {
     private val gson = Gson()
@@ -145,7 +145,7 @@ internal class WiremockConfiguration(
     @Bean
     @Qualifier("Keycloak")
     fun keycloakWireMockServer(): WireMockServer {
-        val keycloakAdminPort = keycloakAdminConfig.url.split(':').last().replace("/", "").toInt()
+        val keycloakAdminPort = keycloakProperties.masterRealm.url.split(':').last().replace("/", "").toInt()
         val keycloakWireMock = WireMockServer(WireMockConfiguration.options().port(keycloakAdminPort))
         val realmNameRegex = "[a-zA-Z0-9\\-_]*"
         val uuidRegex = "[a-zA-Z0-9\\-]*"

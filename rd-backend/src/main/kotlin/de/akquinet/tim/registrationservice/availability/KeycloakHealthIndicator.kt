@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023 - 2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,11 @@ import java.net.URI
 @ConditionalOnEnabledHealthIndicator("keycloak")
 class KeycloakHealthIndicator @Autowired constructor(
     @Qualifier("healthIndicator") private val restTemplate: RestTemplate,
-    private val keycloakAdminConfig: KeycloakAdminConfig
+    private val keycloakProperties: KeycloakAdminConfig.Properties
 ) : HealthIndicator {
 
     override fun health(): Health {
-        val keycloakHealthUrl = URI(keycloakAdminConfig.url + keycloakAdminConfig.readinessEndpoint)
+        val keycloakHealthUrl = URI(keycloakProperties.masterRealm.url + keycloakProperties.readinessEndpoint)
         return try {
             val response = restTemplate.getForEntity(keycloakHealthUrl, String::class.java)
             if (response.statusCode.isSameCodeAs(HttpStatus.OK)) {

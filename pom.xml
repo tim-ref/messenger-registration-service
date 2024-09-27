@@ -21,7 +21,7 @@
 
     <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
     <artifactId>rd-parent</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
     <packaging>pom</packaging>
 
     <name>Registrierungsdienst - Parent</name>
@@ -244,7 +244,7 @@
     <scm>
         <connection>${env.CI_SCM_CONNECTION}</connection>
         <developerConnection>${env.CI_SCM_DEVELOPER_CONNECTION}</developerConnection>
-        <tag>0.3.0</tag>
+        <tag>0.3.1</tag>
         <url>${env.CI_SCM_URL}</url>
     </scm>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023 - 2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.google.gson.Gson
 import de.akquinet.tim.registrationservice.api.messengerservice.MessengerInstanceService.Companion.ORG_ADMIN_ERROR_LOG_TEMPLATE
 import de.akquinet.tim.registrationservice.api.operator.AdminUser
 import de.akquinet.tim.registrationservice.api.operator.OperatorService
+import de.akquinet.tim.registrationservice.config.KeycloakAdminConfig
 import de.akquinet.tim.registrationservice.config.RegServiceConfig
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceEntity
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
@@ -34,6 +35,7 @@ import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -42,7 +44,9 @@ import org.springframework.stereotype.Service
 class KeycloakUserService @Autowired constructor(
     private val logger: Logger,
     private val regServiceConfig: RegServiceConfig,
-    private val keycloak: Keycloak,
+    @Qualifier("master") private val keycloakMaster: Keycloak,
+    @Qualifier("tim") private val keycloakTim: Keycloak,
+    private val keycloakProperties: KeycloakAdminConfig.Properties,
     private val userService: UserService,
     private val messengerInstanceRepository: MessengerInstanceRepository,
     private val orgAdminManagementService: OrgAdminManagementService,
@@ -56,7 +60,7 @@ class KeycloakUserService @Autowired constructor(
         val userName = prepareUserRepresentation(user.userName, password)
 
         return try {
-            val realmResource = keycloak.realm(serverName)
+            val realmResource = keycloakMaster.realm(serverName)
             val usersResource = realmResource.users()
             val response = usersResource.create(userName)
             if (response.status == HttpStatus.CREATED.value()) {
@@ -108,8 +112,8 @@ class KeycloakUserService @Autowired constructor(
 
     fun deleteKeycloakUser(serverName: String, adminUser: AdminUser) {
         try {
-            val userId = keycloak.realm(serverName).users().search(adminUser.userName)[0].id
-            keycloak.realm(serverName).users().delete(userId)
+            val userId = keycloakMaster.realm(serverName).users().search(adminUser.userName)[0].id
+            keycloakMaster.realm(serverName).users().delete(userId)
         } catch (e: WebApplicationException) {
             logger.error(
                 "$ORG_ADMIN_ERROR_LOG_TEMPLATE, status: {}, message: {}",
@@ -153,6 +157,11 @@ class KeycloakUserService @Autowired constructor(
         } ?: HttpStatus.NOT_FOUND
 
         return ResponseEntity.status(statusCode).body(getResponseString(statusCode))
+    }
+
+    fun getEnabledMessengerInstanceOrderUsers(): List<UserRepresentation> {
+        val timRealm = keycloakTim.realm(keycloakProperties.timRealm.realmName)
+        return timRealm.users().searchByAttributes("enabled=true")
     }
 
     private fun createAdminOperator(serverName: String, adminUser: AdminUser) =

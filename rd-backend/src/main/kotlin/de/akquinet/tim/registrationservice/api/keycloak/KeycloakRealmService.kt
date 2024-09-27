@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023 - 2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.keycloak.admin.client.Keycloak
 import org.keycloak.representations.idm.RealmRepresentation
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
@@ -33,8 +34,8 @@ import org.springframework.stereotype.Service
 @Service
 class KeycloakRealmService @Autowired constructor(
     private val logger: Logger,
-    private val keycloak: Keycloak,
-    private val keycloakAdminConfig: KeycloakAdminConfig,
+    @Qualifier("master") private val keycloak: Keycloak,
+    private val keycloakProperties: KeycloakAdminConfig.Properties,
     @Value("classpath:realm-template.json") val realmTemplate: Resource
 ) {
 
@@ -53,9 +54,9 @@ class KeycloakRealmService @Autowired constructor(
             realm.clients.find { clientRepresentation -> clientRepresentation.clientId == "synapse" }?.rootUrl =
                 "https://${messengerInstanceEntity.publicBaseUrl}"
             // configure smtp server
-            realm.smtpServer["from"] = keycloakAdminConfig.smtp.from
-            realm.smtpServer["fromDisplayName"] = keycloakAdminConfig.smtp.fromDisplayName
-            realm.smtpServer["password"] = keycloakAdminConfig.smtp.password
+            realm.smtpServer["from"] = keycloakProperties.smtp.from
+            realm.smtpServer["fromDisplayName"] = keycloakProperties.smtp.fromDisplayName
+            realm.smtpServer["password"] = keycloakProperties.smtp.password
 
             keycloak.realms().create(realm)
             // refresh token to get new roles for the new realm

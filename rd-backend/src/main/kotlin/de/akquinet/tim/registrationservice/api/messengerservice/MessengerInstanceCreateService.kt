@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023 - 2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -282,7 +282,7 @@ class MessengerInstanceCreateService @Autowired constructor(
         operatorService.createInstanceOperator(
             messengerInstanceEntity = subject,
             clientSecret = clientSecret,
-            issuer = keycloakAdminConfig.url + "realms/${subject.instanceId}"
+            issuer = keycloakAdminConfig.properties.masterRealm.url + "realms/${subject.instanceId}"
         ) == HttpStatus.CREATED
     } else {
         // skip creation of new instance in local environment

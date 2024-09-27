@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023 akquinet GmbH
+# Copyright (C) 2023 - 2024 akquinet GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,11 +32,17 @@ spring:
           jwk-set-uri: "http://host.docker.internal:8180/realms/timref/protocol/openid-connect/certs"
 
 keycloak-admin:
-  url: "http://host.docker.internal:8180/"
   readinessEndpoint: "health/ready"
-  realm: "master"
-  clientId: "registration-service"
-  clientSecret: "client-secret"
+  master-realm:
+    url: "http://host.docker.internal:8180/"
+    realmName: "master"
+    clientId: "registration-service"
+    clientSecret: "client-secret"
+  tim-realm:
+    url: "http://host.docker.internal:8180/"
+    realmName: "master"
+    clientId: "registration-service"
+    clientSecret: "client-secret"
   smtp:
     from: "timref@example.com"
     fromDisplayName: "[LOKAL] TIMRef Registrierungsdienst"

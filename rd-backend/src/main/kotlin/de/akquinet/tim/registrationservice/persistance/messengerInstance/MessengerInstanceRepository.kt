@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023 - 2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ interface MessengerInstanceRepository : JpaRepository<MessengerInstanceEntity, S
 
     fun findDistinctFirstByServerNameAndUserId(serverName: String, userId: String): MessengerInstanceEntity?
     fun findAllByUserId(userId: String): List<MessengerInstanceEntity>
+
+    fun findByUserIdAndTelematikIdAndProfessionId(userId: String, telematikId: String, professionOid: String): List<MessengerInstanceEntity>
 
     fun findByServerName(serverName: String): MessengerInstanceEntity?
     fun findAllByServerNameOrPublicBaseUrl(serverName: String, publicBaseUrl: String): List<MessengerInstanceEntity>

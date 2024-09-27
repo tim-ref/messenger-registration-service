@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023 akquinet GmbH
+# Copyright (C) 2023 - 2024 akquinet GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,11 +35,17 @@ spring:
           jwk-set-uri: ${REGISTRATION_SERVICE_JWK_SET_URI}
 
 keycloak-admin:
-  url: ${KEYCLOAK_URL}
   readinessEndpoint: ${KEYCLOAK_READINESS_ENDPOINT}
-  realm: "master"
-  clientId: "registration-service"
-  clientSecret: ${KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET}
+  master-realm:
+    url: ${KEYCLOAK_URL}
+    realmName: "master"
+    clientId: "registration-service"
+    clientSecret: ${KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET}
+  tim-realm:
+    url: ${KEYCLOAK_URL}
+    realmName: "timref"
+    clientId: "registration-service-instance-lifetime"
+    clientSecret: ${KEYCLOAK_CLIENT_REGISTRATION_SERVICE_LIFETIME_CHECK}
   smtp:
     from: ${SMTP_FROM_ADDRESS}
     fromDisplayName: ${SMTP_FROM_DISPLAY_NAME}
@@ -60,6 +66,10 @@ operator:
   credentials:
     username: ${OPERATOR_REGISTRATION_SERVICE_USERNAME}
     password: ${OPERATOR_REGISTRATION_SERVICE_PASSWORD}
+
+backend:
+  periodOfValidityCheck:
+    cron: ${BACKEND_PERIOD_OF_VALIDITY_CHECK}
 
 frontend:
   host: ${FRONTEND_HOST_URL}

@@ -48,14 +48,15 @@ class MessengerInstanceCheckService(
         val allInstances = messengerInstanceRepository.findAll()
 
         allInstances.forEach { instance ->
-            val daysToEol = calcDaysToEOLOfInstance(instance).toDouble()
-            logger.info("$daysToEol until ${instance.serverName} reaches EoL")
 
-            if (daysToEol < 0) {
+            val daysUntilEOL = calcDaysToEOLOfInstance(instance,LocalDate.now())
+            logger.info("$daysUntilEOL until ${instance.serverName} reaches EoL")
+
+            if (daysUntilEOL < 0) {
                 messengerInstanceDeleteService.deleteInstance(instance.serverName, instance.userId)
                 unregisterInstanceMetric(instance.instanceId)
             } else {
-                registerMetric(instance)
+                registerMetric(instance, daysUntilEOL)
             }
         }
 
@@ -69,19 +70,20 @@ class MessengerInstanceCheckService(
         }
     }
 
-    private fun calcDaysToEOLOfInstance(instance: MessengerInstanceEntity): Int =
-        LocalDate.now().until(instance.endDate).days
+    fun calcDaysToEOLOfInstance(instance: MessengerInstanceEntity,now:LocalDate): Double =
+        java.time.temporal.ChronoUnit.DAYS.between(now, instance.endDate).toDouble()
 
-    private fun registerMetric(instance: MessengerInstanceEntity){
-        val gauge: Gauge = Gauge.builder("messenger_instance_days_until_eol") {
-                calcDaysToEOLOfInstance(instance).toDouble()
-            }
+    private fun registerMetric(instance: MessengerInstanceEntity, daysUntilEOL: Double) {
+        val gauge: Gauge = Gauge
+            .builder("messenger_instance_days_until_eol") { daysUntilEOL }
+            .tags( Tags.of("telematik_id", instance.telematikId))
+            .tags( Tags.of("server_name", instance.serverName))
             .tags( Tags.of("instance_name", instance.instanceId))
             .register(meterRegistry)
 
         registeredGauges[instance.instanceId] = gauge
     }
-    
+
     private fun unregisterInstanceMetric(instanceId: String){
         val meterId = registeredGauges[instanceId]?.id
 

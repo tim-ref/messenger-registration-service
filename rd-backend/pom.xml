@@ -22,12 +22,12 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.3.0</version>
+        <version>0.3.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-backend</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.1</version>
     <name>Registrierungsdienst - Backend</name>
     <description>Backend für den Registrierungsdienst der TIM-Referenzimplementierung</description>
 
@@ -223,6 +223,12 @@
             <groupId>com.ninja-squad</groupId>
             <artifactId>springmockk</artifactId>
             <version>4.0.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.2.2</version>
             <scope>test</scope>
         </dependency>
         <!-- required for io.kotest.matchers.types.shouldBeInstanceOf -->

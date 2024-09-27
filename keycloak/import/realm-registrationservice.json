@@ -126,6 +126,22 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "registration-service",
+      "name": "Registrierungsdienst",
+      "description": "",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "client-secret",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "publicClient": false
     }
   ],
   "roles": {
@@ -152,6 +168,25 @@
     ]
   },
   "users": [
+    {
+      "username": "service-account-registration-service",
+      "enabled": true,
+      "serviceAccountClientId": "registration-service",
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "default-roles-timref"
+      ],
+      "clientRoles": {
+        "realm-management": [
+          "view-users",
+          "manage-users"
+        ],
+        "registration-service": [
+          "uma_protection"
+        ]
+      }
+    },
     {
       "username": "test",
       "email": "test@example.de",
