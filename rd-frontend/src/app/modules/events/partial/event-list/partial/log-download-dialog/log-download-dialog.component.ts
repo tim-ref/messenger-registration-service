@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import { saveAs } from 'file-saver';
 import { DialogService } from '../../../../../../services/dialog.service';
 import { HttpStatusCode } from '@angular/common/http';
 import { AppService } from '../../../../../../services/app.service';
+import {LoggingService} from "../../../../../../../../build/openapi/logging";
 
 @Component({
   selector: 'log-download-event-dialog',
@@ -54,7 +55,8 @@ export class LogDownloadDialogComponent implements OnInit {
   constructor(
     private restService: RestService,
     private dialogService: DialogService,
-    private appService: AppService
+    private appService: AppService,
+    private readonly loggingService: LoggingService
   ) {}
 
   ngOnInit() {
@@ -93,21 +95,11 @@ export class LogDownloadDialogComponent implements OnInit {
       let start: number = startDate.getTime() / 1000;
       let end: number = start + Number(this.formGroup.get('timespan')?.value) * 60;
 
-      this.restService
-        .getFileFromApi(
-          ApiRoutes.messengerInstanceLogs +
-            '/' +
-            this.data[0] +
-            '/' +
-            this.data[1] +
-            `?start=${start}&end=${end}`
-        )
+      this.loggingService.getLogs(this.data[0], this.data[1], start, end)
         .subscribe({
           next: (response) => {
             this.loading = false;
-            let filename = `${this.data[0]}_${
-              this.data[1]
-            }_log_${new Date()}.text`;
+            let filename = `${this.data[0]}_${this.data[1]}_log_${new Date()}.text`;
             let blob = new Blob([response], { type: 'text/plain' });
             saveAs(blob, filename);
           },

@@ -1,0 +1,234 @@
+openapi: "3.1.0"
+info:
+  title: "TI-Messenger/Fachdienst/Registrierungsdienst/Messenger-Instance"
+  version: ${project.version}
+
+servers:
+  - url: "http://localhost:8080"
+    description: "Lokale Entwicklungsmaschine"
+
+security:
+  - bearerAuth: [ ]
+
+paths:
+  /messenger-instances:
+    get:
+      description: "Liefert alle Messenger-Instanzen des angemeldeten Users"
+      operationId: getMessengerInstances
+      tags:
+        - MessengerInstance
+      responses:
+        '200':
+          description: "Liefert alle Instanzen des angemeldeten Users"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MessengerInstanceDto"
+
+  /messenger-instance/request:
+    post:
+      description: "Fragt eine neue Messenger-Instanz an mit den im Token hinterlegten Parametern"
+      operationId: requestMessengerInstance
+      tags:
+        - MessengerInstance
+      responses:
+        '201':
+          description: "Die Messenger-Instanz wurde erfolgreich angefragt"
+          headers:
+            x-inran:
+              description: "Header der den zufälligen Teil des erzeugten Instanznamen enthält"
+              schema:
+                type: string
+        '400':
+          description: "Ein oder mehrere Parameter fehlen oder sind syntaktisch falsch"
+        '402':
+          description: "Die erlaubte Anzahl von Instanzen ist bereits erreicht."
+        '404':
+          description: "Der User wurde nicht gefunden"
+        '409':
+          description: "Eine Messenger-Instanz mit dem gewünschten Servernamen oder Basis-URL existiert bereits"
+        '500':
+          description: "Die Messenger-Instanz konnte wegen eines Fehlers im Operator nicht erzeugt werden."
+
+  /messenger-instance/request/admin:
+    post:
+      operationId: createAdminUser
+      tags:
+        - MessengerInstance
+      requestBody:
+        description: "Der Servername für den der Admin-User angelegt werden soll"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./components/schemas.yaml#/components/schemas/CreateAdminUserRequest"
+      responses:
+        '201':
+          description: "Der Admin-User wurde erfolgreich angelegt"
+          content:
+            application/json:
+              schema:
+                $ref: "./components/schemas.yaml#/components/schemas/CreateAdminUserResponse"
+        '404':
+          description: "Die Messenger-Instanz wurde anhand des übergebenen Namens nicht gefunden"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '409':
+          description: "Der Admin-User für diesen Server existiert bereits"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '412':
+          description: "Die Messenger-Instanz ist noch nicht bereit"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: "Der Admin-User für die genannte Messenger-Instanz konnte wegen eines Fehlers im Operator nicht angelegt werden"
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /messenger-instance/{instanceName}/:
+    delete:
+      description: "Löscht eine Messenger-Instanz anhand des übergebenen Servernamens"
+      operationId: deleteMessengerService
+      tags:
+        - MessengerInstance
+      parameters:
+        - in: path
+          name: instanceName
+          schema:
+            type: string
+          required: true
+          description: "Der Name der zu löschenden Instanz"
+      responses:
+        '204':
+          description: "Die Messenger-Instanz wurde erfolgreich gelöscht"
+        '400':
+          description: "Der übergebene Servername ist ungültig"
+        '404':
+          description: "Die zu löschende Messenger-Instanz wurde anhand des übergebenen Namens nicht gefunden"
+        '500':
+          description: "Die Messenger-Instanz konnte wegen eines Fehlers im Operator nicht gelöscht werden"
+  /messenger-instance/{instanceName}/tim-auth-concept-config:
+    put:
+      summary: Changes the Tim Authorization Concept Config of a Messenger Instance
+      description: "Ändert die Konfiguration, nach welchem Berechtigungskonzept sich die Instanz verhält."
+      operationId: putMessengerInstanceTimAuthConceptConfig
+      tags:
+        - MessengerInstance
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './openapi-operator.yaml/#/components/schemas/SynapseOverrideConfiguration/properties/proxy'
+        required: true
+      responses:
+        '200':
+          description: "Die Konfiguration des Berechtigungsmodells der Messenger-Instanz wurde erfolgreich geändert."
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          $ref: "#/components/responses/NotFoundError"
+        '500':
+          description: "Die Konfiguration des Berechtigungsmodells konnte wegen eines Fehlers im Operator nicht geändert werden."
+    get:
+      description: "Liefert die Konfiguration, nach welchem Berechtigungskonzept sich die Instanz verhält."
+      operationId: getMessengerInstanceTimAuthConceptConfig
+      tags:
+        - MessengerInstance
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      responses:
+        '200':
+          description: "Konfiguration geladen."
+          content:
+            application/json:
+              schema:
+                $ref: './openapi-operator.yaml/#/components/schemas/SynapseOverrideConfiguration/properties/proxy'
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          $ref: "#/components/responses/NotFoundError"
+        '500':
+          description: "Die Berechtigungskonzept Konfiguration konnte wegen eines Fehlers im Operator nicht gefunden werden."
+
+
+components:
+  parameters:
+    instanceNameParam:
+      name: instanceName
+      in: path
+      description: "Der Name des Instanz"
+      required: true
+      schema:
+        type: string
+  schemas:
+    MessengerInstanceDto:
+      type: object
+      required:
+        - instanceId
+        - instanceName
+        - publicHomeserverFQDN
+        - active
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          format: int64
+        instanceName:
+          type: string
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          maxLength: 63
+          description: Der Instanzname, aus technischen Gründen limitiert auf 63 DNS-fähige Zeichen
+        publicHomeserverFQDN:
+          type: string
+        userId:
+          type: string
+        dateOfOrder:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        telematikId:
+          type: string
+        professionOid:
+          type: string
+        instanceId:
+          type: string
+        active:
+          type: boolean
+          default: true
+        startOfInactivity:
+          type: integer
+          format: int64
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: "Die Authentifizierungsinformationen fehlen oder sind ungültig."
+    NotAllowedError:
+      description: "Der verwendete User hat nicht die erforderlichen Berechtigungen."
+    NotFoundError:
+      description: "Die Resource wurde nicht gefunden."

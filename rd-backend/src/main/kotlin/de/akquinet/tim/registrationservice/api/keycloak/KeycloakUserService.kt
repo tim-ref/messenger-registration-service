@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 - 2024 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import de.akquinet.tim.registrationservice.api.operator.AdminUser
 import de.akquinet.tim.registrationservice.api.operator.OperatorService
 import de.akquinet.tim.registrationservice.config.KeycloakAdminConfig
 import de.akquinet.tim.registrationservice.config.RegServiceConfig
+import de.akquinet.tim.registrationservice.openapi.model.mi.CreateAdminUser201Response
+import de.akquinet.tim.registrationservice.openapi.model.mi.CreateAdminUserRequest
+import de.akquinet.tim.registrationservice.openapi.model.operator.GetMessengerInstanceInitialAdminCreds200Response
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceEntity
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
 import de.akquinet.tim.registrationservice.persistance.orgAdmin.model.OrgAdminEntity
@@ -55,12 +58,20 @@ class KeycloakUserService @Autowired constructor(
 
     private val gson = Gson()
 
-    fun createKeycloakAdminUser(serverName: String, user: AdminUser): Boolean {
+    fun createKeycloakAdminUser(
+        realmName: String,
+        user: GetMessengerInstanceInitialAdminCreds200Response,
+        emailAddress: String? = null,
+    ): Boolean {
         val password = preparePasswordRepresentation(user.password)
-        val userName = prepareUserRepresentation(user.userName, password)
+        val userName = prepareUserRepresentation(
+            userName = user.username,
+            cR = password,
+            emailAddress = emailAddress
+        )
 
         return try {
-            val realmResource = keycloakMaster.realm(serverName)
+            val realmResource = keycloakMaster.realm(realmName)
             val usersResource = realmResource.users()
             val response = usersResource.create(userName)
             if (response.status == HttpStatus.CREATED.value()) {
@@ -83,15 +94,15 @@ class KeycloakUserService @Autowired constructor(
                         .clientLevel(realmManagementClient.id).add(listOf(manageUsersRole, viewUsersRole))
                     true
                 } catch (e: Exception) {
-                    logger.error(ORG_ADMIN_ERROR_LOG_TEMPLATE, serverName, "keycloak admin roles", e)
-                    deleteKeycloakUser(serverName, user)
+                    logger.error(ORG_ADMIN_ERROR_LOG_TEMPLATE, realmName, "keycloak admin roles", e)
+                    deleteKeycloakUser(realmName, user.username)
 
                     false
                 }
             } else {
                 logger.error(
                     "$ORG_ADMIN_ERROR_LOG_TEMPLATE, status: {}, message: {}",
-                    serverName,
+                    realmName,
                     "keycloak org admin",
                     response.status,
                     response.readEntity(String::class.java)
@@ -101,7 +112,7 @@ class KeycloakUserService @Autowired constructor(
         } catch (e: WebApplicationException) {
             logger.error(
                 "$ORG_ADMIN_ERROR_LOG_TEMPLATE, status: {}, message: {}",
-                serverName,
+                realmName,
                 "keycloak org admin",
                 e.response.status,
                 e.response.readEntity(String::class.java)
@@ -110,14 +121,15 @@ class KeycloakUserService @Autowired constructor(
         }
     }
 
-    fun deleteKeycloakUser(serverName: String, adminUser: AdminUser) {
+    fun deleteKeycloakUser(realmName: String, adminUserName: String) {
         try {
-            val userId = keycloakMaster.realm(serverName).users().search(adminUser.userName)[0].id
-            keycloakMaster.realm(serverName).users().delete(userId)
+            keycloakMaster.realm(realmName).users().search(adminUserName).firstOrNull()?.id?.let {
+                keycloakMaster.realm(realmName).users().delete(it)
+            }
         } catch (e: WebApplicationException) {
             logger.error(
                 "$ORG_ADMIN_ERROR_LOG_TEMPLATE, status: {}, message: {}",
-                serverName,
+                realmName,
                 "keycloak rollback org admin",
                 e.response.status,
                 e.response.readEntity(String::class.java)
@@ -125,76 +137,61 @@ class KeycloakUserService @Autowired constructor(
         }
     }
 
-    fun createAdminUser(serverName: String): ResponseEntity<String> {
-        val messengerInstanceEntity = messengerInstanceRepository
-            .findDistinctFirstByServerNameAndUserId(serverName, userService.getUserIdFromContext())
+    fun createAdminUser(request: CreateAdminUserRequest): ResponseEntity<CreateAdminUser201Response> {
+        val messengerInstanceEntity = messengerInstanceRepository.findByServerName(request.instanceName)
 
+        val adminUser: GetMessengerInstanceInitialAdminCreds200Response = getOrgAdminCredentials(request.instanceName)
         val statusCode: HttpStatus = messengerInstanceEntity?.let { messengerInstance ->
             orgAdminManagementService.getByServerName(messengerInstance.serverName)?.let {
                 HttpStatus.CONFLICT
             } ?: run {
-                val adminUser = prepareAdminUser()
-                try {
-                    createOrgAdmin(messengerInstance, adminUser, serverName)
-                } catch (e: Exception) {
-                    logger.error(ORG_ADMIN_ERROR_LOG_TEMPLATE, serverName, "database", e)
-                    HttpStatus.INTERNAL_SERVER_ERROR
-                }
-
-                val keycloakAdminUserCreated = createKeycloakAdminUser(messengerInstance.instanceId, adminUser)
+                val keycloakAdminUserCreated = createKeycloakAdminUser(
+                    realmName = messengerInstance.instanceId,
+                    user = adminUser,
+                    emailAddress = request.orgAdminEmailAddress
+                )
                 if (keycloakAdminUserCreated) {
-                    val operatorResponse = createAdminOperator(serverName, adminUser)
-                    if (operatorResponse.is2xxSuccessful) {
-                        return ResponseEntity.status(HttpStatus.CREATED).body(gson.toJson(adminUser))
-                    } else {
-                        deleteKeycloakUser(serverName, adminUser)
+                    try {
+                        createOrgAdminEntity(messengerInstance, adminUser)
+                        HttpStatus.CREATED
+                    } catch (e: Exception) {
+                        logger.error(ORG_ADMIN_ERROR_LOG_TEMPLATE, request.instanceName, "database", e)
                         HttpStatus.INTERNAL_SERVER_ERROR
                     }
-                } else {
+                }else {
+                    deleteKeycloakUser(messengerInstance.instanceId, adminUser.username)
                     HttpStatus.INTERNAL_SERVER_ERROR
                 }
             }
         } ?: HttpStatus.NOT_FOUND
 
-        return ResponseEntity.status(statusCode).body(getResponseString(statusCode))
+        return if (statusCode.is2xxSuccessful) {
+            ResponseEntity.status(statusCode).body(CreateAdminUser201Response(
+                username = adminUser.username,
+                password = adminUser.password,
+            ))
+        } else {
+            ResponseEntity.status(statusCode).build()
+        }
     }
+
+    private fun getOrgAdminCredentials(serverName: String): GetMessengerInstanceInitialAdminCreds200Response =
+        operatorService.getOrgAdminCredentials(serverName)
 
     fun getEnabledMessengerInstanceOrderUsers(): List<UserRepresentation> {
         val timRealm = keycloakTim.realm(keycloakProperties.timRealm.realmName)
         return timRealm.users().searchByAttributes("enabled=true")
     }
 
-    private fun createAdminOperator(serverName: String, adminUser: AdminUser) =
-        if (regServiceConfig.callExternalServices) {
-            operatorService.createOrgAdmin(serverName, adminUser)
-        } else {
-            HttpStatus.CREATED
-        }
-
-    private fun createOrgAdmin(
+    private fun createOrgAdminEntity(
         instanceEntity: MessengerInstanceEntity,
-        adminUser: AdminUser,
-        serverName: String
+        adminUser: GetMessengerInstanceInitialAdminCreds200Response
     ): OrgAdminEntity = orgAdminManagementService.createOrgAdmin(
         serverName = instanceEntity.serverName,
         telematikId = instanceEntity.telematikId,
-        mxId = "@${adminUser.userName}:$serverName",
+        mxId = "@${adminUser.username}:${instanceEntity.publicBaseUrl}",
         professionOid = instanceEntity.professionId
     )
-
-
-    private fun getResponseString(statusCode: HttpStatus): String {
-        val responseString = when (statusCode) {
-            HttpStatus.CONFLICT -> "Admin user for for Instance already Exists"
-
-            // description of 500 is used in frontend, please change it there as well if you are making changes here
-            HttpStatus.INTERNAL_SERVER_ERROR -> "Error on creating admin user through operator"
-
-            else -> "Messenger Instance could not be found"
-        }
-        return responseString
-    }
-
 
     private fun preparePasswordRepresentation(
         password: String
@@ -207,22 +204,15 @@ class KeycloakUserService @Autowired constructor(
     }
 
     private fun prepareUserRepresentation(
-        userName: String, cR: CredentialRepresentation
+        userName: String,
+        cR: CredentialRepresentation,
+        emailAddress: String? = null
     ): UserRepresentation {
         val newUser = UserRepresentation()
         newUser.username = userName
         newUser.credentials = listOf(cR)
         newUser.isEnabled = true
-        newUser.email = userService.loadUserAttributeByClaim("email")
+        newUser.email = emailAddress
         return newUser
-    }
-
-    private fun prepareAdminUser(): AdminUser {
-        val userCharPool: List<Char> = ('a'..'z') + ('0'..'9')
-        val passwordCharPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-        return AdminUser(
-            userName = List(8) { userCharPool.random() }.joinToString(""),
-            password = List(16) { passwordCharPool.random() }.joinToString("")
-        )
     }
 }

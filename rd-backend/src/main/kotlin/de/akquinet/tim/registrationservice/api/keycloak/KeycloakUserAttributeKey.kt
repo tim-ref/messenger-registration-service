@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,10 @@
  *
  */
 
-export class MessengerInstance {
-  public id: string | null = '';
-  public userId: string | null = '';
-  public serverName: string = '';
-  public publicBaseUrl: string = '';
-  public version: number | null = 0;
-  public dateOfOrder: string | null = '';
-  public endDate: string | null = '';
-  public active: boolean = true;
-  public startOfInactivity: string | null = '';
+package de.akquinet.tim.registrationservice.api.keycloak
+
+enum class KeycloakUserAttributeKey(val value: String) {
+    TELEMATIK_ID("TelematikID"),
+    PROFESSION_OID("ProfessionOID"),
+    ORDER_LENGTH("Laufzeit");
 }

@@ -33,12 +33,15 @@ zonky:
 operator:
   host: "http://localhost"
   port: "8080"
-  createPath: "/homeserver"
-  deletePath: "/homeserver"
+  createPath: "/homeservers"
+  deletePath: "/homeservers"
   baseFQDN: ".localhost"
   credentials:
     username: "user"
     password: "pass"
+  messengerInstanceApi:
+    username: "operator"
+    password: "operator"
 
 vzd:
   serviceUrl: "https://fhir-directory-test.vzd.ti-dienste.de"

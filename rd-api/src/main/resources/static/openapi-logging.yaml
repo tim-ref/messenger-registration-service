@@ -1,0 +1,87 @@
+openapi: "3.1.0"
+info:
+  title: "TI-Messenger/Fachdienst/Registrierungsdienst/Logging"
+  version: ${project.version}
+
+servers:
+  - url: "http://localhost:8080"
+    description: "Lokale Entwicklungsmaschine"
+
+security:
+  - bearerAuth: [ ]
+
+paths:
+  /logging/download/{serverName}/{containerName}:
+    get:
+      description: "Liefert Log-Daten für den angegebenen Zeitraum"
+      operationId: getLogs
+      tags:
+        - Logging
+      parameters:
+        - in: path
+          name: serverName
+          schema:
+            type: string
+          required: true
+          description: "Der Servername für den die Log-Daten geholt werden sollen"
+        - in: path
+          name: containerName
+          schema:
+            type: string
+          required: true
+          description: "Der Containername für den das Loglevel geändert werden soll"
+        - in: query
+          name: start
+          schema:
+            type: integer
+            format: int64
+          required: false
+          description: "Der Startzeitpunkt des gewünschten Zeitraums als Unix-Timestamp"
+        - in: query
+          name: end
+          schema:
+            type: integer
+            format: int64
+          required: false
+          description: "Der Endzeitpunkt des gewünschten Zeitraums als Unix-Timestamp"
+      responses:
+        '200':
+          description: "Enthält die Log-Daten für den gewünschten Zeitraum als Stream"
+          content:
+            plain/text:
+              schema:
+                type: Streamable
+
+  /logging/{instanceId}/level:
+    post:
+      operationId: changeInstanceLogLevel
+      tags:
+        - Logging
+      parameters:
+        - in: path
+          name: instanceId
+          schema:
+            type: string
+          required: true
+          description: "Die InstanzId des Servers für den das Loglevel geändert werden soll"
+      requestBody:
+        description: "Das zu setzende Log-Level, muss ein Wert aus ch.qos.logback.classic.Level sein"
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: "Das Loglevel der Messenger-Instanz wurde erfolgreich geändert"
+        '404':
+          description: "Die Messenger-Instanz wurde anhand des übergebenen Namens nicht gefunden"
+        '500':
+          description: "Das Loglevel konnte wegen eines Fehlers im Operator nicht geändert werden"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

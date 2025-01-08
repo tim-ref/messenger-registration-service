@@ -61,3 +61,6 @@ Thumbs.db
 
 # Test reports
 /target/reports
+
+# openapi generated files
+build/

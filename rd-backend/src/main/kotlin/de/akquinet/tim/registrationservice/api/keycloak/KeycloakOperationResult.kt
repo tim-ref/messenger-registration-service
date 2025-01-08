@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2024-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,13 @@
 
 package de.akquinet.tim.registrationservice.api.keycloak
 
-enum class KeycloakOperationResult {
+import org.springframework.http.HttpStatus
 
-    OK_REALM_DELETED,
-    FAILED_REALM_DELETED;
+enum class KeycloakOperationResult ( val httpStatus: HttpStatus) {
+    REALM_CREATED(HttpStatus.CREATED),
+    REALM_NOT_CREATED(HttpStatus.INTERNAL_SERVER_ERROR),
+    REALM_ALREADY_PRESENT(HttpStatus.OK),
+    REALM_DELETED(HttpStatus.NO_CONTENT),
+    REALM_NOT_DELETED(HttpStatus.INTERNAL_SERVER_ERROR),
+    REALM_NOT_FOUND(HttpStatus.NOT_FOUND);
 }

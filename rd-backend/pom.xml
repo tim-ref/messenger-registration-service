@@ -22,12 +22,12 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-backend</artifactId>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
     <name>Registrierungsdienst - Backend</name>
     <description>Backend für den Registrierungsdienst der TIM-Referenzimplementierung</description>
 
@@ -51,6 +51,7 @@
         <sonar.binaries>target/classes</sonar.binaries>
 
         <package.classifier>standalone</package.classifier>
+        <openapi.package.base>de.akquinet.tim.registrationservice.openapi</openapi.package.base>
 
     </properties>
 
@@ -64,6 +65,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -145,11 +147,10 @@
             <artifactId>flyway-database-postgresql</artifactId>
             <version>${flyway.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
-            <version>2.17.0</version>
+            <version>2.17.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -286,11 +287,36 @@
         </resources>
 
         <plugins>
+            <!-- maven-dependency-plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>extract-registration-service-openapi</id>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
+                                    <artifactId>rd-api</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.build.directory}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- openapi-generator-maven-plugin -->
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>7.6.0</version>
                 <configuration>
                     <generatorName>kotlin-spring</generatorName>
                     <library>spring-boot</library>
@@ -310,14 +336,85 @@
                         <configuration>
                             <generatorName>kotlin</generatorName>
                             <library>jvm-okhttp4</library>
-                            <inputSpec>${project.basedir}/src/main/resources/static/openapi-operator.yaml</inputSpec>
-                            <modelPackage>de.akquinet.tim.registrationservice.openapi.model.operator</modelPackage>
-                            <apiPackage>de.akquinet.tim.registrationservice.openapi.operator.client</apiPackage>
+                            <inputSpec>${project.build.directory}/static/openapi-operator.yaml</inputSpec>
+                            <modelPackage>${openapi.package.base}.model.operator</modelPackage>
+                            <apiPackage>${openapi.package.base}.api.operator.client</apiPackage>
                             <skipValidateSpec>true</skipValidateSpec>
                             <generateSupportingFiles>true</generateSupportingFiles>
                             <configOptions>
                                 <serializationLibrary>jackson</serializationLibrary>
                             </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-messenger-instance-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <modelPackage>${openapi.package.base}.model.mi</modelPackage>
+                            <apiPackage>${openapi.package.base}.api.mi.server</apiPackage>
+                            <supportingFilesToGenerate>ApiUtil.kt</supportingFilesToGenerate>
+                            <inputSpec>${project.build.directory}/static/openapi-messenger-instance.yaml</inputSpec>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-logging-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <modelPackage>${openapi.package.base}.model.logging</modelPackage>
+                            <apiPackage>${openapi.package.base}.api.logging.server</apiPackage>
+                            <supportingFilesToGenerate>ApiUtil.kt</supportingFilesToGenerate>
+                            <inputSpec>${project.build.directory}/static/openapi-logging.yaml</inputSpec>
+                            <schemaMappings>
+                                <schemaMapping>Streamable=InputStreamResource</schemaMapping>
+                            </schemaMappings>
+                            <importMappings>
+                                <importMapping>InputStreamResource=org.springframework.core.io.InputStreamResource</importMapping>
+                            </importMappings>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-invite-permission-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <modelPackage>${openapi.package.base}.model.invitepermission</modelPackage>
+                            <apiPackage>${openapi.package.base}.api.invitepermission.server</apiPackage>
+                            <supportingFilesToGenerate>ApiUtil.kt</supportingFilesToGenerate>
+                            <inputSpec>${project.build.directory}/static/openapi-invite-permission.yaml</inputSpec>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-operator-instance-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <modelPackage>${openapi.package.base}.model.mi</modelPackage>
+                            <apiPackage>${openapi.package.base}.api.operator.server</apiPackage>
+                            <supportingFilesToGenerate>ApiUtil.kt</supportingFilesToGenerate>
+                            <inputSpec>${project.build.directory}/static/openapi-operator-instance.yaml</inputSpec>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-federation-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <modelPackage>${openapi.package.base}.model.federation</modelPackage>
+                            <apiPackage>${openapi.package.base}.api.federation.server</apiPackage>
+                            <supportingFilesToGenerate>ApiUtil.kt</supportingFilesToGenerate>
+                            <inputSpec>${project.build.directory}/static/openapi-federation.yaml</inputSpec>
                         </configuration>
                     </execution>
                 </executions>
@@ -353,6 +450,10 @@
                         <plugin>spring</plugin>
                         <plugin>jpa</plugin>
                     </compilerPlugins>
+                    <sourceDirs>
+                        <sourceDir>target/generated-sources/openapi/src/main/kotlin</sourceDir>
+                        <sourceDir>src/main/kotlin</sourceDir>
+                    </sourceDirs>
                 </configuration>
                 <dependencies>
                     <dependency>

@@ -21,15 +21,17 @@
 
     <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
     <artifactId>rd-parent</artifactId>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
     <packaging>pom</packaging>
 
     <name>Registrierungsdienst - Parent</name>
     <description>Registrierungs-Dienst für die TIM Referenzimplementierung</description>
 
     <modules>
+        <module>rd-api</module>
         <module>rd-backend</module>
         <module>rd-frontend</module>
+        <module>rd-keycloak</module>
     </modules>
 
     <properties>
@@ -86,6 +88,11 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>3.2.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.openapitools</groupId>
+                    <artifactId>openapi-generator-maven-plugin</artifactId>
+                    <version>7.7.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
@@ -244,7 +251,7 @@
     <scm>
         <connection>${env.CI_SCM_CONNECTION}</connection>
         <developerConnection>${env.CI_SCM_DEVELOPER_CONNECTION}</developerConnection>
-        <tag>0.3.1</tag>
+        <tag>0.4.0</tag>
         <url>${env.CI_SCM_URL}</url>
     </scm>
 

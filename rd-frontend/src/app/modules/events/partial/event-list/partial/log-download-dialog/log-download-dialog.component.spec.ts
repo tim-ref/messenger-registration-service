@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import {TranslateModule, TranslateService} from '@ngx-translate/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {By} from '@angular/platform-browser';
 import ApiRoutes from '../../../../../../resources/api/api-routes';
-import {environment} from '../../../../../../../environments/environment';
 import {ButtonModule} from '../../../../../../components/button/button.module';
 import {LoadingIndicatorModule} from '../../../../../../components/loading-indicator/loading-indicator.module';
 import {CommonModule} from '@angular/common';
@@ -37,7 +36,6 @@ import {
   TranslateServiceStub,
 } from '../../../../../../../test/stubs';
 import {AppConfigurationService} from "../../../../../../services/appConfiguration.service";
-import {AppConfig} from "../../../../../../models/appConfig";
 
 describe('LogDownloadDialogComponent', () => {
   let fixture: ComponentFixture<LogDownloadDialogComponent>;
@@ -51,7 +49,6 @@ describe('LogDownloadDialogComponent', () => {
       declarations: [LogDownloadDialogComponent],
       imports: [
         ButtonModule,
-        LoadingIndicatorModule,
         CommonModule,
         InputModule,
         DialogModule,
@@ -112,7 +109,7 @@ describe('LogDownloadDialogComponent', () => {
     component.logDownload();
 
     const getRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogs + `/${component.data[0]}/${component.data[1]}?start=1688015127&end=1688016927`
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLoggingDownload + `/${component.data[0]}/${component.data[1]}?start=1688015127&end=1688016927`
     );
     expect(getRequest.request.method).toBe('GET');
   });

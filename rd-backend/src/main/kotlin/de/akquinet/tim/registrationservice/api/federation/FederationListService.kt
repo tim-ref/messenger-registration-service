@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ package de.akquinet.tim.registrationservice.api.federation
 
 import de.akquinet.tim.registrationservice.api.federation.model.AddDomainResponse
 import de.akquinet.tim.registrationservice.api.federation.model.DeleteDomainResponse
-import de.akquinet.tim.registrationservice.api.federation.model.Domain
+import de.akquinet.tim.registrationservice.openapi.model.federation.Domain
+import de.akquinet.tim.registrationservice.openapi.model.mi.UpdateFederationListRequest
 
-interface FederationService {
-    fun getFederationListResponse()
-    fun updateVZDFederationList(domain: Domain): AddDomainResponse
-    fun deleteDomainFromVZDFederationList(domain: String): DeleteDomainResponse
+interface FederationListService {
+    fun getLatestFederationListFromVzd()
+    fun addDomainToFederationListAtVzd(domain: Domain, request: UpdateFederationListRequest? = null): AddDomainResponse
+    fun deleteDomainFromFederationListAtVzd(domain: String): DeleteDomainResponse
 }

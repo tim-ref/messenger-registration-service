@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@
 package de.akquinet.tim.registrationservice.unitTests.api.federation
 
 import de.akquinet.tim.registrationservice.api.federation.AuthenticationTokenException
-import de.akquinet.tim.registrationservice.api.federation.FederationServiceImpl
+import de.akquinet.tim.registrationservice.api.federation.FederationListServiceImpl
 import de.akquinet.tim.registrationservice.api.federation.Token
 import de.akquinet.tim.registrationservice.api.federation.VzdConnectionException
-import de.akquinet.tim.registrationservice.api.federation.model.Domain
-import de.akquinet.tim.registrationservice.api.federation.model.FederationList
 import de.akquinet.tim.registrationservice.config.VZDConfig
+import de.akquinet.tim.registrationservice.openapi.model.federation.Domain
+import de.akquinet.tim.registrationservice.openapi.model.federation.FederationList
 import de.akquinet.tim.registrationservice.security.signature.JwsVerificationResult
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
@@ -49,7 +49,7 @@ class FederationServiceTest : DescribeSpec({
              * - returns correct FederationListResponse depending on signature validity
              * - saves federation list to repository if the signature is valid
              */
-            class TestFederationServiceImplValid : FederationServiceImpl(
+            class TestFederationListServiceImplValid : FederationListServiceImpl(
                 federationRepository = mockk(relaxed = true),
                 vzdConfig = VZDConfig(
                     serviceUrl = "url",
@@ -84,21 +84,21 @@ class FederationServiceTest : DescribeSpec({
                 override fun connectToVzd(uri: String, queryParameters: Map<String, Any>?) = connectionWithCode(200)
             }
 
-            class TestFederationServiceImplInvalid: TestFederationServiceImplValid() {
+            class TestFederationListServiceImplInvalid: TestFederationListServiceImplValid() {
                 override fun getVerifiedFederationListFromRemote(response: HttpURLConnection): JwsVerificationResult =
                         JwsVerificationResult.Invalid
             }
 
             run {
-                val federationService = TestFederationServiceImplValid()
-                federationService.getFederationListResponse()
+                val federationService = TestFederationListServiceImplValid()
+                federationService.getLatestFederationListFromVzd()
 
                 federationService.saveFederationListCalls shouldBe 1
             }
 
             run {
-                val federationService = TestFederationServiceImplInvalid()
-                federationService.getFederationListResponse()
+                val federationService = TestFederationListServiceImplInvalid()
+                federationService.getLatestFederationListFromVzd()
 
                 federationService.saveFederationListCalls shouldBe 0
             }
@@ -106,8 +106,8 @@ class FederationServiceTest : DescribeSpec({
     }
     describe("Exception handling in Federation Service") {
         val dummyToken = Token("", "", 0L)
-        val testFederationService = FederationServiceImpl(
-            logger = LoggerFactory.getLogger(FederationServiceImpl::class.java),
+        val testFederationService = FederationListServiceImpl(
+            logger = LoggerFactory.getLogger(FederationListServiceImpl::class.java),
             federationRepository = mockk(),
             vzdConfig = VZDConfig(
                 serviceUrl = "https://fhir-directory-test.vzd.ti-dienste.de",

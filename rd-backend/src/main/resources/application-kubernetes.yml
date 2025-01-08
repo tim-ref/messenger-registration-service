@@ -66,6 +66,9 @@ operator:
   credentials:
     username: ${OPERATOR_REGISTRATION_SERVICE_USERNAME}
     password: ${OPERATOR_REGISTRATION_SERVICE_PASSWORD}
+  messengerInstanceApi:
+    username: ${OPERATOR_MESSENGER_INSTANCE_API_USERNAME}
+    password: ${OPERATOR_MESSENGER_INSTANCE_API_PASSWORD}
 
 backend:
   periodOfValidityCheck:

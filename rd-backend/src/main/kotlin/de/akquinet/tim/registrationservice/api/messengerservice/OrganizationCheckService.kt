@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 package de.akquinet.tim.registrationservice.api.messengerservice
 
 import com.google.gson.Gson
-import de.akquinet.tim.registrationservice.api.federation.FederationServiceImpl
-import de.akquinet.tim.registrationservice.api.federation.model.Domain
+import de.akquinet.tim.registrationservice.api.federation.FederationListServiceImpl
 import de.akquinet.tim.registrationservice.config.VZDConfig
+import de.akquinet.tim.registrationservice.openapi.model.federation.Domain
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
 import org.slf4j.Logger
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -35,7 +35,7 @@ import java.time.Instant
 class OrganizationCheckService(
     private val logger: Logger,
     private val messengerInstanceRepository: MessengerInstanceRepository,
-    private val federationService: FederationServiceImpl,
+    private val federationService: FederationListServiceImpl,
     private val vzdConfig: VZDConfig
 ) {
     private val gson = Gson()

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2023 akquinet GmbH
+  ~ Copyright (C) 2023-2024 akquinet GmbH
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@
         <th class="text-left">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.ACTIVE" | translate }}</th>
         <th class="text-left">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.SERVER_NAME" | translate }}</th>
         <th class="text-left">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.PUBLIC_BASE_URL" | translate }}</th>
+        <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.AUTH_CONCEPT" | translate }}</th>
         <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.LOGS.CHANGE" | translate }}</th>
         <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.LOGS.PROXY" | translate }}</th>
         <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.LOGS.HOMESERVER" | translate }}</th>
@@ -71,17 +72,27 @@
           class="border-b-0.5 border-accent/40 table w-full table-fixed"
         >
           <td>{{ messengerInstance.active }}</td>
-          <td class="p-2">{{ messengerInstance.serverName }}</td>
-          <td>{{ messengerInstance.publicBaseUrl }}</td>
+          <td class="p-2">{{ messengerInstance.instanceName }}</td>
+          <td>{{ messengerInstance.publicHomeserverFQDN }}</td>
           <td class="text-right">
             <generic-button
-              id="log-change-button-{{messengerInstance.serverName.replace('.', '')}}"
+              id="auth-concept-button-{{messengerInstance.instanceName.replace('.', '')}}"
+              variant="icon"
+              icon="fa-info-circle"
+              color="white"
+              iconColor="primary"
+              (click)="openAuthConceptDialog(messengerInstance.instanceName)"
+            ></generic-button>
+          </td>
+          <td class="text-right">
+            <generic-button
+              id="log-change-button-{{messengerInstance.instanceName.replace('.', '')}}"
               variant="icon"
               icon="fa-info-circle"
               color="white"
               iconColor="primary"
 
-              (click)="openLogLevelChangeDialog(messengerInstance.serverName)"
+              (click)="openLogLevelChangeDialog(messengerInstance.instanceName)"
             ></generic-button>
           </td>
           <td class="text-right">
@@ -90,9 +101,9 @@
               icon="fa-info-circle"
               color="white"
               iconColor="primary"
-              id="log-server-button-{{messengerInstance.serverName.replace('.', '')}}"
+              id="log-server-button-{{messengerInstance.instanceName.replace('.', '')}}"
 
-              (click)="openLogDownloadDialog(messengerInstance.serverName,'messenger-proxy')"
+              (click)="openLogDownloadDialog(messengerInstance.instanceName,'messenger-proxy')"
             ></generic-button>
           </td>
           <td class="text-right">
@@ -101,7 +112,7 @@
               icon="fa-info-circle"
               color="white"
               iconColor="primary"
-              (click)="openLogDownloadDialog(messengerInstance.serverName, 'synapse')"
+              (click)="openLogDownloadDialog(messengerInstance.instanceName, 'synapse')"
             ></generic-button>
           </td>
           <td class="text-right">
@@ -110,27 +121,27 @@
               icon="fa-id-card"
               color="white"
               iconColor="primary"
-              (click)="createAdmin(messengerInstance.serverName)"
+              (click)="createAdmin(messengerInstance.instanceName)"
             ></generic-button>
           </td>
           <td class="text-right">
             <generic-button
-              id="open-keycloak-console-button-{{messengerInstance.serverName}}"
+              id="open-keycloak-console-button-{{messengerInstance.instanceName}}"
               variant="icon"
               icon="fa-arrow-up-right-from-square"
               color="white"
               iconColor="primary"
-              (click)="openKeycloakRealmConsole(messengerInstance.serverName)"
+              (click)="openKeycloakRealmConsole(messengerInstance.instanceName)"
             ></generic-button>
           </td>
           <td class="text-right">
             <generic-button
-              id="delete-instance-button-{{messengerInstance.serverName.replace('.', '')}}"
+              id="delete-instance-button-{{messengerInstance.instanceName.replace('.', '')}}"
               variant="icon"
               icon="fa-trash"
               color="white"
               iconColor="primary"
-              (click)="openDeleteDialog($event, messengerInstance.serverName)"
+              (click)="openDeleteDialog($event, messengerInstance.instanceName)"
             ></generic-button>
           </td>
         </tr>

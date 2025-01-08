@@ -25,25 +25,50 @@ import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.core.userdetails.User
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter
+import org.springframework.security.provisioning.InMemoryUserDetailsManager
+import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 
 const val REGSERVICE_OPENID_TOKEN_PATH = "/regservice/openid/user/*/requesttoken"
 const val INVITE_PERMISSION_PATH = "/vzd/invite"
+private const val OPERATOR_INSTANCE_PATH = "/operator/**"
+private const val OPERATOR_ROLE = "OPERATOR"
+
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 class WebSecurityConfig(
-    private val rawdataService: RawDataService
+    private val rawdataService: RawDataService,
+    private val operatorProperties: OperatorConfig.Properties,
+    private val basicAuthEntryPoint: AuthenticationEntryPoint
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain = http
-        .addFilterBefore(RawDataCreationFilter(rawdataService),
-            BearerTokenAuthenticationFilter::class.java) // add custom filter before authentication to create performance data of unsuccessful login tries
-        .csrf { it.ignoringRequestMatchers(REGSERVICE_OPENID_TOKEN_PATH, INVITE_PERMISSION_PATH) } // no csrf for regservice openid token
+        // no csrf for regservice openid token
+        .csrf { it.ignoringRequestMatchers(
+            REGSERVICE_OPENID_TOKEN_PATH,
+            INVITE_PERMISSION_PATH,
+            OPERATOR_INSTANCE_PATH
+        ) }
         .cors {}
+
         .authorizeHttpRequests {
+            it.apply {
+                requestMatchers(HttpMethod.POST, OPERATOR_INSTANCE_PATH).hasRole(OPERATOR_ROLE)
+                requestMatchers(HttpMethod.DELETE, OPERATOR_INSTANCE_PATH).hasRole(OPERATOR_ROLE)
+            }
+        }
+        .httpBasic { it.authenticationEntryPoint(basicAuthEntryPoint) }
+
+        // add custom filter before authentication to create performance data of unsuccessful login tries
+        .addFilterBefore(
+            RawDataCreationFilter(rawdataService),
+            BearerTokenAuthenticationFilter::class.java
+        ).authorizeHttpRequests {
             it.apply {
                 requestMatchers(
                     HttpMethod.GET,
@@ -52,9 +77,7 @@ class WebSecurityConfig(
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/actuator/health/**",
-                    "/actuator/prometheus",
-                    "/actuator/prometheus/**"
+                    "/actuator/**"
                 ).permitAll()
                 requestMatchers(HttpMethod.POST, REGSERVICE_OPENID_TOKEN_PATH).permitAll()
                 requestMatchers(HttpMethod.POST, INVITE_PERMISSION_PATH).permitAll()
@@ -70,4 +93,15 @@ class WebSecurityConfig(
         .oauth2ResourceServer { oauth2 -> oauth2.jwt(Customizer.withDefaults())}
         .build()
 
+    @Bean
+    fun userDetailsService() = InMemoryUserDetailsManager(
+        User.builder()
+            .username(operatorProperties.messengerInstanceApi.username)
+            .password(passwordEncoder().encode(operatorProperties.messengerInstanceApi.password))
+            .roles(OPERATOR_ROLE)
+            .build()
+    )
+
+    @Bean
+    fun passwordEncoder() = BCryptPasswordEncoder(8)
 }

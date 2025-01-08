@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ data class InstanceCreateParams(
     val endDate: LocalDate,
     val currentInstanceCount: Int,
     val telematikId: String,
+    val instanceId: String = "",
     val instanceName: String,
     val instanceFQDN: String,
     val professionOid: String,
@@ -33,8 +34,6 @@ data class InstanceCreateParams(
     val startOfInactivity: Long?
 ) {
 
-    val instanceId: String
-        get() = instanceFQDN.replace(".", "")
 
     fun toMessengerInstanceEntity() = MessengerInstanceEntity(
         userId = userId,
@@ -43,7 +42,7 @@ data class InstanceCreateParams(
         instanceId = instanceId,
         dateOfOrder = dateOfOrder,
         endDate = endDate,
-        serverName = instanceFQDN,
+        serverName = instanceName,
         publicBaseUrl = instanceFQDN,
         active = active,
         startOfInactivity = startOfInactivity

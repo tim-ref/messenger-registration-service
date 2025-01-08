@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 package de.akquinet.tim.registrationservice.persistance.messengerInstance
 
 import de.akquinet.tim.registrationservice.api.operator.*
+import de.akquinet.tim.registrationservice.openapi.model.mi.MessengerInstanceDto
 import jakarta.persistence.*
 import java.time.LocalDate
 import java.util.*
@@ -81,17 +82,17 @@ class MessengerInstanceEntity(
             logLevel = "INFO",
         )
 
-    fun toMessengerInstance(): MessengerInstance {
-        return MessengerInstance(
+    fun toMessengerInstance(): MessengerInstanceDto {
+        return MessengerInstanceDto(
             id = this.id,
             version = this.version,
-            serverName = this.serverName,
-            publicBaseUrl = this.publicBaseUrl,
+            instanceName = this.serverName,
+            publicHomeserverFQDN = this.publicBaseUrl,
             userId = this.userId,
-            dateOfOrder = this.dateOfOrder.toString(),
-            endDate = this.endDate.toString(),
+            dateOfOrder = this.dateOfOrder,
+            endDate = this.endDate,
             telematikId = this.telematikId,
-            professionId = this.professionId,
+            professionOid = this.professionId,
             instanceId = this.instanceId,
             active = this.active,
             startOfInactivity = this.startOfInactivity
@@ -103,18 +104,3 @@ class MessengerInstanceEntity(
         require(publicBaseUrl.isNotBlank()) { "URL darf nicht leer sein." }
     }
 }
-
-data class MessengerInstance(
-    val id: UUID? = null,
-    val version: Long = 0L,
-    val serverName: String,
-    val publicBaseUrl: String,
-    val userId: String? = null,
-    val dateOfOrder: String? = null,
-    val endDate: String? = null,
-    val telematikId: String? = null,
-    val professionId: String? = null,
-    val instanceId: String? = null,
-    val active: Boolean = true,
-    val startOfInactivity: Long? = null
-)

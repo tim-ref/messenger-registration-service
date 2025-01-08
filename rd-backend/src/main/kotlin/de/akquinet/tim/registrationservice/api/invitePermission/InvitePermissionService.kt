@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 package de.akquinet.tim.registrationservice.api.invitePermission
 
 import com.google.gson.Gson
-import de.akquinet.tim.registrationservice.api.federation.FederationServiceImpl
+import de.akquinet.tim.registrationservice.api.federation.FederationListServiceImpl
 import de.akquinet.tim.registrationservice.config.VZDConfig
 import org.slf4j.Logger
 import org.springframework.stereotype.Service
@@ -28,7 +28,7 @@ import java.io.BufferedInputStream
 @Service
 class InvitePermissionService(
     private val logger: Logger,
-    private val federationService: FederationServiceImpl,
+    private val federationService: FederationListServiceImpl,
     private val vzdConfig: VZDConfig
 ) {
 

@@ -57,7 +57,7 @@ management:
         include: health,prometheus
   health:
     keycloak:
-      enabled: true
+      enabled: false
     vzd:
       enabled: false
   endpoint:
@@ -69,7 +69,6 @@ management:
           include:
             - readinessState
             - db
-            - keycloak
         liveness:
           include:
             - livenessState

@@ -1,0 +1,41 @@
+openapi: "3.1.0"
+info:
+  title: "TI-Messenger/Fachdienst/Registrierungsdienst/Invite-Permission"
+  version: ${project.version}
+  description: "Diese API wird vom Messenger-Proxy konsumiert (Berechtigungsstufe 2)."
+
+servers:
+  - url: "http://localhost:8080"
+    description: "Lokale Entwicklungsmaschine"
+
+paths:
+  /vzd/invite:
+    post:
+      description: "Holt invite permission für Berechtigungsstufe 3 für zwei User"
+      operationId: getUserPublicityFromVZD
+      tags:
+        - InvitePermission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitePermissionDto"
+      responses:
+        '200':
+          description: "Antwort falls zulässig"
+        '403':
+          description: "Antwort falls nicht zulässig"
+
+components:
+  schemas:
+    InvitePermissionDto:
+      type: object
+      required:
+        - invitingUser
+        - invitedUser
+      properties:
+        invitingUser:
+          type: string
+        invitedUser:
+          type: string

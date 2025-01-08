@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import {
   DeleteMessengerInstancesDialogComponent
 } from './partial/delete-messenger-instance-dialog/delete-messenger-instances-dialog.component';
 import {DialogService} from '../../../../services/dialog.service';
-import {MessengerInstance} from '../../../../models/messengerInstance';
 import ApiRoutes from '../../../../resources/api/api-routes';
 import {HttpStatusCode} from '@angular/common/http';
 import {AppService} from '../../../../services/app.service';
@@ -43,30 +42,33 @@ import {
 } from '../../../../../test/stubs';
 import {LogLevelDialogComponent} from "./partial/log-level-dialog/log-level-dialog.component";
 import {AppConfigurationService} from "../../../../services/appConfiguration.service";
-import {AppConfig} from "../../../../models/appConfig";
+import {MessengerInstanceDto} from "../../../../../../build/openapi/messengerinstance";
 
-let instances: MessengerInstance[] = [
+let instances: MessengerInstanceDto[] = [
   {
     id: '1',
     userId: '1',
-    serverName: 'AkquinetTestServer.matrix',
-    publicBaseUrl: 'akquinet.de',
+    instanceId: '1',
+    instanceName: 'AkquinetTestServer.matrix',
+    publicHomeserverFQDN: 'akquinet.de',
     version: 0,
     dateOfOrder: '15.03.2023',
     endDate: '15.03.2024,',
     active: true,
-    startOfInactivity: 'test',
+    startOfInactivity: 1,
   },
   {
     id: '2',
     userId: '2',
-    serverName: 'GematikTestServer.matrix',
-    publicBaseUrl: 'gematik.de',
+    instanceId: '2',
+    instanceName: 'GematikTestServer.matrix',
+    publicHomeserverFQDN: 'gematik.de',
     version: 0,
     dateOfOrder: '15.03.2023',
     endDate: '15.03.2024,',
     active: true,
-    startOfInactivity: 'test',
+    startOfInactivity: 2,
+
   },
 ];
 
@@ -118,7 +120,7 @@ describe('MessengerInstancesListComponent', () => {
 
     // mock instances GET request
     const getInstancesRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstances
     );
     expect(getInstancesRequest.request.method).toBe('GET');
     getInstancesRequest.flush(instances, {
@@ -214,14 +216,16 @@ describe('MessengerInstancesListComponent', () => {
         {
           id: '1',
           userId: '1',
-          serverName: 'AkquinetTestServer.matrix',
-          publicBaseUrl: 'akquinet.de',
+          instanceId: '1',
+          instanceName: 'AkquinetTestServer.matrix',
+          publicHomeserverFQDN: 'akquinet.de',
           version: 0,
           dateOfOrder: '15.03.2023',
           endDate: '15.03.2024,',
           active: true,
-          startOfInactivity: 'test',
+          startOfInactivity: 1,
         },
+
       ],
       {
         status: HttpStatusCode.Ok,
@@ -230,7 +234,7 @@ describe('MessengerInstancesListComponent', () => {
     );
 
     const getRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstances
     );
     expect(getRequest.request.method).toBe('GET');
     getRequest.flush(
@@ -238,13 +242,14 @@ describe('MessengerInstancesListComponent', () => {
         {
           id: '2',
           userId: '2',
-          serverName: 'GematikTestServer.matrix',
-          publicBaseUrl: 'gematik.de',
+          instanceId: '2',
+          instanceName: 'GematikTestServer.matrix',
+          publicHomeserverFQDN: 'gematik.de',
           version: 0,
           dateOfOrder: '15.03.2023',
           endDate: '15.03.2024,',
           active: true,
-          startOfInactivity: 'test',
+          startOfInactivity: 2,
         },
       ],
       {
@@ -257,13 +262,15 @@ describe('MessengerInstancesListComponent', () => {
       {
         id: '2',
         userId: '2',
-        serverName: 'GematikTestServer.matrix',
-        publicBaseUrl: 'gematik.de',
+        instanceId: '2',
+        instanceName: 'GematikTestServer.matrix',
+        publicHomeserverFQDN: 'gematik.de',
         version: 0,
         dateOfOrder: '15.03.2023',
         endDate: '15.03.2024,',
         active: true,
-        startOfInactivity: 'test',
+        startOfInactivity: 2,
+
       },
     ]);
   });
@@ -273,7 +280,7 @@ describe('MessengerInstancesListComponent', () => {
     component.deleteInstance('asdf&');
 
     const deleteRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance + '/asdf&' + '/'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstance + '/asdf%26' + '/'
     );
     expect(deleteRequest.request.method).toBe('DELETE');
     deleteRequest.flush('A input value contains wrong characters', {
@@ -362,7 +369,7 @@ describe('MessengerInstancesListComponent', () => {
     component.logDownload('', 'synapse');
 
     const logRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogs + '//synapse'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLoggingDownload + '//synapse'
     );
     expect(logRequest.request.method).toBe('GET');
     logRequest.flush(new Blob(), {
@@ -383,7 +390,7 @@ describe('MessengerInstancesListComponent', () => {
     component.logDownload('asdf', 'synapse');
 
     const logRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogs + '/asdf/synapse'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLoggingDownload + '/asdf/synapse'
     );
     expect(logRequest.request.method).toBe('GET');
     logRequest.flush(new Blob(), {
@@ -404,7 +411,7 @@ describe('MessengerInstancesListComponent', () => {
     component.logDownload('asdf', 'synapse');
 
     const logRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogs + '/asdf/synapse'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLoggingDownload + '/asdf/synapse'
     );
     expect(logRequest.request.method).toBe('GET');
     logRequest.flush(new Blob(), {
@@ -426,16 +433,12 @@ describe('MessengerInstancesListComponent', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl +
-      ApiRoutes.messengerInstance +
-      '/' +
-      akquinetTestServer +
-      '/admin'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + '/admin'
     );
-    expect(adminRequest.request.method).toBe('GET');
+    expect(adminRequest.request.method).toBe('POST');
     adminRequest.flush(
       {
-        userName: '@testUser:akquinet.de',
+        username: '@testUser:akquinet.de',
         password: 'password',
       },
       {
@@ -457,13 +460,9 @@ describe('MessengerInstancesListComponent', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl +
-      ApiRoutes.messengerInstance +
-      '/' +
-      akquinetTestServer +
-      '/admin'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + '/admin'
     );
-    expect(adminRequest.request.method).toBe('GET');
+    expect(adminRequest.request.method).toBe('POST');
     adminRequest.flush([{}], {
       status: HttpStatusCode.NotFound,
       statusText: 'NOT_FOUND',
@@ -482,17 +481,14 @@ describe('MessengerInstancesListComponent', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl +
-      ApiRoutes.messengerInstance +
-      '/' +
-      akquinetTestServer +
-      '/admin'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + '/admin'
     );
-    expect(adminRequest.request.method).toBe('GET');
+    expect(adminRequest.request.method).toBe('POST');
     adminRequest.flush([{}], {
       status: HttpStatusCode.Conflict,
       statusText: 'CONFLICT',
     });
+
 
     expect(appService.showToast).toHaveBeenCalledWith({
       description: 'ADMIN.INSTANCE_LIST.CREATE_ADMIN_DIALOG.ERROR.CONFLICT',
@@ -502,22 +498,19 @@ describe('MessengerInstancesListComponent', () => {
     });
   });
 
-it('should return Locked if instance is not ready', () => {
+  it('should return Locked if instance is not ready', () => {
     spyOn(appService, 'showToast');
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl +
-      ApiRoutes.messengerInstance +
-      '/' +
-      akquinetTestServer +
-      '/admin'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + '/admin'
     );
-    expect(adminRequest.request.method).toBe('GET');
+    expect(adminRequest.request.method).toBe('POST');
     adminRequest.flush([{}], {
       status: HttpStatusCode.Locked,
       statusText: 'CONFLICT',
     });
+
 
     expect(appService.showToast).toHaveBeenCalledWith({
       description: 'ADMIN.INSTANCE_LIST.CREATE_ADMIN_DIALOG.ERROR.LOCKED',
@@ -532,13 +525,9 @@ it('should return Locked if instance is not ready', () => {
     component.createAdmin(akquinetTestServer);
 
     const adminRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl +
-      ApiRoutes.messengerInstance +
-      '/' +
-      akquinetTestServer +
-      '/admin'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + '/admin'
     );
-    expect(adminRequest.request.method).toBe('GET');
+    expect(adminRequest.request.method).toBe('POST');
     adminRequest.flush([{}], {
       status: HttpStatusCode.InternalServerError,
       statusText: 'InternalServerError',
@@ -792,11 +781,8 @@ it('should return Locked if instance is not ready', () => {
     component.changeLogLevel(akquinetTestServer);
     spyOn(appService, 'showToast');
     const postRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl +
-      ApiRoutes.messengerInstance +
-      '/' +
-      akquinetTestServer +
-      '/loglevel'
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogging + '/' + akquinetTestServer + '/level'
+
     );
     expect(postRequest.request.method).toBe('POST');
     postRequest.flush(

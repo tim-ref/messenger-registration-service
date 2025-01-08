@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-FROM quay.io/keycloak/keycloak:24.0.2
+FROM quay.io/keycloak/keycloak:25.0.4
 
-COPY --chown=keycloak:keycloak theme /opt/keycloak/themes/
+LABEL maintainer="TIM Maintainers"
+
+USER keycloak
+
+COPY theme /opt/keycloak/themes/

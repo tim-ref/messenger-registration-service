@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,11 @@ package de.akquinet.tim.registrationservice.api.federation
 import com.google.gson.Gson
 import de.akquinet.tim.registrationservice.api.federation.model.*
 import de.akquinet.tim.registrationservice.config.VZDConfig
-import de.akquinet.tim.registrationservice.persistance.federation.FederationRepository
+import de.akquinet.tim.registrationservice.extension.toEntity
+import de.akquinet.tim.registrationservice.openapi.model.federation.Domain
+import de.akquinet.tim.registrationservice.openapi.model.federation.FederationList
+import de.akquinet.tim.registrationservice.openapi.model.mi.UpdateFederationListRequest
+import de.akquinet.tim.registrationservice.persistance.federation.FederationListRepository
 import de.akquinet.tim.registrationservice.rawdata.RawDataService
 import de.akquinet.tim.registrationservice.rawdata.model.Operation
 import de.akquinet.tim.registrationservice.security.signature.CertPathValidationResult
@@ -62,13 +66,13 @@ internal class AuthenticationTokenException(msg: String, cause: Throwable? = nul
 
 @EnableScheduling
 @Service
-class FederationServiceImpl(
+class FederationListServiceImpl(
     private val logger: Logger,
-    val federationRepository: FederationRepository,
+    val federationRepository: FederationListRepository,
     val vzdConfig: VZDConfig,
     val signatureService: SignatureService,
     val rawdataService: RawDataService
-) : FederationService {
+) : FederationListService {
 
     private val gson = Gson()
 
@@ -238,7 +242,7 @@ class FederationServiceImpl(
     }
 
     @Scheduled(cron = "0 */5 * * * *")
-    override fun getFederationListResponse() {
+    override fun getLatestFederationListFromVzd() {
         val uri = vzdConfig.serviceUrl + vzdConfig.federationListPath
         val connection: HttpURLConnection = if (federationRepository.findAll().isEmpty()) {
             connectToVzd(uri, null)
@@ -265,7 +269,10 @@ class FederationServiceImpl(
     }
 
     @ExperimentalTime
-    override fun updateVZDFederationList(domain: Domain): AddDomainResponse {
+    override fun addDomainToFederationListAtVzd(
+        domain: Domain,
+        request: UpdateFederationListRequest?
+    ): AddDomainResponse {
         val requestHeaderContentLength: Int
         val vzdResponse: AddDomainResponse
         val (responseEntity, elapsed) = measureTimedValue {
@@ -307,7 +314,17 @@ class FederationServiceImpl(
             vzdResponse.toResponseEntity(gson)
         }
 
-        collectAndSendData(requestHeaderContentLength, responseEntity, elapsed, domain)
+        rawdataService.collectAndSendRawData(
+            requestHeaderContentLength,
+            responseEntity.body?.length ?: 0,
+            responseEntity.statusCode,
+            elapsed,
+            Operation.RS_ADD_MESSENGER_SERVICE_TO_FEDERATION,
+            domain.domain,
+            request?.telematikId,
+            request?.professionOid
+        )
+
         return vzdResponse
     }
 
@@ -327,7 +344,7 @@ class FederationServiceImpl(
         )
     }
 
-    override fun deleteDomainFromVZDFederationList(domain: String): DeleteDomainResponse {
+    override fun deleteDomainFromFederationListAtVzd(domain: String): DeleteDomainResponse {
         val response = deleteDomainFromVzd(domain)
         val responseBodyString = response.body?.string()
 

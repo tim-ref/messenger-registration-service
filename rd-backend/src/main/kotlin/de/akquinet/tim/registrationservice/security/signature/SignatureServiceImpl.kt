@@ -17,8 +17,8 @@
 
 package de.akquinet.tim.registrationservice.security.signature
 
-import de.akquinet.tim.registrationservice.api.federation.model.FederationList
 import de.akquinet.tim.registrationservice.config.VZDConfig
+import de.akquinet.tim.registrationservice.openapi.model.federation.FederationList
 import de.akquinet.tim.registrationservice.security.signature.jose4extension.BP256R1Algorithm
 import org.jose4j.jwa.AlgorithmConstraints
 import org.jose4j.jws.JsonWebSignature

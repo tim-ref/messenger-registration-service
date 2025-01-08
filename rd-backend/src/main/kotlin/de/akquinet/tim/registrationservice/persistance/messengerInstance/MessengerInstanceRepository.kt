@@ -26,6 +26,8 @@ import org.springframework.stereotype.Repository
 interface MessengerInstanceRepository : JpaRepository<MessengerInstanceEntity, String> {
 
     fun findDistinctFirstByServerNameAndUserId(serverName: String, userId: String): MessengerInstanceEntity?
+
+    fun findDistinctFirstByInstanceIdAndUserId(instanceId: String, userId: String): MessengerInstanceEntity?
     fun findAllByUserId(userId: String): List<MessengerInstanceEntity>
 
     fun findByUserIdAndTelematikIdAndProfessionId(userId: String, telematikId: String, professionOid: String): List<MessengerInstanceEntity>

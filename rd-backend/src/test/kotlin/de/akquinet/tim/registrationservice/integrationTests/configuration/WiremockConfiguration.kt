@@ -22,12 +22,12 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.google.gson.Gson
 import com.marcinziolo.kotlin.wiremock.*
 import de.akquinet.tim.registrationservice.api.federation.Token
-import de.akquinet.tim.registrationservice.api.federation.model.Domain
 import de.akquinet.tim.registrationservice.api.messengerservice.RawDataServiceConfig
 import de.akquinet.tim.registrationservice.config.KeycloakAdminConfig
 import de.akquinet.tim.registrationservice.config.MessengerProxyConfig
 import de.akquinet.tim.registrationservice.config.OperatorConfig
 import de.akquinet.tim.registrationservice.config.VZDConfig
+import de.akquinet.tim.registrationservice.openapi.model.federation.Domain
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -72,7 +72,7 @@ internal class WiremockConfiguration(
         operatorWireMock.post {
             urlPath equalTo operatorConfig.properties.createPath
         } returns {
-            statusCode = HttpStatus.CREATED.value()
+            statusCode = HttpStatus.ACCEPTED.value()
         }
 
         // Endpoint: Create new admin user
@@ -86,7 +86,7 @@ internal class WiremockConfiguration(
         operatorWireMock.delete {
             urlPath like "${operatorConfig.properties.deletePath}/${instanceNameRegex}"
         } returns {
-            statusCode = HttpStatus.OK.value()
+            statusCode = HttpStatus.ACCEPTED.value()
         }
 
         // Endpoint: Check readiness of instance
@@ -96,6 +96,12 @@ internal class WiremockConfiguration(
             statusCode = HttpStatus.OK.value()
         }
 
+        // Endpoint: Change log level
+        operatorWireMock.post {
+            urlPath like "${operatorConfig.properties.createPath}/${instanceNameRegex}$"
+        } returns {
+            statusCode = HttpStatus.OK.value()
+        }
         return operatorWireMock
     }
 

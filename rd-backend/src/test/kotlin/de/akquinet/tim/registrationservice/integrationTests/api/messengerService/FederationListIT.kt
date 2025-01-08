@@ -18,8 +18,8 @@
 package de.akquinet.tim.registrationservice.integrationTests.api.messengerService
 
 import com.ninjasquad.springmockk.SpykBean
-import de.akquinet.tim.registrationservice.api.federation.FederationServiceImpl
-import de.akquinet.tim.registrationservice.persistance.federation.FederationRepository
+import de.akquinet.tim.registrationservice.api.federation.FederationListServiceImpl
+import de.akquinet.tim.registrationservice.persistance.federation.FederationListRepository
 import de.akquinet.tim.registrationservice.security.signature.jose4extension.Brainpool
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.test.Enabled
@@ -42,10 +42,10 @@ class FederationListIT : DescribeSpec() {
     override fun extensions() = listOf(SpringExtension)
 
     @SpykBean
-    lateinit var federationService: FederationServiceImpl
+    lateinit var federationService: FederationListServiceImpl
 
     @Autowired
-    lateinit var federationRepository: FederationRepository
+    lateinit var federationRepository: FederationListRepository
 
     init {
         // BC providers required for certificates and TLS cipher suites using brainpool curves and install custom algorithm
@@ -67,7 +67,7 @@ class FederationListIT : DescribeSpec() {
             Brainpool.installExtension()
 
             it("Fetch the real test federation list from VZD").config(enabledOrReasonIf = isVzdSecretSet) {
-                federationService.getFederationListResponse()
+                federationService.getLatestFederationListFromVzd()
 
                 verify(exactly = 1) { federationService.getVerifiedFederationListFromRemote(any()) }
                 verify(exactly = 1) { federationService.saveFederationListToRepository(any()) }

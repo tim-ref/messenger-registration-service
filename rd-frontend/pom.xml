@@ -22,12 +22,12 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-frontend</artifactId>
-    <version>0.3.1</version>
+    <version>0.4.0</version>
     <name>Registrierungsdienst - Frontend</name>
     <description>Frontend für den Registrierungsdienst der TIM-Referenzimplementierung</description>
 
@@ -41,8 +41,8 @@
         <sonar.tests>src/app</sonar.tests>
         <sonar.test.inclusions>**/*.spec.ts</sonar.test.inclusions>
         <sonar.typescript.lcov.reportPaths>coverage/frontend/lcov.info</sonar.typescript.lcov.reportPaths>
-
         <package.classifier>docker</package.classifier>
+        <skipGenerateApi>false</skipGenerateApi>
     </properties>
 
     <build>
@@ -97,7 +97,35 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <!-- maven-dependency-plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>extract-registration-service-openapi</id>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
+                                    <artifactId>rd-api</artifactId>
+                                    <version>${project.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${project.basedir}/build/resources</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>**/*.yaml</includes>
+                            <outputDirectory>${project.basedir}/build/resources</outputDirectory>
+                            <skip>${skipGenerateApi}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- frontend-maven-plugin -->
             <plugin>
                 <groupId>com.github.eirslett</groupId>
@@ -121,6 +149,26 @@
                         </goals>
                         <configuration>
                             <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm generate:messenger-instance-api-client</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run generate:messenger-instance-api-client</arguments>
+                            <skip>${skipGenerateApi}</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm generate:logging-api-client</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run generate:logging-api-client</arguments>
+                            <skip>${skipGenerateApi}</skip>
                         </configuration>
                     </execution>
                     <execution>

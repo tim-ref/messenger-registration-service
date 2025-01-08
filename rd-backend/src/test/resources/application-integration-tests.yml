@@ -34,12 +34,15 @@ zonky:
 operator:
   host: "http://localhost"
   port: "8008"
-  createPath: "/homeserver"
-  deletePath: "/homeserver"
+  createPath: "/homeservers"
+  deletePath: "/homeservers"
   baseFQDN: ".localhost"
   credentials:
     username: "user"
     password: "pass"
+  messengerInstanceApi:
+    username: "operator"
+    password: "operator"
 
 vzd:
   serviceUrl: "http://localhost:8091"

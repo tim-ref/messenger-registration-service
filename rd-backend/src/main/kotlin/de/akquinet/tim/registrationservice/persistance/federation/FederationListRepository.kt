@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import org.springframework.stereotype.Repository
 
 @Repository
 @Transactional
-interface FederationRepository : JpaRepository<FederationListEntity, String> {
+interface FederationListRepository : JpaRepository<FederationListEntity, String> {
 
     fun deleteAllByVersionNot(version: Long)
     fun findFirstByOrderByVersionDesc(): FederationListEntity
-    fun getFirstByVersionGreaterThanEqual(version: Long?): FederationListEntity?
+    fun getFirstByVersionGreaterThanOrderByVersionDesc(version: Long): FederationListEntity?
 }

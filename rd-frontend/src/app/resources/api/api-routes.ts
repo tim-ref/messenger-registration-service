@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,14 @@
  */
 
 export default class ApiRoutes {
-  public static readonly messengerInstance: string = '/backend/messengerInstance';
+  public static readonly messengerInstances: string = '/backend/messenger-instances';
+  public static readonly messengerInstance: string = '/backend/messenger-instance';
   public static readonly messengerInstanceCreate: string =
-    '/backend/messengerInstance/create';
-  public static readonly messengerInstanceLogs: string = '/backend/messengerInstance/log-download';
+    ApiRoutes.messengerInstance + '/request';
+  public static readonly messengerInstanceLogging: string = '/backend/logging';
+  public static readonly messengerInstanceLoggingDownload: string = ApiRoutes.messengerInstanceLogging + '/download';
+
+  public static messengerInstanceTimAuthConceptConfig(instanceName: string): string {
+    return `/backend/messenger-instance/${instanceName}/tim-auth-concept-config`;
+  };
 }

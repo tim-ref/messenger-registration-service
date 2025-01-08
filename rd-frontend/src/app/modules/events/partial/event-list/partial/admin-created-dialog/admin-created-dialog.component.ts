@@ -17,7 +17,7 @@
 
 import {Component, Input} from '@angular/core';
 import {DialogService} from '../../../../../../services/dialog.service';
-import {AdminUser} from "../../../../../../models/adminUser";
+import {CreateAdminUser201Response} from "../../../../../../../../build/openapi/messengerinstance";
 
 @Component({
   selector: 'admin-created-dialog',
@@ -34,7 +34,7 @@ export class AdminCreatedDialogComponent {
     this.dialogService.closeDialog();
   }
 
-  getAdminUser(): AdminUser {
+  getAdminUser(): CreateAdminUser201Response {
     return this.data
   }
 }

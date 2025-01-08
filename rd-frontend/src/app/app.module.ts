@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,12 @@ import {ToastComponent} from './components/toast/toast.component';
 import {FooterComponent} from "./components/footer/footer.component";
 import {appConfigurationFactory} from "./init/app-config.factory";
 import {AppConfigurationService} from "./services/appConfiguration.service";
+import {BASE_PATH as LOGGING_BASE_PATH, LoggingApiModule} from "../../build/openapi/logging";
+import {
+  BASE_PATH as MESSENGER_INSTANCE_BASE_PATH,
+  MessengerInstanceApiModule
+} from "../../build/openapi/messengerinstance";
+
 
 const ConfigDependentServices = new InjectionToken<(() => Function)[]>('ConfigDependentServices');
 
@@ -45,7 +51,9 @@ const ConfigDependentServices = new InjectionToken<(() => Function)[]>('ConfigDe
     BrowserModule,
     ButtonModule,
     DialogModule,
+    LoggingApiModule,
     MessengerInstanceModule,
+    MessengerInstanceApiModule,
     HttpClientModule,
     AppRoutingModule,
     NoopAnimationsModule,
@@ -74,6 +82,20 @@ const ConfigDependentServices = new InjectionToken<(() => Function)[]>('ConfigDe
         ];
       },
       deps: [KeycloakService, AppConfigurationService]
+    },
+    {
+      provide: LOGGING_BASE_PATH,
+      useFactory: (appConfigService: AppConfigurationService) => {
+        return appConfigService.appConfig.apiUrl + "/backend"
+      },
+      deps: [AppConfigurationService]
+    },
+    {
+      provide: MESSENGER_INSTANCE_BASE_PATH,
+      useFactory: (appConfigService: AppConfigurationService) => {
+        return appConfigService.appConfig.apiUrl + "/backend"
+      },
+      deps: [AppConfigurationService]
     },
     AppAuthguard,
   ],

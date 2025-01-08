@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import {I18nService} from '../../../../services/i18n.service';
 import {RestService} from '../../../../services/rest.service';
 import ApiRoutes from '../../../../resources/api/api-routes';
 import {AppService} from '../../../../services/app.service';
-import {MessengerInstance} from '../../../../models/messengerInstance';
 import {DialogService} from '../../../../services/dialog.service';
 import {
     DeleteMessengerInstancesDialogComponent
@@ -30,12 +29,19 @@ import {
 import {tap} from 'rxjs';
 import {HttpHeaders, HttpStatusCode} from '@angular/common/http';
 import {saveAs} from 'file-saver';
-import {AdminUser} from '../../../../models/adminUser';
 import {AdminCreatedDialogComponent} from './partial/admin-created-dialog/admin-created-dialog.component';
 import {LogLevelDialogComponent} from './partial/log-level-dialog/log-level-dialog.component';
 import {LogDownloadDialogComponent} from './partial/log-download-dialog/log-download-dialog.component';
-import {environment} from '../../../../../environments/environment';
 import {AppConfigurationService} from "../../../../services/appConfiguration.service";
+import {
+  AuthorizationConceptDialogComponent
+} from "./partial/authorization-concept-dialog/authorization-concept-dialog.component";
+import {
+  CreateAdminUser201Response,
+  MessengerInstanceDto,
+  MessengerInstanceService
+} from "../../../../../../build/openapi/messengerinstance";
+import {LoggingService} from "../../../../../../build/openapi/logging";
 
 @Component({
     selector: 'admin-messenger-service-list',
@@ -43,7 +49,7 @@ import {AppConfigurationService} from "../../../../services/appConfiguration.ser
     styleUrls: ['./messenger-instances-list.component.scss'],
 })
 export class MessengerInstancesListComponent implements OnInit {
-    public messengerInstances: MessengerInstance[] = [];
+    public messengerInstances: MessengerInstanceDto[] = [];
     public totalCount: number = 0;
     public currentPageNumber: number = 1;
     public maxPageNumber: number = 0;
@@ -56,10 +62,12 @@ export class MessengerInstancesListComponent implements OnInit {
     constructor(
         private i18nService: I18nService,
         private activatedRoute: ActivatedRoute,
-        private restService: RestService,
         private appService: AppService,
         private dialogService: DialogService,
-        private readonly appConfigService: AppConfigurationService
+        private readonly appConfigService: AppConfigurationService,
+        private readonly messengerInstanceService: MessengerInstanceService,
+        private readonly loggingService: LoggingService
+
     ) {
     }
 
@@ -70,15 +78,14 @@ export class MessengerInstancesListComponent implements OnInit {
 
     loadMessengerInstances(): void {
         this.isLoading = true;
-        this.restService
-            .getFromApi<MessengerInstance[]>(ApiRoutes.messengerInstance)
-            .pipe(
-                tap((messengerInstances) => {
-                    this.messengerInstances = messengerInstances;
-                    this.calculatePaginationNumbers();
-                    this.isLoading = false;
-                })
-            )
+      this.messengerInstanceService.getMessengerInstances()
+        .pipe(
+          tap((messengerInstances) => {
+            this.messengerInstances = messengerInstances;
+            this.calculatePaginationNumbers();
+            this.isLoading = false;
+          })
+        )
             .subscribe({
                 error: () => {
                     this.messengerInstances = [];
@@ -94,7 +101,7 @@ export class MessengerInstancesListComponent implements OnInit {
             });
     }
 
-    getPaginatedMessengerInstances(): MessengerInstance[] {
+    getPaginatedMessengerInstances(): MessengerInstanceDto[] {
         return this.messengerInstances.slice(
             (this.currentPageNumber - 1) * this.itemsPerPage,
             this.currentPageNumber * this.itemsPerPage
@@ -149,39 +156,36 @@ export class MessengerInstancesListComponent implements OnInit {
     }
 
     logDownload(serverName: string, component: string) {
-        this.restService
-            .getFileFromApi(
-                ApiRoutes.messengerInstanceLogs + '/' + serverName + '/' + component
-            )
-            .subscribe({
-                next: (response) => {
-                    let filename = `${serverName}_log_${new Date()}.text`;
-                    let blob = new Blob([response], {type: 'text/plain'});
-                    saveAs(blob, filename);
-                },
-                error: (response) => {
-                    let errorDescription =
-                        'ADMIN.INSTANCE_LIST.LOG_DOWNLOAD.ERROR.UNKNOWN';
+      this.loggingService.getLogs(serverName, component)
+        .subscribe({
+          next: (response) => {
+            let filename = `${serverName}_log_${new Date()}.text`;
+            let blob = new Blob([response], {type: 'text/plain'});
+            saveAs(blob, filename);
+          },
+          error: (response) => {
+            let errorDescription =
+              'ADMIN.INSTANCE_LIST.LOG_DOWNLOAD.ERROR.UNKNOWN';
 
-                    if (response.status === HttpStatusCode.BadRequest) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.LOG_DOWNLOAD.ERROR.BAD_REQUEST';
-                    } else if (response.status === HttpStatusCode.NotFound) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.LOG_DOWNLOAD.ERROR.NOT_FOUND';
-                    } else if (response.status === HttpStatusCode.InternalServerError) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.LOG_DOWNLOAD.ERROR.INTERNAL_SERVER_ERROR';
-                    }
+            if (response.status === HttpStatusCode.BadRequest) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.LOG_DOWNLOAD.ERROR.BAD_REQUEST';
+            } else if (response.status === HttpStatusCode.NotFound) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.LOG_DOWNLOAD.ERROR.NOT_FOUND';
+            } else if (response.status === HttpStatusCode.InternalServerError) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.LOG_DOWNLOAD.ERROR.INTERNAL_SERVER_ERROR';
+            }
 
-                    this.appService.showToast({
-                        description: errorDescription,
-                        icon: 'fa-triangle-exclamation',
-                        iconColor: 'primary',
-                        timeout: 5000,
-                    });
-                },
+            this.appService.showToast({
+              description: errorDescription,
+              icon: 'fa-triangle-exclamation',
+              iconColor: 'primary',
+              timeout: 5000,
             });
+          },
+        });
     }
 
     openDeleteDialog(clickEvent: MouseEvent, serverName: string): void {
@@ -206,70 +210,59 @@ export class MessengerInstancesListComponent implements OnInit {
 
     deleteInstance(serverName: string) {
         this.isLoading = true;
-        this.restService
-            .deleteFromApi(
-                ApiRoutes.messengerInstance + '/' + serverName + '/',
-                {
-                    responseType: 'text',
-                    headers: new HttpHeaders({
-                        'Accept': 'text/plain'
-                    })
-                }
-            )
-            .pipe(tap(() => this.loadMessengerInstances()))
-            .subscribe({
-                error: (response) => {
-                    this.isLoading = false;
+      this.messengerInstanceService
+        .deleteMessengerService(serverName)
+        .pipe(tap(() => this.loadMessengerInstances()))
+        .subscribe({
+          error: (response) => {
+            this.isLoading = false;
 
-                    let errorDescription =
-                        'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.DELETE';
+            let errorDescription =
+              'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.DELETE';
 
-                    if (response.status === HttpStatusCode.BadRequest) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.BAD_REQUEST';
-                    } else if (response.status === HttpStatusCode.NotFound) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.NOT_FOUND';
-                    } else if (
-                        response.status === HttpStatusCode.InternalServerError &&
-                        response.error === this.internalServerErrorDescription
-                    ) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.INTERNAL_SERVER_ERROR';
-                    }
+            if (response.status === HttpStatusCode.BadRequest) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.BAD_REQUEST';
+            } else if (response.status === HttpStatusCode.NotFound) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.NOT_FOUND';
+            } else if (
+              response.status === HttpStatusCode.InternalServerError &&
+              response.error === this.internalServerErrorDescription
+            ) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.DELETE_INSTANCE_DIALOG.ERROR.INTERNAL_SERVER_ERROR';
+            }
 
-                    this.appService.showToast({
-                        description: errorDescription,
-                        icon: 'fa-triangle-exclamation',
-                        iconColor: 'primary',
-                        timeout: 5000,
-                    });
-                },
+            this.appService.showToast({
+              description: errorDescription,
+              icon: 'fa-triangle-exclamation',
+              iconColor: 'primary',
+              timeout: 5000,
             });
+          },
+        });
     }
 
     createAdmin(serverName: string) {
         this.isLoading = true;
-        this.restService
-            .getFromApi<AdminUser>(ApiRoutes.messengerInstance + '/' + serverName + '/admin')
-            .pipe(
-                tap((adminUser) => {
-                    let responseDescription =
-                        'Admin-Nutzer Erstellt:' +
-                        '\nUsername:' +
-                        adminUser.userName +
-                        '\nPassword:' +
-                        adminUser.password;
-                    this.appService.showToast({
-                        description: responseDescription,
-                        icon: 'fa-triangle-exclamation',
-                        iconColor: 'primary',
-                        timeout: 0,
-                    });
-                    this.isLoading = false;
-                    this.openAdminCreatedDialog(adminUser);
-                })
-            )
+      this.messengerInstanceService.createAdminUser({instanceName: serverName})
+        .pipe(
+          tap((adminUser) => {
+            let responseDescription =
+              'Admin-Nutzer Erstellt:' +
+              '\nUsername:' + adminUser.username +
+              '\nPassword:' + adminUser.password;
+            this.appService.showToast({
+              description: responseDescription,
+              icon: 'fa-triangle-exclamation',
+              iconColor: 'primary',
+              timeout: 0,
+            });
+            this.isLoading = false;
+            this.openAdminCreatedDialog(adminUser);
+          })
+        )
             .subscribe({
                 error: (response) => {
                     let responseDescription =
@@ -299,13 +292,21 @@ export class MessengerInstancesListComponent implements OnInit {
             });
     }
 
-    openAdminCreatedDialog(adminUser: AdminUser): void {
+    openAdminCreatedDialog(adminUser: CreateAdminUser201Response): void {
         this.dialogService.openDialog(AdminCreatedDialogComponent, {
             closeOnOutsideClick: true,
             showCloseButton: true,
             data: adminUser,
         });
     }
+
+  openAuthConceptDialog(serverName: string) {
+    this.dialogService.openDialog(AuthorizationConceptDialogComponent,{
+      closeOnOutsideClick: true,
+      showCloseButton: true,
+      data: [serverName],
+    });
+  }
 
     openLogLevelChangeDialog(serverName: string) {
         this.dialogService.openDialog(LogLevelDialogComponent);
@@ -317,49 +318,45 @@ export class MessengerInstancesListComponent implements OnInit {
     }
 
     changeLogLevel(serverName: string) {
-        this.restService
-            .postToApi<string>(
-                'DEBUG',
-                ApiRoutes.messengerInstance + '/' + serverName + '/loglevel'
-            )
-            .pipe(
-                tap((adminUser) => {
-                    let responseDescription =
-                        'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.SUCCESS';
-                    this.appService.showToast({
-                        description: responseDescription,
-                        icon: 'fa-triangle-exclamation',
-                        iconColor: 'primary',
-                        timeout: 300000,
-                    });
-                })
-            )
-            .subscribe({
-                error: (response) => {
-                    this.isLoading = false;
-
-                    let responseDescription =
-                        'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.ERROR.UNKNOWN';
-
-                    if (response.status === HttpStatusCode.NotFound) {
-                        responseDescription =
-                            'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.ERROR.NOT_FOUND';
-                    } else if (
-                        response.status === HttpStatusCode.InternalServerError &&
-                        response.error === this.internalServerErrorDescription
-                    ) {
-                        responseDescription =
-                            'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.ERROR.INTERNAL_SERVER_ERROR';
-                    }
-
-                    this.appService.showToast({
-                        description: responseDescription,
-                        icon: 'fa-triangle-exclamation',
-                        iconColor: 'primary',
-                        timeout: 5000,
-                    });
-                },
+      this.loggingService.changeInstanceLogLevel(serverName, 'DEBUG')
+        .pipe(
+          tap(() => {
+            let responseDescription =
+              'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.SUCCESS';
+            this.appService.showToast({
+              description: responseDescription,
+              icon: 'fa-triangle-exclamation',
+              iconColor: 'primary',
+              timeout: 300000,
             });
+          })
+        )
+        .subscribe({
+          error: (response) => {
+            this.isLoading = false;
+
+            let responseDescription =
+              'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.ERROR.UNKNOWN';
+
+            if (response.status === HttpStatusCode.NotFound) {
+              responseDescription =
+                'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.ERROR.NOT_FOUND';
+            } else if (
+              response.status === HttpStatusCode.InternalServerError &&
+              response.error === this.internalServerErrorDescription
+            ) {
+              responseDescription =
+                'ADMIN.INSTANCE_LIST.CHANGE_LOGLEVEL_DIALOG.ERROR.INTERNAL_SERVER_ERROR';
+            }
+
+            this.appService.showToast({
+              description: responseDescription,
+              icon: 'fa-triangle-exclamation',
+              iconColor: 'primary',
+              timeout: 5000,
+            });
+          },
+        });
     }
 
     openLogDownloadDialog(serverName: string, component: string): void {
@@ -372,63 +369,56 @@ export class MessengerInstancesListComponent implements OnInit {
 
     createMessengerInstance(): void {
         this.isLoadingCreateInstance = true;
-        this.restService
-            .postToApi<string>(
-                null,
-                ApiRoutes.messengerInstanceCreate,
-                {
-                    responseType: 'text',
-                    headers: new HttpHeaders({
-                        'Accept': 'text/plain'
-                    })
-                }
-            ).pipe(
-            tap((response: string) => {
-                this.dialogService.closeDialog(response);
-                this.messengerInstances = [];
-
-                this.isLoadingCreateInstance = false;
-
-                this.loadMessengerInstances();
-            })
-        )
-            .subscribe({
-                error: (response) => {
-                    let errorDescription =
-                        'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.SAVE';
-
-                    if (response.status === HttpStatusCode.BadRequest) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.BAD_REQUEST';
-                    } else if (response.status === HttpStatusCode.NotFound) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.NOT_FOUND';
-                    } else if (response.status === HttpStatusCode.Conflict) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.CONFLICT';
-                    } else if (response.status === HttpStatusCode.PreconditionFailed) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.PRECONDITION_FAILED';
-                    } else if (response.status === HttpStatusCode.Forbidden) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.FORBIDDEN';
-                    } else if (
-                        response.status === HttpStatusCode.InternalServerError &&
-                        response.error === this.internalServerErrorDescription
-                    ) {
-                        errorDescription =
-                            'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.INTERNAL_SERVER_ERROR';
-                    }
-
-                    this.appService.showToast({
-                        description: errorDescription,
-                        icon: 'fa-triangle-exclamation',
-                        iconColor: 'primary',
-                        timeout: 5000,
-                    });
-
-                    this.isLoadingCreateInstance = false;
-                },
+      this.messengerInstanceService.requestMessengerInstance()
+        .pipe(
+          tap((response: string) => {
+            this.dialogService.closeDialog(response);
+            this.appService.showToast({
+              description: 'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ACCEPTED',
+              icon: 'fa-triangle-exclamation',
+              iconColor: 'primary',
+              timeout: 5000,
             });
+          })
+        )
+        .subscribe({
+          error: (response) => {
+            let errorDescription =
+              'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.SAVE';
+
+            if (response.status === HttpStatusCode.BadRequest) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.BAD_REQUEST';
+            } else if (response.status === HttpStatusCode.NotFound) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.NOT_FOUND';
+            } else if (response.status === HttpStatusCode.Conflict) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.CONFLICT';
+            } else if (response.status === HttpStatusCode.PreconditionFailed) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.PRECONDITION_FAILED';
+            } else if (response.status === HttpStatusCode.Forbidden) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.FORBIDDEN';
+            } else if (response.status === HttpStatusCode.PaymentRequired) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.PAYMENT_REQUIRED';
+            } else if (
+              response.status === HttpStatusCode.InternalServerError &&
+              response.error === this.internalServerErrorDescription
+            ) {
+              errorDescription =
+                'ADMIN.INSTANCE_LIST.CREATE_INSTANCE_DIALOG.ERROR.INTERNAL_SERVER_ERROR';
+            }
+
+            this.appService.showToast({
+              description: errorDescription,
+              icon: 'fa-triangle-exclamation',
+              iconColor: 'primary',
+              timeout: 5000,
+            });
+          },
+        });
     }
 }

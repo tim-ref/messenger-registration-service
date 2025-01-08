@@ -17,7 +17,7 @@
 
 package de.akquinet.tim.registrationservice.api.messengerservice
 
-import de.akquinet.tim.registrationservice.api.federation.FederationService
+import de.akquinet.tim.registrationservice.api.federation.FederationListService
 import de.akquinet.tim.registrationservice.api.keycloak.KeycloakOperationResult
 import de.akquinet.tim.registrationservice.api.keycloak.KeycloakRealmService
 import de.akquinet.tim.registrationservice.api.operator.OperatorService
@@ -40,7 +40,7 @@ class MessengerInstanceDeleteService @Autowired constructor(
     private val messengerInstanceRepository: MessengerInstanceRepository,
     private val userService: UserService,
     private val regServiceConfig: RegServiceConfig,
-    private val federationService: FederationService,
+    private val federationListService: FederationListService,
     private val orgAdminManagementService: OrgAdminManagementService,
     private val keycloakRealmService: KeycloakRealmService,
     private val operatorService: OperatorService
@@ -80,7 +80,7 @@ class MessengerInstanceDeleteService @Autowired constructor(
 
     private fun deleteDomainFromVZD(serverName: String) = if (regServiceConfig.callExternalServices) {
         try {
-            val vzdResponse = federationService.deleteDomainFromVZDFederationList(serverName)
+            val vzdResponse = federationListService.deleteDomainFromFederationListAtVzd(serverName)
 
             if (vzdResponse.httpStatus != HttpStatus.NO_CONTENT) {
                 logger.warn("Unexpected status in vzd response: {}", vzdResponse.httpStatus)
@@ -134,11 +134,11 @@ class MessengerInstanceDeleteService @Autowired constructor(
         try {
             val keycloakResult = keycloakRealmService.deleteRealmKeycloak(instanceEntity.instanceId)
 
-            if (keycloakResult != KeycloakOperationResult.OK_REALM_DELETED) {
+            if (keycloakResult != KeycloakOperationResult.REALM_DELETED) {
                 logger.warn("Unexpected keycloak result on realm delete: {}", keycloakResult)
             }
 
-            keycloakResult == KeycloakOperationResult.OK_REALM_DELETED
+            keycloakResult == KeycloakOperationResult.REALM_DELETED
         } catch (e: Exception) {
             logger.error(ERROR_LOG_TEMPLATE, instanceEntity.serverName, "keycloak realm", e)
             false

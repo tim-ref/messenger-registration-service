@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,9 @@ import { DialogModule } from '../../components/dialog/dialog.module';
 import {AdminCreatedDialogComponent} from "./partial/event-list/partial/admin-created-dialog/admin-created-dialog.component";
 import {LogDownloadDialogComponent} from "./partial/event-list/partial/log-download-dialog/log-download-dialog.component";
 import {LogLevelDialogComponent} from "./partial/event-list/partial/log-level-dialog/log-level-dialog.component";
+import {
+  AuthorizationConceptDialogComponent
+} from "./partial/event-list/partial/authorization-concept-dialog/authorization-concept-dialog.component";
 @NgModule({
   declarations: [
     MessengerInstanceComponent,
@@ -38,7 +41,8 @@ import {LogLevelDialogComponent} from "./partial/event-list/partial/log-level-di
     DeleteMessengerInstancesDialogComponent,
     LogLevelDialogComponent,
     AdminCreatedDialogComponent,
-    LogDownloadDialogComponent
+    LogDownloadDialogComponent,
+    AuthorizationConceptDialogComponent
   ],
   imports: [
     ButtonModule,

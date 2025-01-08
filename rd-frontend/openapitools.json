@@ -1,0 +1,41 @@
+{
+  "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 4,
+  "generator-cli": {
+    "version": "7.4.0",
+    "generators": {
+      "messenger-instance-api": {
+        "inputSpec": "build/resources/static/openapi-messenger-instance.yaml",
+        "output": "build/openapi/messengerinstance",
+        "generatorName": "typescript-angular",
+        "additionalProperties": {
+          "apiModulePrefix": "MessengerInstance",
+          "configurationPrefix": "MessengerInstance",
+          "supportsES6": "true",
+          "ngVersion": "17.0.9",
+          "stringEnums": "true",
+          "basePath": "/backend"
+        },
+        "type-mappings": {
+          "set" : "Array"
+        }
+      },
+      "logging-api": {
+        "inputSpec": "build/resources/static/openapi-logging.yaml",
+        "output": "build/openapi/logging",
+        "generatorName": "typescript-angular",
+        "additionalProperties": {
+          "apiModulePrefix": "Logging",
+          "configurationPrefix": "Logging",
+          "supportsES6": "true",
+          "ngVersion": "17.0.9",
+          "stringEnums": "true",
+          "basePath": "/backend"
+        },
+        "type-mappings": {
+          "set" : "Array"
+        }
+      }
+    }
+  }
+}

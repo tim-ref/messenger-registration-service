@@ -19,26 +19,48 @@ package de.akquinet.tim.registrationservice.util
 
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.User
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.bind.annotation.ResponseStatus
 
 @Service
 class UserService {
-    fun getPrincipal(): Jwt? =
-        SecurityContextHolder.getContext().authentication?.principal as Jwt?
+    private fun getPrincipal(): Any? {
+        val principal = SecurityContextHolder.getContext().authentication?.principal
+        return when (principal) {
+            is Jwt -> principal
+            is User -> principal
+            else -> null
+        }
+    }
 
-    fun getUserIdFromContext(): String =
-        getPrincipal()?.getClaimAsString("preferred_username")?.trim()
-            ?: throw NotLoggedInException()
 
-    fun loadUserAttributeByClaim(claim: String): String = getPrincipal()?.getClaimAsString(claim)?.trim()
-        ?: throw ClaimNotFoundException("Claim $claim was not found.")
+    fun getUserIdFromContext(): String {
+        return when (val principal = getPrincipal()) {
+            is Jwt -> principal.getClaimAsString("preferred_username")
+            is User -> principal.username
+            else -> throw NotLoggedInException()
+        }
+    }
+
+    fun getUserIdFromContextSafely(): String = try {
+        getUserIdFromContext()
+    }catch (e: NotLoggedInException) {
+        "TIM-registration-service"
+    }
+
+    fun loadUserAttributeByClaim(claim: String): String {
+        val principal = getPrincipal()
+        return when (principal) {
+            is Jwt -> principal.getClaimAsString(claim) ?: throw ClaimNotFoundException("Claim $claim was not found.")
+            else -> throw ClaimNotFoundException("Claim $claim was not found.")
+        }
+    }
 }
 
 @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-class NotLoggedInException(message: String = "No user could be found in security context.") :
-    RuntimeException(message)
+class NotLoggedInException(message: String = "No user could be found in security context.") : RuntimeException(message)
 
 @ResponseStatus(value = HttpStatus.FORBIDDEN)
 class ClaimNotFoundException(message: String) : RuntimeException(message)

@@ -193,3 +193,5 @@ Please note that the directories css and images and their contents actually belo
 7. requests towards vzd
 
 ![Architecture](documentation/image/architecture.jpeg)
+
+

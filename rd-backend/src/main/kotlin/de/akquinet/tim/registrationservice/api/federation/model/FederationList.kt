@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,10 @@
 package de.akquinet.tim.registrationservice.api.federation.model
 
 import com.google.gson.Gson
-import de.akquinet.tim.registrationservice.persistance.federation.model.DomainEntity
-import de.akquinet.tim.registrationservice.persistance.federation.model.FederationListEntity
+import de.akquinet.tim.registrationservice.openapi.model.federation.Domain
 import de.akquinet.tim.registrationservice.security.Base64String
-import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-
-data class FederationListResponse(
-    val httpStatus: HttpStatus,
-    val federationList: FederationList? = null,
-    val errorMessage: String? = null
-) {
-    fun toResponseEntity(gson: Gson): ResponseEntity<String> =
-        federationList?.let {
-            ResponseEntity.status(httpStatus).body(gson.toJson(it))
-        } ?: ResponseEntity.status(httpStatus).body(errorMessage)
-}
 
 data class FederationListBase64Header(
     val alg: String,
@@ -70,24 +57,3 @@ data class DeleteDomainResponse(
             ResponseEntity.status(httpStatus).body(errorMessage)
         } ?: ResponseEntity.status(httpStatus).body("")
 }
-
-@Schema(name = "FederationList", description = "The federation list for the Messengerproxy")
-data class FederationList(
-    @field:Schema(description = "The version of the federation list", example = "") val version: Long,
-    @field:Schema(description = "The list of hashed TI-Messenger domain names", example = "")
-    val domainList: List<Domain>
-) {
-    internal fun toEntity(): FederationListEntity {
-        return FederationListEntity(
-            version = version,
-            domainList = domainList.map { DomainEntity(domain = it.domain, isInsurance = it.isInsurance, telematikID = it.telematikID!!) })
-    }
-}
-
-@Schema(name = "Hashed TI-Messenger domain name")
-data class Domain(
-    @field:Schema(description = "hashed TI-Messenger domain name", example = "") val domain: String,
-    @field:Schema(example = "Indicates if it is a domain of an health insurance for insured persons")
-    val isInsurance: Boolean,
-    @field:Schema(description = "Telematik ID", example = "") val telematikID: String? = null
-)

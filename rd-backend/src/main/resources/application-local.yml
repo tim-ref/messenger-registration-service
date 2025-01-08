@@ -63,6 +63,9 @@ operator:
   credentials:
     username: "user"
     password: "pass"
+  messengerInstanceApi:
+    username: "operator"
+    password: "operator"
 
 backend:
   periodOfValidityCheck:

@@ -50,7 +50,7 @@ data class RawData(
     @get:JsonProperty("Res")
     var Res: String
 )
-data class RawDataMetaData(
+data class PerformanceData(
     val start: Instant,
     val durationInMs: Int,
     val operation: Operation,

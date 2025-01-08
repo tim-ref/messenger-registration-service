@@ -1,0 +1,902 @@
+components:
+  schemas:
+    CreateAdminUserRequest:
+      type: object
+      required:
+        - instanceName
+      properties:
+        instanceName:
+          type: string
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          maxLength: 63
+          description: Der Instanzname, aus technischen Gründen limitiert auf 63 DNS-fähige Zeichen
+        orgAdminEmailAddress:
+          type: string
+          description: Die Emailadresse des OrgAdmin-Users, optional, wird aus dem Login-Kontext geholt, falls nicht übergeben
+    SynapseOverrideConfiguration:
+      type: object
+      required:
+        - enabled
+        - override
+      properties:
+        homeServer:
+          $ref: '#/components/schemas/homeServer'
+    homeServer:
+      type: object
+      properties:
+        retention:
+          description: Aktiviert oder deaktiviert die Haltezeit von Objekten im Homeserver.
+          allOf:
+            - $ref: '#/components/schemas/EnabledStatus'
+        override:
+          description: Steuert ob die Haltezeit-Konfiguration ueberschrieben werden oder die Default-Werte benutzt werden sollen.
+          allOf:
+            - $ref: '#/components/schemas/EnabledStatus'
+        minLifetime:
+          description: MinLifetime definiert die minimale Haltezeit von Ereignissen.
+          pattern: ^([0-9]+[wdhmsy])+
+          type: string
+        maxLifetime:
+          description: MaxLifetime definiert die maximale Haltezeit von Ereignissen.
+          pattern: ^([0-9]+[wdhmsy])+
+          type: string
+    EnabledStatus:
+      type: string
+      enum:
+        - enabled
+        - disabled
+
+    CreateAdminUserResponse:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        orgAdminEmailAddress:
+          type: string
+
+    Synapse:
+      description: Synapse is the Schema for the synapses API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: SynapseSpec defines the desired state of Synapse swagger:model SynapseSpec
+          properties:
+            cloudNativePG:
+              description: 'required: false'
+              properties:
+                enabled:
+                  description: 'required: false example: true'
+                  type: boolean
+                numberOfInstances:
+                  description: 'required: false example: 1'
+                  type: integer
+                resources:
+                  description: 'required: false'
+                  properties:
+                    claims:
+                      description: "Claims lists the names of resources, defined in spec.resourceClaims, that are used by this container. \n This is an alpha field and requires enabling the DynamicResourceAllocation feature gate. \n This field is immutable. It can only be set for containers."
+                      items:
+                        description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                        properties:
+                          name:
+                            description: Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.
+                            type: string
+                        required:
+                          - name
+                        type: object
+                      type: array
+                      x-kubernetes-list-map-keys:
+                        - name
+                      x-kubernetes-list-type: map
+                    limits:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                      type: object
+                    requests:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                      type: object
+                  type: object
+                storage:
+                  description: 'required: false example: "5Gi"'
+                  properties:
+                    size:
+                      description: 'required: false example: "5Gi"'
+                      type: string
+                  type: object
+                walStorage:
+                  description: 'required: false'
+                  properties:
+                    enabled:
+                      description: 'required: false example: false'
+                      type: boolean
+                    size:
+                      description: 'required: false example: "1Gi"'
+                      type: string
+                  type: object
+              type: object
+            devMode:
+              description: DevMode, wenn true, kann ein paar Entscheidungen steuern, die die Benutzung der Instanz im Rahmen der Entwicklung vereinfachen.
+              type: boolean
+            ingress:
+              description: 'required: false'
+              properties:
+                ingressClass:
+                  description: 'required: false example: "nginx-internal"'
+                  type: string
+                pathType:
+                  description: 'required: false example: "ImplementationSpecific"'
+                  type: string
+              type: object
+            layout:
+              description: Defines the instance layout. One of Tiny, Default, Scalable, TimRef
+              type: string
+            logLevel:
+              description: 'required: false'
+              type: string
+            metrics:
+              description: 'required: false'
+              properties:
+                enabled:
+                  description: 'required: false example: true'
+                  type: boolean
+              type: object
+            networkpolicies:
+              description: 'required: false'
+              type: boolean
+            postgresOperator:
+              description: 'required: false'
+              properties:
+                enableLogicalBackup:
+                  description: 'required: false example: Enabled, Disabled, ""'
+                  type: string
+                enabled:
+                  description: 'required: false example: true'
+                  type: boolean
+                numberOfInstances:
+                  description: 'required: false example: 1'
+                  format: int32
+                  type: integer
+                pgVersion:
+                  description: 'required: false example: "15"'
+                  type: string
+                resources:
+                  description: 'required: false'
+                  properties:
+                    limits:
+                      description: ResourceDescription describes CPU and memory resources defined for a cluster.
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                      required:
+                        - cpu
+                        - memory
+                      type: object
+                    requests:
+                      description: ResourceDescription describes CPU and memory resources defined for a cluster.
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                      required:
+                        - cpu
+                        - memory
+                      type: object
+                  type: object
+                size:
+                  description: 'required: false example: "5Gi"'
+                  type: string
+              type: object
+            proxyConfig:
+              description: 'required: false'
+              properties:
+                bypass:
+                  type: boolean
+                federation:
+                  default: enforce
+                  enum:
+                    - enforce
+                    - ignore
+                  type: string
+                loggingService:
+                  description: 'required: false'
+                  properties:
+                    host:
+                      description: 'required: false example: "rawdatamaster-api.eu.timref.akquinet.nx2.dev"'
+                      type: string
+                    path:
+                      description: 'required: false example: "/add-performance-data"'
+                      type: string
+                    port:
+                      description: 'required: false example: "443"'
+                      type: string
+                    protocol:
+                      description: 'required: false example: "https"'
+                      type: string
+                  type: object
+                proxyEnabled:
+                  description: 'required: false example: true'
+                  type: boolean
+                proxyImage:
+                  description: 'required: false'
+                  properties:
+                    registry:
+                      type: string
+                    repository:
+                      type: string
+                    tag:
+                      type: string
+                  type: object
+                rawDataIDs:
+                  description: 'required: false'
+                  properties:
+                    instanceID:
+                      description: 'required: false example: "synapse-testeutimrefakquinetnx2dev"'
+                      type: string
+                    professionOID:
+                      description: 'required: false example: "399283432394"'
+                      type: string
+                    telematikID:
+                      description: 'required: false example: "29dh92gs33jd"'
+                      type: string
+                  type: object
+                registrationService:
+                  description: 'required: false'
+                  properties:
+                    host:
+                      description: 'required: false example: "rawdatamaster-api.eu.timref.akquinet.nx2.dev"'
+                      type: string
+                    path:
+                      description: 'required: false example: "/add-performance-data"'
+                      type: string
+                    port:
+                      description: 'required: false example: "443"'
+                      type: string
+                    protocol:
+                      description: 'required: false example: "https"'
+                      type: string
+                  type: object
+                resources:
+                  description: 'required: false'
+                  properties:
+                    claims:
+                      description: "Claims lists the names of resources, defined in spec.resourceClaims, that are used by this container. \n This is an alpha field and requires enabling the DynamicResourceAllocation feature gate. \n This field is immutable. It can only be set for containers."
+                      items:
+                        description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                        properties:
+                          name:
+                            description: Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.
+                            type: string
+                        required:
+                          - name
+                        type: object
+                      type: array
+                      x-kubernetes-list-map-keys:
+                        - name
+                      x-kubernetes-list-type: map
+                    limits:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                      type: object
+                    requests:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                      type: object
+                  type: object
+                ssoDomain:
+                  description: 'required: false'
+                  type: string
+              type: object
+            redisConfig:
+              description: 'required: false'
+              properties:
+                redisImage:
+                  description: 'required: false'
+                  properties:
+                    registry:
+                      type: string
+                    repository:
+                      type: string
+                    tag:
+                      type: string
+                  type: object
+                resources:
+                  description: 'required: false'
+                  properties:
+                    claims:
+                      description: "Claims lists the names of resources, defined in spec.resourceClaims, that are used by this container. \n This is an alpha field and requires enabling the DynamicResourceAllocation feature gate. \n This field is immutable. It can only be set for containers."
+                      items:
+                        description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                        properties:
+                          name:
+                            description: Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.
+                            type: string
+                        required:
+                          - name
+                        type: object
+                      type: array
+                      x-kubernetes-list-map-keys:
+                        - name
+                      x-kubernetes-list-type: map
+                    limits:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                      type: object
+                    requests:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                      type: object
+                  type: object
+              type: object
+            registration:
+              description: Method to register the instance with the rest of the infrastructure
+              properties:
+                adminCreation:
+                  description: 'Configures how the admin user is created. Supported values: none: admin user is not created and we stop here; registration-service: The registration service is used to create the admin user; operator: The operator creates the admin user; async: Some external progress creates the admin user, we just continue. -------- +kubebuilder:validation:Enum=none;registration-service;operator'
+                  type: string
+                instanceOwner:
+                  type: string
+                sso:
+                  description: '------ +kubebuilder:validation:Enum=keycloak;manual;none'
+                  type: string
+              type: object
+            storageClass:
+              description: 'required: false'
+              type: string
+            synapseConfig:
+              description: 'required: true'
+              properties:
+                homeServer:
+                  description: 'required: true'
+                  properties:
+                    publicBaseUrl:
+                      description: 'required: true example: "synapse-test.eu.timref.akquinet.nx2.dev"'
+                      type: string
+                    serverName:
+                      description: 'required: true example: "synapse-test.eu.timref.akquinet.nx2.dev"'
+                      type: string
+                    size:
+                      description: 'required: false example: "5Gi"'
+                      type: string
+                  required:
+                    - publicBaseUrl
+                    - serverName
+                  type: object
+                resources:
+                  description: 'required: false'
+                  properties:
+                    claims:
+                      description: "Claims lists the names of resources, defined in spec.resourceClaims, that are used by this container. \n This is an alpha field and requires enabling the DynamicResourceAllocation feature gate. \n This field is immutable. It can only be set for containers."
+                      items:
+                        description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                        properties:
+                          name:
+                            description: Name must match the name of one entry in pod.spec.resourceClaims of the Pod where this field is used. It makes that resource available inside a container.
+                            type: string
+                        required:
+                          - name
+                        type: object
+                      type: array
+                      x-kubernetes-list-map-keys:
+                        - name
+                      x-kubernetes-list-type: map
+                    limits:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Limits describes the maximum amount of compute resources allowed. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                      type: object
+                    requests:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      description: 'Requests describes the minimum amount of compute resources required. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. Requests cannot exceed Limits. More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/'
+                      type: object
+                  type: object
+                singleSignOn:
+                  description: 'required: false'
+                  properties:
+                    oidcProviders:
+                      description: 'required: false'
+                      items:
+                        description: swagger:model OIDCProviders
+                        properties:
+                          attributeRequirements:
+                            description: 'required: false'
+                            items:
+                              description: swagger:model AttributeRequirements
+                              properties:
+                                attribute:
+                                  description: 'required: false'
+                                  type: string
+                                value:
+                                  description: 'required: false'
+                                  type: string
+                              type: object
+                            type: array
+                          authorizationEndpoint:
+                            description: 'required: false example: "keycloak"'
+                            type: string
+                          clientAuthMethod:
+                            description: 'required: false example: "client_secret_post"'
+                            type: string
+                          clientID:
+                            description: 'required: false example: "synapse"'
+                            type: string
+                          clientSecret:
+                            description: 'required: false example: "T6W5GPvv1DMGnDKIkd1iHU4rdUFFYfzb"'
+                            type: string
+                          discover:
+                            description: 'required: false example: false'
+                            type: boolean
+                          enableRegistration:
+                            description: 'required: false'
+                            type: boolean
+                          idpIcon:
+                            description: 'required: false example: "mxc://example.com/mediaid"'
+                            type: string
+                          idpId:
+                            description: 'required: false example: "keycloak"'
+                            type: string
+                          idpName:
+                            description: 'required: false example: "My KeyCloak server"'
+                            type: string
+                          issuer:
+                            description: 'required: false example: "https://auth.eu.timref.akquinet.nx2.dev/realms/{realm_name}"'
+                            type: string
+                          jwksUri:
+                            description: 'required: false'
+                            type: string
+                          scopes:
+                            description: 'required: false example: ["openid","profile"]'
+                            items:
+                              type: string
+                            type: array
+                          skipVerification:
+                            description: 'required: false'
+                            type: boolean
+                          tokenEndpoint:
+                            description: 'required: false'
+                            type: string
+                          userMappingProvider:
+                            description: 'required: false'
+                            properties:
+                              config:
+                                description: 'required: false'
+                                properties:
+                                  displayNameTemplate:
+                                    description: 'required: false'
+                                    type: string
+                                  emailTemplate:
+                                    description: 'required: false'
+                                    type: string
+                                  localPartTemplate:
+                                    description: 'required: false'
+                                    type: string
+                                  subjectClaim:
+                                    type: string
+                                type: object
+                            type: object
+                          userinfoEndpoint:
+                            description: 'required: false'
+                            type: string
+                        type: object
+                      type: array
+                  type: object
+                synapseImage:
+                  description: 'required: false'
+                  properties:
+                    registry:
+                      type: string
+                    repository:
+                      type: string
+                    tag:
+                      type: string
+                  type: object
+                testing:
+                  properties:
+                    enableRegistration:
+                      type: boolean
+                  type: object
+              required:
+                - homeServer
+              type: object
+            tools:
+              properties:
+                image:
+                  properties:
+                    registry:
+                      type: string
+                    repository:
+                      type: string
+                    tag:
+                      type: string
+                  type: object
+              type: object
+            unmanaged:
+              description: Unmanaged, wenn true, laesst den operator diese Instanz ignorieren.
+              type: boolean
+            workers:
+              properties:
+                federationSender:
+                  properties:
+                    enabled:
+                      type: boolean
+                    replicas:
+                      format: int32
+                      type: integer
+                  type: object
+                generic:
+                  properties:
+                    enabled:
+                      type: boolean
+                    replicas:
+                      format: int32
+                      type: integer
+                  type: object
+                mediaRepository:
+                  properties:
+                    enabled:
+                      type: boolean
+                    replicas:
+                      format: int32
+                      type: integer
+                  type: object
+                pusher:
+                  properties:
+                    enabled:
+                      type: boolean
+                    replicas:
+                      format: int32
+                      type: integer
+                  type: object
+                sso:
+                  properties:
+                    enabled:
+                      type: boolean
+                    replicas:
+                      format: int32
+                      type: integer
+                  type: object
+                streamWriter:
+                  properties:
+                    enabled:
+                      type: boolean
+                    replicas:
+                      format: int32
+                      type: integer
+                  type: object
+              type: object
+          required:
+            - layout
+            - synapseConfig
+          type: object
+        status:
+          description: SynapseStatus defines the observed state of Synapse
+          properties:
+            database:
+              properties:
+                databaseSchemataReady:
+                  type: boolean
+                databaseServiceReady:
+                  type: boolean
+                ready:
+                  type: boolean
+                redisReady:
+                  type: boolean
+              required:
+                - databaseSchemataReady
+                - databaseServiceReady
+                - ready
+                - redisReady
+              type: object
+            databaseServiceAddress:
+              type: string
+            domain:
+              type: string
+            ingressCertificateReady:
+              type: boolean
+            mainProcess:
+              properties:
+                currentReplicas:
+                  format: int32
+                  type: integer
+                ready:
+                  type: boolean
+                readyReplicas:
+                  format: int32
+                  type: integer
+                replicas:
+                  format: int32
+                  type: integer
+                unavailableReplicas:
+                  format: int32
+                  type: integer
+              required:
+                - ready
+                - replicas
+              type: object
+            phase:
+              description: SynapseStatusPhase
+              type: string
+            proxy:
+              properties:
+                currentReplicas:
+                  format: int32
+                  type: integer
+                ready:
+                  type: boolean
+                readyReplicas:
+                  format: int32
+                  type: integer
+                replicas:
+                  format: int32
+                  type: integer
+                unavailableReplicas:
+                  format: int32
+                  type: integer
+              required:
+                - ready
+                - replicas
+              type: object
+            proxyTag:
+              type: string
+            ready:
+              type: boolean
+            registration:
+              properties:
+                adminUserCreated:
+                  type: boolean
+                federationUpdated:
+                  type: boolean
+                instanceCreated:
+                  type: boolean
+                instanceDeleted:
+                  type: boolean
+                realmCreated:
+                  type: boolean
+                uuid:
+                  description: 'UUID ist die vom registrationservice zurueckgegebene UUID TODO: wir muessen erstmal die UUID zur Identifikation verwenden, bis wir dem registration-service den Instanznamen mitgeben koennen'
+                  type: string
+              type: object
+            synapseServiceAddress:
+              type: string
+            synapseTag:
+              type: string
+            workers:
+              properties:
+                federationSender:
+                  description: WorkerGroupStatus defines the observed state of WorkerGroup
+                  properties:
+                    currentReplicas:
+                      format: int32
+                      type: integer
+                    phase:
+                      type: string
+                    proxyReady:
+                      type: boolean
+                    ready:
+                      type: boolean
+                    readyReplicas:
+                      format: int32
+                      type: integer
+                    replicas:
+                      format: int32
+                      type: integer
+                    unavailableReplicas:
+                      format: int32
+                      type: integer
+                    workersReady:
+                      type: boolean
+                  required:
+                    - proxyReady
+                    - ready
+                    - replicas
+                    - workersReady
+                  type: object
+                generic:
+                  description: WorkerGroupStatus defines the observed state of WorkerGroup
+                  properties:
+                    currentReplicas:
+                      format: int32
+                      type: integer
+                    phase:
+                      type: string
+                    proxyReady:
+                      type: boolean
+                    ready:
+                      type: boolean
+                    readyReplicas:
+                      format: int32
+                      type: integer
+                    replicas:
+                      format: int32
+                      type: integer
+                    unavailableReplicas:
+                      format: int32
+                      type: integer
+                    workersReady:
+                      type: boolean
+                  required:
+                    - proxyReady
+                    - ready
+                    - replicas
+                    - workersReady
+                  type: object
+                mediaRepository:
+                  description: WorkerGroupStatus defines the observed state of WorkerGroup
+                  properties:
+                    currentReplicas:
+                      format: int32
+                      type: integer
+                    phase:
+                      type: string
+                    proxyReady:
+                      type: boolean
+                    ready:
+                      type: boolean
+                    readyReplicas:
+                      format: int32
+                      type: integer
+                    replicas:
+                      format: int32
+                      type: integer
+                    unavailableReplicas:
+                      format: int32
+                      type: integer
+                    workersReady:
+                      type: boolean
+                  required:
+                    - proxyReady
+                    - ready
+                    - replicas
+                    - workersReady
+                  type: object
+                pusher:
+                  description: WorkerGroupStatus defines the observed state of WorkerGroup
+                  properties:
+                    currentReplicas:
+                      format: int32
+                      type: integer
+                    phase:
+                      type: string
+                    proxyReady:
+                      type: boolean
+                    ready:
+                      type: boolean
+                    readyReplicas:
+                      format: int32
+                      type: integer
+                    replicas:
+                      format: int32
+                      type: integer
+                    unavailableReplicas:
+                      format: int32
+                      type: integer
+                    workersReady:
+                      type: boolean
+                  required:
+                    - proxyReady
+                    - ready
+                    - replicas
+                    - workersReady
+                  type: object
+                ready:
+                  type: boolean
+                sso:
+                  description: WorkerGroupStatus defines the observed state of WorkerGroup
+                  properties:
+                    currentReplicas:
+                      format: int32
+                      type: integer
+                    phase:
+                      type: string
+                    proxyReady:
+                      type: boolean
+                    ready:
+                      type: boolean
+                    readyReplicas:
+                      format: int32
+                      type: integer
+                    replicas:
+                      format: int32
+                      type: integer
+                    unavailableReplicas:
+                      format: int32
+                      type: integer
+                    workersReady:
+                      type: boolean
+                  required:
+                    - proxyReady
+                    - ready
+                    - replicas
+                    - workersReady
+                  type: object
+                streamWriter:
+                  description: WorkerGroupStatus defines the observed state of WorkerGroup
+                  properties:
+                    currentReplicas:
+                      format: int32
+                      type: integer
+                    phase:
+                      type: string
+                    proxyReady:
+                      type: boolean
+                    ready:
+                      type: boolean
+                    readyReplicas:
+                      format: int32
+                      type: integer
+                    replicas:
+                      format: int32
+                      type: integer
+                    unavailableReplicas:
+                      format: int32
+                      type: integer
+                    workersReady:
+                      type: boolean
+                  required:
+                    - proxyReady
+                    - ready
+                    - replicas
+                    - workersReady
+                  type: object
+              required:
+                - ready
+              type: object
+          required:
+            - ingressCertificateReady
+            - ready
+          type: object
+      type: object

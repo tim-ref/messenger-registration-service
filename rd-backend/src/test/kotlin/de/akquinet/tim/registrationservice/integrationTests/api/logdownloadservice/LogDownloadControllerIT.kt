@@ -50,7 +50,7 @@ class LogDownloadControllerIT : DescribeSpec() {
     private lateinit var logDownloadService: LogDownloadService
 
     val logDownloadUrl = { serverName: String, containerName: String ->
-        "/messengerInstance/log-download/$serverName/$containerName"
+        "/logging/download/$serverName/$containerName"
     }
 
     init {

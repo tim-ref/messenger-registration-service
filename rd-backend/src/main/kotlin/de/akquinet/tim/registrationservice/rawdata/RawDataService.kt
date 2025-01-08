@@ -19,10 +19,9 @@ package de.akquinet.tim.registrationservice.rawdata
 
 import de.akquinet.tim.registrationservice.api.messengerservice.RawDataServiceConfig
 import de.akquinet.tim.registrationservice.rawdata.model.Operation
+import de.akquinet.tim.registrationservice.rawdata.model.PerformanceData
 import de.akquinet.tim.registrationservice.rawdata.model.RawData
-import de.akquinet.tim.registrationservice.rawdata.model.RawDataMetaData
 import de.akquinet.tim.registrationservice.rawdata.model.RawDataTask
-import de.akquinet.tim.registrationservice.util.NotLoggedInException
 import de.akquinet.tim.registrationservice.util.UserService
 import org.springframework.http.HttpStatusCode
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
@@ -49,15 +48,15 @@ class RawDataService(
         responseStatus: HttpStatusCode,
         elapsed: Duration,
         operation: Operation,
-        matrixDomain: String
-    ): RawDataMetaData {
-        val instId = try {
-            userService.getUserIdFromContext()
-        } catch (e: NotLoggedInException) {
-            "TIM-registration-service"
-        }
+        matrixDomain: String,
+        telematikId: String? = null,
+        professionOid: String? = null,
+        userId: String? = null
+    ): PerformanceData {
+
+
         val rawData = RawData(
-            `Inst-ID` = instId,
+            `Inst-ID` = userId ?: userService.getUserIdFromContextSafely(),
             `UA-PV` = "n/a",
             `UA-PTV` = "n/a",
             `UA-OS-VERSION` = "n/a",
@@ -68,24 +67,23 @@ class RawDataService(
             `M-Dom` = matrixDomain,
             sizeIn = requestContentLength,
             sizeOut = responseBodySize,
-            tID = userService.loadUserAttributeByClaim("telematik_id"),
-            profOID = userService.loadUserAttributeByClaim("profession_oid"),
+            tID = telematikId ?: userService.loadUserAttributeByClaim("telematik_id"),
+            profOID = professionOid ?: userService.loadUserAttributeByClaim("profession_oid"),
             Res = responseStatus.value().toString()
         )
-        return RawDataMetaData(
+
+        return PerformanceData(
             start = Instant.now(),
             durationInMs = elapsed.toInt(DurationUnit.MILLISECONDS),
             operation = operation,
             status = responseStatus.value().toString(),
             message = rawData
-        ).also {
-            sendMessageLog(it)
-        }
+        ).also { sendMessageLog(it) }
     }
 
-    fun sendMessageLog(rawDataMetaData: RawDataMetaData) {
+    fun sendMessageLog(performanceData: PerformanceData) {
         scheduler.schedule(
-            RawDataTask(rawDataMetaData, restTemplate, rawDataServiceConfig),
+            RawDataTask(performanceData, restTemplate, rawDataServiceConfig),
             Instant.now()
         )
     }

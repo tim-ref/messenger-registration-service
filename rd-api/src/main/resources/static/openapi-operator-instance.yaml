@@ -1,0 +1,282 @@
+openapi: "3.1.0"
+info:
+  title: "TI-Messenger/Fachdienst/Registrierungsdienst/Operator-Instance"
+  version: ${project.version}
+
+servers:
+  - url: "http://localhost:8080"
+    description: "Lokale Entwicklungsmaschine"
+  - url: "https://registration-service-api.eu.timref.akquinet.nx2.dev"
+    description: "[TIMRef-EU] Entwicklungsumgebung"
+  - url: "https://registration-service-api.ru.timref.akquinet.nx2.dev"
+    description: "[TIMRef-RU] Referenzumgebung"
+  - url: "https://registration-service-api.ru-dev.timref.akquinet.nx2.dev"
+    description: "[TIMRef-RU-DEV] Test-Referenzumgebung"
+
+security:
+  - basicAuth: []
+
+paths:
+  /operator/mi/create:
+    post:
+      description: "Erzeugt eine neue Messenger-Instanz mit den gegebenen Parametern"
+      operationId: createMessengerInstance
+      tags:
+        - OperatorInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMessengerInstanceRequest"
+      responses:
+        '201':
+          description: "Die Messenger-Instanz wurde erfolgreich angelegt"
+          headers:
+            x-inran:
+              description: "Header der den zufälligen Teil des Namens der erzeugten Messenger-Instanz enthält"
+              schema:
+                type: string
+        '400':
+          description: "Ein oder mehrere Parameter fehlen oder sind syntaktisch falsch"
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          description: "Der User wurde nicht gefunden"
+        '409':
+          description: "Eine Messenger-Instanz mit dem gewünschten Namen oder FQDN existiert bereits"
+        '500':
+          description: "Die Messenger-Instanz konnte wegen eines Fehlers im Operator nicht erzeugt werden."
+
+  /operator/mi/create/realm:
+    post:
+      description: "Erzeugt einen Realm in Keycloak anhand der übergebenen Parameter"
+      operationId: createRealm
+      tags:
+        - OperatorInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRealmRequest"
+      responses:
+        '201':
+          description: "Der Realm wurde erfolgreich angelegt"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateRealmResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '412':
+          description: "Eine Messenger-Instanz mit dem übergebenen Namen konnte nicht gefunden werden"
+        '500':
+          description: "Der Realm konnte nicht angelegt werden"
+
+  /operator/mi/create/flu:
+    post:
+      description: "Aktualisiert die Föderationsliste im VZD mit der neuen Messenger-Instanz"
+      summary: "flu ist kurz für federation list update"
+      operationId: updateFederationListAtVZD
+      tags:
+        - OperatorInstance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFederationListRequest"
+      responses:
+        '200':
+          description: "Die Föderationsliste beim VZD wurde erfolgreich aktualisiert"
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '500':
+          description: "Der Föderationsliste beim VZD konnte nicht aktualisiert werden"
+
+
+  /operator/mi/create/admin:
+    post:
+      operationId: createAdminUser
+      tags:
+        - OperatorInstance
+      requestBody:
+        description: "Der Servername für den der Admin-User angelegt werden soll"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./components/schemas.yaml#/components/schemas/CreateAdminUserRequest"
+      responses:
+        '201':
+          description: "Der Admin-User wurde erfolgreich angelegt"
+          content:
+            application/json:
+              schema:
+                $ref: "./components/schemas.yaml#/components/schemas/CreateAdminUserResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          description: "Die Messenger-Instanz wurde anhand des übergebenen Namens nicht gefunden"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '409':
+          description: "Der Admin-User für diesen Server existiert bereits"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '412':
+          description: "Die Messenger-Instanz ist noch nicht bereit"
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: "Der Admin-User für die genannte Messenger-Instanz konnte wegen eines Fehlers im Operator nicht angelegt werden"
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /operator/mi/{instanceName}:
+    delete:
+      description: "Löscht eine Messenger-Instanz anhand des übergebenen Servernamens"
+      operationId: deleteMessengerService
+      tags:
+        - OperatorInstance
+      parameters:
+        - in: path
+          name: instanceName
+          schema:
+            type: string
+          required: true
+          description: "Der Name der zu löschenden Instanz"
+      responses:
+        '204':
+          description: "Die Messenger-Instanz wurde erfolgreich gelöscht"
+        '400':
+          description: "Der übergebene Servername ist ungültig"
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          description: "Die zu löschende Messenger-Instanz wurde anhand des übergebenen Namens nicht gefunden"
+        '500':
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    CreateMessengerInstanceRequest:
+      type: object
+      required:
+        - instanceName
+        - publicHomeserverFQDN
+        - telematikId
+        - professionOid
+      properties:
+        instanceName:
+          type: string
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          maxLength: 63
+          description: Der Instanzname, aus technischen Gründen limitiert auf 63 DNS-fähige Zeichen
+        publicHomeserverFQDN:
+          type: string
+          description: FQDN des Homeservers
+        telematikId:
+          type: string
+        professionOid:
+          type: string
+        userId:
+          type: string
+          description: Der User für den die Messenger-Instanz angelegt wird, wird überlicherweise aus dem Login-Kontext geholt.
+
+    CreateRealmRequest:
+      type: object
+      required:
+        - instanceName
+        - realmName
+        - synapseClientRootUrl
+      properties:
+        instanceName:
+          type: string
+          description: Der Name der Messenger-Instanz für die der Realm angelegt werden soll
+        realmName:
+          type: string
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          maxLength: 63
+          description: Der Name des zu erzeugenden Realms, aus technischen Gründen limitiert auf 63 DNS-fähige Zeichen
+        synapseClientRootUrl:
+          type: string
+          description: FQDN des Homeservers
+
+    CreateRealmResponse:
+      type: object
+      required:
+        - secret
+      properties:
+        secret:
+          type: string
+          description: Client secret für den Client 'synapse'
+
+    UpdateFederationListRequest:
+      type: object
+      required:
+        - instanceName
+        - publicHomeserverFQDN
+        - telematikId
+        - professionOid
+      properties:
+        instanceName:
+          type: string
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$'
+          maxLength: 63
+          description: Der Instanzname, aus technischen Gründen limitiert auf 63 DNS-fähige Zeichen
+        publicHomeserverFQDN:
+          type: string
+        telematikId:
+          type: string
+        professionOid:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - context
+        - details
+      properties:
+        context:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+
+  responses:
+    UnauthorizedError:
+      description: Die Authentifizierungsinformationen fehlen oder sind ungültig.
+    NotAllowedError:
+      description: Der verwendete User hat nicht die erforderlichen Berechtigungen.
+    InternalServerError:
+      description: Bei der Verarbeitung im Server ist ein Fehler aufgetreten. Details sind im Response-Body enthalten.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"

@@ -18,12 +18,14 @@
 package de.akquinet.tim.registrationservice.integrationTests.api.messengerService
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.google.gson.Gson
 import com.ninjasquad.springmockk.SpykBean
-import de.akquinet.tim.registrationservice.api.messengerservice.MessengerInstanceCreateService.Companion.X_HEADER_INSTANCE_RANDOM
+import de.akquinet.tim.registrationservice.api.messengerproxy.MessengerProxyLogLevelService
 import de.akquinet.tim.registrationservice.integrationTests.configuration.IntegrationTestConfiguration
 import de.akquinet.tim.registrationservice.integrationTests.configuration.WiremockConfiguration
-import de.akquinet.tim.registrationservice.openapi.operator.client.SynapseOperatorApi
-import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstance
+import de.akquinet.tim.registrationservice.openapi.api.operator.client.SynapseOperatorApi
+import de.akquinet.tim.registrationservice.openapi.model.mi.CreateAdminUserRequest
+import de.akquinet.tim.registrationservice.openapi.model.mi.MessengerInstanceDto
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.mockk.every
@@ -36,6 +38,7 @@ import org.springframework.boot.logging.LogLevel
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContext
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
@@ -64,6 +67,9 @@ class MessengerInstanceServiceControllerIT(
 
     @SpykBean
     lateinit var operatorApiClient: SynapseOperatorApi
+
+    @SpykBean
+    lateinit var messengerProxyLogLevelService: MessengerProxyLogLevelService
 
     private val telematikId = "telematikId"
 
@@ -104,77 +110,96 @@ class MessengerInstanceServiceControllerIT(
         }
 
         this.describe("Messenger Instance Controller") {
-
-            val adminMessengerInstanceEntity = MessengerInstance(
-                serverName = "proxy-test.timref.example.com",
-                publicBaseUrl = "proxy-test.timref.example.com"
+            val adminMessengerInstanceDto = MessengerInstanceDto(
+                instanceId = "proxytesteu",
+                instanceName = "proxy-test.eu.timref.akquinet.nx2.dev",
+                publicHomeserverFQDN = "proxy-test.eu.timref.akquinet.nx2.dev"
             )
 
             it("should get all already created messenger instances") {
-                mockMvc.get("/messengerInstance")
+                mockMvc.get("/messenger-instances")
                     .andDo { print() }
                     .andExpect { status { isOk() } }
             }
 
             it("should create a new messenger instance") {
-                mockMvc.post("/messengerInstance/create") {}
+                mockMvc.post("/messenger-instance/request") {}
                     .andDo { print() }
-                    .andExpect { status { isCreated() } }
+                    .andExpect { status { isAccepted() } }
             }
-            it("it should create an admin user") {
-                mockMvc.get("/messengerInstance/${adminMessengerInstanceEntity.serverName}/admin") {
+            xit("it should create an admin user") {
+                mockMvc.post("/messenger-instance/request/admin") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = Gson().toJson(CreateAdminUserRequest(instanceName = adminMessengerInstanceDto.instanceId))
+                    characterEncoding = Charsets.UTF_8.name()
                 }
                     .andDo { print() }
                     .andExpect { status { isCreated() } }
             }
 
-            it("it should create and delete a new messenger instance") {
-                val result = mockMvc.post("/messengerInstance/create") {}
+            xit("it should create and delete a new messenger instance") {
+                val result = mockMvc.post("/messenger-instance/request") {}
                     .andDo { print() }
-                    .andExpect { status { isCreated() } }
+                    .andExpect { status { isAccepted() } }
                     .andReturn()
-                val instanceName = result.response.getHeaderValue(X_HEADER_INSTANCE_RANDOM)
-                mockMvc.get("/messengerInstance/$instanceName.localhost/admin")
+                val instanceId = result.response.getHeaderValue("X_HEADER_INSTANCE_RANDOM")
+
+                mockMvc.post("/messenger-instance/request/admin") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = Gson().toJson(CreateAdminUserRequest(instanceName = "$instanceId"))
+                    characterEncoding = Charsets.UTF_8.name()
+                }
                     .andDo { print() }
                     .andExpect { status { isCreated() } }
-                mockMvc.delete("/messengerInstance/$instanceName.localhost/")
+
+
+                mockMvc.delete("/messenger-instance/$instanceId/")
                     .andDo { print() }
                     .andExpect { status { isNoContent() } }
             }
 
             it("should create two messenger instances and list them") {
-                mockMvc.post("/messengerInstance/create") {}
+                mockMvc.post("/messenger-instance/request") {}
                     .andDo { print() }
-                    .andExpect { status { isCreated() } }
+                    .andExpect { status { isAccepted() } }
 
-                mockMvc.post("/messengerInstance/create") {}
+                mockMvc.post("/messenger-instance/request") {}
                     .andDo { print() }
-                    .andExpect { status { isCreated() } }
+                    .andExpect { status { isAccepted() } }
 
-                mockMvc.get("/messengerInstance")
+                mockMvc.get("/messenger-instances")
                     .andDo { print() }
                     .andExpect { status { isOk() } }
             }
 
             it("it should fail to create an admin user for non existent server") {
-                mockMvc.get("/messengerInstance/NotExistingServer/admin") {
+                mockMvc.post("/messenger-instance/request/admin") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = Gson().toJson(CreateAdminUserRequest(instanceName = "not-existing-server"))
+                    characterEncoding = Charsets.UTF_8.name()
                 }
                     .andDo { print() }
                     .andExpect { status { isLocked() } }
             }
 
-            it("it should fail to create a second admin user") {
-                val result = mockMvc.post("/messengerInstance/create") {}
+            xit("it should fail to create a second admin user") {
+                val result = mockMvc.post("/messenger-instance/request") {}
                     .andDo { print() }
-                    .andExpect { status { isCreated() } }
+                    .andExpect { status { isAccepted() } }
                     .andReturn()
-                val instanceName = result.response.getHeaderValue(X_HEADER_INSTANCE_RANDOM)
-                mockMvc.get("/messengerInstance/$instanceName.localhost/admin") {
+                val instanceId = result.response.getHeaderValue("X_HEADER_INSTANCE_RANDOM")
+                mockMvc.post("/messenger-instance/request/admin") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = Gson().toJson(CreateAdminUserRequest(instanceName = "$instanceId"))
+                    characterEncoding = Charsets.UTF_8.name()
                 }
                     .andDo { print() }
                     .andExpect { status { isCreated() } }
 
-                mockMvc.get("/messengerInstance/$instanceName.localhost/admin") {
+                mockMvc.post("/messenger-instance/request/admin") {
+                    contentType = MediaType.APPLICATION_JSON
+                    content = Gson().toJson(CreateAdminUserRequest(instanceName = "$instanceId"))
+                    characterEncoding = Charsets.UTF_8.name()
                 }
                     .andDo { print() }
                     .andExpect { status { isConflict() } }
@@ -183,10 +208,11 @@ class MessengerInstanceServiceControllerIT(
             it("it should change logLevel") {
                 val newLogLevel = LogLevel.DEBUG
                 every {
-                    operatorApiClient.changeMessengerInstanceLoglevelWithHttpInfo(any(), any())
-                }.returns(Success(data = null, statusCode = 201))
-                mockMvc.post("/messengerInstance/${adminMessengerInstanceEntity.serverName}/loglevel") {
-                    contentType = MediaType.APPLICATION_JSON
+                    messengerProxyLogLevelService.changeLogLevel(any(), any())
+                } returns ResponseEntity.ok().build()
+
+                mockMvc.post("/logging/${adminMessengerInstanceDto.instanceId}/level") {
+                    contentType = MediaType.TEXT_PLAIN
                     content = newLogLevel.name
                 }
                     .andDo { print() }

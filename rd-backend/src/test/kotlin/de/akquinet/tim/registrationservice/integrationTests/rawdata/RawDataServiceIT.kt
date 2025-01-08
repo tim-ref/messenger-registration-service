@@ -21,7 +21,7 @@ import de.akquinet.tim.registrationservice.integrationTests.configuration.Integr
 import de.akquinet.tim.registrationservice.rawdata.RawDataService
 import de.akquinet.tim.registrationservice.rawdata.model.Operation
 import de.akquinet.tim.registrationservice.rawdata.model.RawData
-import de.akquinet.tim.registrationservice.rawdata.model.RawDataMetaData
+import de.akquinet.tim.registrationservice.rawdata.model.PerformanceData
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
@@ -87,7 +87,7 @@ class RawDataServiceIT : DescribeSpec() {
 
             val dummyTimestamp = Instant.now()
 
-            val rawDataMetaData = RawDataMetaData(
+            val performanceData = PerformanceData(
                 start = dummyTimestamp,
                 durationInMs = 100,
                 operation = Operation.RS_CREATE_MESSENGER_SERVICE,
@@ -113,7 +113,7 @@ class RawDataServiceIT : DescribeSpec() {
                         ""
                     )
                     .copy(start = dummyTimestamp)
-                    .shouldBe(rawDataMetaData)
+                    .shouldBe(performanceData)
             }
         }
     }

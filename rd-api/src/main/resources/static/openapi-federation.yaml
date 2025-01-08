@@ -1,0 +1,73 @@
+openapi: "3.1.0"
+info:
+  title: "TI-Messenger/Fachdienst/Registrierungsdienst/Federation"
+  version: ${project.version}
+
+servers:
+  - url: "http://localhost:8080"
+    description: "Lokale Entwicklungsmaschine"
+
+paths:
+  /federation:
+    get:
+      tags:
+        - Federation
+      operationId: retrieveFederationList
+      summary: "Check if a new federation list is available and if true return it."
+      description: "API for updating the federation list"
+      parameters:
+        - name: version
+          in: query
+          description: Version of the known federation list
+          required: false
+          schema:
+            type: integer
+            format: int64
+
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FederationList"
+          description: "Returning the updated federation list"
+        '304':
+          description: "The provided federation list is up-to-date"
+        '500':
+          description: "Internal Server Error"
+
+components:
+  schemas:
+    Domain:
+      type: object
+      description: "TI-Messenger domain name"
+      required:
+        - domain
+        - isInsurance
+      properties:
+        domain:
+          type: string
+          description: "TI-Messenger domain name"
+        isInsurance:
+          type: boolean
+          description: "Indicates if it is a domain of an health insurance for insured persons"
+        telematikID:
+          type: string
+          description: "Telematik ID"
+
+    FederationList:
+      type: object
+      description: "The federation list for the Messengerproxy"
+      required:
+        - version
+        - domainList
+      properties:
+        version:
+          type: integer
+          format: int64
+          description: "The version of the federation list"
+        domainList:
+          type: array
+          items:
+            $ref: "#/components/schemas/Domain"
+          description: "The list of TI-Messenger domain names"

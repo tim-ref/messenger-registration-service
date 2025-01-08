@@ -36,7 +36,7 @@ class KeycloakHealthIndicator @Autowired constructor(
 ) : HealthIndicator {
 
     override fun health(): Health {
-        val keycloakHealthUrl = URI(keycloakProperties.masterRealm.url + keycloakProperties.readinessEndpoint)
+        val keycloakHealthUrl = URI(keycloakProperties.readinessEndpoint)
         return try {
             val response = restTemplate.getForEntity(keycloakHealthUrl, String::class.java)
             if (response.statusCode.isSameCodeAs(HttpStatus.OK)) {

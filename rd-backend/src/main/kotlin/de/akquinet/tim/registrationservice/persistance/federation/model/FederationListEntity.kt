@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023-2024 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 
 package de.akquinet.tim.registrationservice.persistance.federation.model
 
-import de.akquinet.tim.registrationservice.api.federation.model.Domain
-import de.akquinet.tim.registrationservice.api.federation.model.FederationList
+import de.akquinet.tim.registrationservice.openapi.model.federation.Domain
+import de.akquinet.tim.registrationservice.openapi.model.federation.FederationList
 import jakarta.persistence.*
 import java.util.*
 

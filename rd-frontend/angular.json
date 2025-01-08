@@ -72,7 +72,8 @@
               "buildTarget": "frontend:build:kubernetes"
             },
             "local": {
-              "buildTarget": "frontend:build:local"
+              "buildTarget": "frontend:build:local",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "local"

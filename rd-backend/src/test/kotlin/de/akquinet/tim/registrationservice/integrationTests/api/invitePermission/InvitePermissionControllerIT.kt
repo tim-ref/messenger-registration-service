@@ -19,8 +19,9 @@ package de.akquinet.tim.registrationservice.integrationTests.api.invitePermissio
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
-import de.akquinet.tim.registrationservice.api.federation.FederationServiceImpl
+import de.akquinet.tim.registrationservice.api.federation.FederationListServiceImpl
 import de.akquinet.tim.registrationservice.integrationTests.configuration.IntegrationTestConfiguration
+import de.akquinet.tim.registrationservice.openapi.model.invitepermission.InvitePermissionDto
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.mockk.every
@@ -49,7 +50,7 @@ class InvitePermissionControllerIT : DescribeSpec() {
     lateinit var objectMapper: ObjectMapper
 
     @MockkBean
-    final lateinit var federationServiceImpl: FederationServiceImpl
+    final lateinit var federationServiceImpl: FederationListServiceImpl
 
     @MockkBean
     final lateinit var mockConnection: HttpURLConnection
@@ -61,10 +62,11 @@ class InvitePermissionControllerIT : DescribeSpec() {
 
             // whenever must be called before each test, otherwise there is a NullPointerException
             beforeTest {
-                every { federationServiceImpl.connectToVzd(
-                    any<String>(),
-                    any<Map<String, Any>>()
-                )
+                every {
+                    federationServiceImpl.connectToVzd(
+                        any<String>(),
+                        any<Map<String, Any>>()
+                    )
                 } returns mockConnection
             }
 
@@ -74,7 +76,12 @@ class InvitePermissionControllerIT : DescribeSpec() {
 
                 mockMvc.post("/vzd/invite") {
                     contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(Pair(inviter, invited))
+                    content = objectMapper.writeValueAsString(
+                        InvitePermissionDto(
+                            invitingUser = inviter,
+                            invitedUser = invited
+                        )
+                    )
                 }
                     .andDo { print() }
                     .andExpect { status { isOk() } }
@@ -86,7 +93,12 @@ class InvitePermissionControllerIT : DescribeSpec() {
 
                 mockMvc.post("/vzd/invite") {
                     contentType = MediaType.APPLICATION_JSON
-                    content = objectMapper.writeValueAsString(Pair(inviter, invited))
+                    content = objectMapper.writeValueAsString(
+                        InvitePermissionDto(
+                            invitingUser = inviter,
+                            invitedUser = invited
+                        )
+                    )
                 }
                     .andDo { print() }
                     .andExpect { status { isForbidden() } }

@@ -17,6 +17,7 @@
 
 package de.akquinet.tim.registrationservice.api.messengerservice
 
+import de.akquinet.tim.registrationservice.api.keycloak.KeycloakUserAttributeKey
 import de.akquinet.tim.registrationservice.api.keycloak.KeycloakUserService
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
 import org.slf4j.Logger
@@ -34,12 +35,18 @@ class MessengerInstanceProlongationService @Autowired constructor(
     @Scheduled(cron = "\${backend.periodOfValidityCheck.cron}", zone = "Europe/Berlin")
     fun alignOrderLengthFromKeycloakAttributeToRegistrationServiceDatabase() {
         try {
-            val orderUsers = keycloakUserService.getEnabledMessengerInstanceOrderUsers().map {
+            val orderUsers = keycloakUserService.getEnabledMessengerInstanceOrderUsers().filter {
+                it.attributes.containsKey(KeycloakUserAttributeKey.TELEMATIK_ID.value) && it.attributes.containsKey(
+                    KeycloakUserAttributeKey.PROFESSION_OID.value
+                ) && it.attributes.containsKey(
+                    KeycloakUserAttributeKey.ORDER_LENGTH.value
+                )
+            }.map {
                 OrderUser(
                     username = it.username.trim(),
-                    telematikId = it.firstAttribute("TelematikID").trim(),
-                    professionOid = it.firstAttribute("ProfessionOID").trim(),
-                    laufzeit = it.firstAttribute("Laufzeit").trim()
+                    telematikId = it.firstAttribute(KeycloakUserAttributeKey.TELEMATIK_ID.value).trim(),
+                    professionOid = it.firstAttribute(KeycloakUserAttributeKey.PROFESSION_OID.value).trim(),
+                    orderLength = it.firstAttribute(KeycloakUserAttributeKey.ORDER_LENGTH.value).trim()
                 )
             }
 
@@ -53,7 +60,7 @@ class MessengerInstanceProlongationService @Autowired constructor(
                     user.username, user.telematikId, user.professionOid
                 ).let { instances ->
                     instances.forEach {
-                        val newEndDate = it.dateOfOrder.plusMonths(user.laufzeit.toLong())
+                        val newEndDate = it.dateOfOrder.plusMonths(user.orderLength.toLong())
                         if (!newEndDate.isEqual(it.endDate)) {
                             it.endDate = newEndDate
                             val saved = messengerInstanceRepository.save(it)
@@ -65,7 +72,7 @@ class MessengerInstanceProlongationService @Autowired constructor(
                     }
                 }
             }
-        } catch(e: Exception){
+        } catch (e: Exception) {
             logger.error("Error aligning order length. The reason was: {}", e.message, e)
         }
     }
@@ -75,5 +82,5 @@ private data class OrderUser(
     val username: String,
     val telematikId: String,
     val professionOid: String,
-    val laufzeit: String
+    val orderLength: String
 )

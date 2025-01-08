@@ -1,0 +1,343 @@
+openapi: 3.0.1
+info:
+  title: Matrix Synapse Operator API.
+  description: |-
+    the purpose of this application is to provide an application
+    that is using plain go code to define an API to talk to the
+    Matrix Synapse Operator API
+  version: ${project.version}
+  contact:
+    name: TIM-Betrieb
+    url: https://karriere.akquinet.de/teams/nx2.html
+    email: nx2-operations@akquinet.de
+
+servers:
+  - url: "http://operator-api.operator-api.svc.cluster.local:8000/"
+    description: "Internal cluster endpoint"
+  - url: "127.0.0.1:8000"
+    description: "Local development machine"
+
+security:
+  - basicAuth: []
+
+paths:
+  /homeservers:
+    get:
+      summary: List all Messenger-Services
+      description: "Generates and returns a list of all messenger services."
+      operationId: listMessengerInstances
+      tags:
+        - SynapseOperator
+      responses:
+        '200':
+          description: "The list was successfully created and returned."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '500':
+          description: "The list of Messenger instances could not be generated due to an internal error."
+    post:
+      summary: Creates Messenger Instance.
+      description: "Creates a new CR with the transferred spec so that a new messenger instance is created by the operator."
+      operationId: createMessengerInstance
+      tags:
+        - SynapseOperator
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRequest'
+        required: true
+      responses:
+        '202':
+          description: "The request has been accepted. The instance generation will be started at a later date."
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '500':
+          description: "The request could not be accepted due to an internal error."
+  /homeservers/{instanceName}:
+    get:
+      summary: Gets informations about a Messenger Instance
+      description: "This gets all Information possible for a Messenger Instance"
+      operationId: getMessengerInstance
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      responses:
+        '200':
+          description: "Displays all information about the instance"
+          content:
+            application/json:
+              schema:
+                $ref: "./components/schemas.yaml#/components/schemas/Synapse/properties/status"
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '500':
+          description: "The request could not be accepted due to an internal error."
+    patch:
+      summary: Changes a Messenger Instance
+      description: "This patches a Messenger Instance "
+      operationId: patchMessengerInstance
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      responses:
+        '202':
+          description: "The request has been accepted. The instance patch will be started at a later date."
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '500':
+          description: "The request could not be accepted due to an internal error."
+    delete:
+      summary: Deletes a Messenger Instance
+      description: "This deletes a Messenger Instance with the given Name"
+      operationId: deleteMessengerInstance
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      responses:
+        '202':
+          description: "The request has been accepted. The instance deletion will be started soon."
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          description: "The Messenger Instance was not found"
+        '500':
+          description: "The request could not be accepted due to an internal error."
+  /homeservers/{instanceName}/readiness:
+    get:
+      summary: Gets the Readiness Status of a Messenger Instance
+      description: Gets the Readiness Status of a Messenger Instance, should be true or false
+      operationId: getMessengerInstanceReadiness
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      responses:
+        '200':
+          description: "The Messenger Instance is ready."
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          description: "The Messenger Instance was not found"
+        '500':
+          description: "The request could not be processed due to an internal error."
+        '503':
+          description: "The Messenger Instance is not ready yet"
+  /homeservers/{instanceName}/admin:
+    get:
+      summary: Gets the initial Admin Credentials for the Messenger Instance
+      description: When the customer Changed the Credentials afterwards, we can't give him his actual Credentials
+      operationId: getMessengerInstanceInitialAdminCreds
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      responses:
+        '200':
+          description: "The Messenger Instance is ready."
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - username
+                  - password
+                  - userid
+                properties:
+                  username:
+                    type: string
+                    description: The users initial Name
+                  password:
+                    type: string
+                    description: the users initial Password
+                  userid:
+                    type: string
+                    description: The users mxId
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '404':
+          description: "The Messenger Instance was not found"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '500':
+          description: "The request could not be processed due to an internal error."
+        '503':
+          description: "The Messenger Instance is not ready yet"
+  /homeservers/{instanceName}/logging/{newLogLevel}:
+    put:
+      summary: Changes the Loglevel of a Messenger Proxy
+      description: "Sets the specified log level in the selected messenger proxy."
+      operationId: changeMessengerInstanceLoglevel
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+        - description: "The Loglevel to Set in the Proxy."
+          in: path
+          name: newLogLevel
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "The new log level was accepted and set by the proxy."
+        '400':
+          description: ""
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '500':
+          description: "The request could not be processed due to an internal error."
+  /homeservers/{instanceName}/configuration:
+    put:
+      summary: Changes the Configuration of a Messenger Instance
+      description: "Sets the specified overridable configuration in the selected messenger instance."
+      operationId: changeMessengerInstanceConfiguration
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SynapseOverrideConfiguration'
+        required: true
+      responses:
+        '200':
+          description: "The instance has been reconfigured."
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          $ref: "#/components/responses/NotFoundError"
+        '500':
+          description: "The request could not be accepted due to an internal error."
+    get:
+      summary: Retrieves the Configuration of a Messenger Instance
+      description: "Gets the overridable parameters of the selected messenger instance."
+      operationId: getMessengerInstanceConfiguration
+      tags:
+        - SynapseOperator
+      parameters:
+        - $ref: "#/components/parameters/instanceNameParam"
+      responses:
+        '200':
+          description: "The configuration of the instance."
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SynapseOverrideConfiguration'
+        '401':
+          $ref: "#/components/responses/UnauthorizedError"
+        '403':
+          $ref: "#/components/responses/NotAllowedError"
+        '404':
+          $ref: "#/components/responses/NotFoundError"
+        '500':
+          description: "The request could not be accepted due to an internal error."
+
+components:
+  securitySchemes:
+    basicAuth:
+      description: Basic HTTP Authentication
+      type: http
+      scheme: Basic
+  parameters:
+    instanceNameParam:
+      name: instanceName
+      in: path
+      description: "Messenger instance name."
+      required: true
+      schema:
+        type: string
+  schemas:
+    CreateRequest:
+      type: object
+      required:
+        - instanceOwner
+        - telematikId
+        - professionOid
+      properties:
+        instanceOwner:
+          type: string
+          description: "The ID of the user to whom the instance should be assigned."
+        telematikId:
+          type: string
+          description: "The TelematikId to which the instance should be assigned."
+        professionOid:
+          type: string
+          description: "The ProfessionOid to which the instance should be assigned."
+    SynapseOverrideConfiguration:
+      type: object
+      required:
+        - enabled
+        - override
+      properties:
+        homeServer:
+          type: object
+          properties:
+            retention:
+              description: Aktiviert oder deaktiviert die Haltezeit von Objekten im Homeserver.
+              allOf:
+                - $ref: '#/components/schemas/EnabledStatus'
+            override:
+              description: Steuert ob die Haltezeit-Konfiguration ueberschrieben werden oder die Default-Werte benutzt werden sollen.
+              allOf:
+                - $ref: '#/components/schemas/EnabledStatus'
+            minLifetime:
+              description: MinLifetime definiert die minimale Haltezeit
+                von Ereignissen.
+              pattern: ^([0-9]+[wdhmsy])+
+              type: string
+            maxLifetime:
+              description: MaxLifetime definiert die maximale Haltezeit
+                von Ereignissen.
+              pattern: ^([0-9]+[wdhmsy])+
+              type: string
+        proxy:
+          type: object
+          properties:
+            federationCheckConcept:
+              description: Setzt Variante des Berechtigungskonzeptes
+              type: string
+              enum:
+                - PROXY
+                - CLIENT
+            inviteRejectionPolicy:
+              description: InviteRejectionPolicy
+              type: string
+              enum:
+                - ALLOW_ALL
+                - BLOCK_ALL
+    EnabledStatus:
+      type: string
+      enum:
+        - enabled
+        - disabled
+  responses:
+    UnauthorizedError:
+      description: "The authentication information is missing or invalid."
+    NotAllowedError:
+      description: "The user does not have the required authorizations."
+    NotFoundError:
+      description: "The requested instance was not found."

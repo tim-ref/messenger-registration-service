@@ -17,7 +17,7 @@
 
 package de.akquinet.tim.registrationservice.config
 
-import de.akquinet.tim.registrationservice.openapi.operator.client.SynapseOperatorApi
+import de.akquinet.tim.registrationservice.openapi.api.operator.client.SynapseOperatorApi
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import org.apache.http.HttpHeaders
@@ -59,10 +59,17 @@ class OperatorConfig @Autowired constructor(
         val createPath: String,
         val deletePath: String,
         val baseFQDN: String,
-        val credentials: Credentials
+        val credentials: Credentials,
+        val messengerInstanceApi: MessengerInstanceApi
     ) {
         @ConfigurationProperties(prefix = "operator.credentials")
         data class Credentials(
+            val username: String,
+            val password: String
+        )
+
+        @ConfigurationProperties(prefix = "operator.messenger-instance-api")
+        data class MessengerInstanceApi(
             val username: String,
             val password: String
         )
