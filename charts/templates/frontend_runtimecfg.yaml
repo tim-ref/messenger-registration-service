@@ -1,0 +1,15 @@
+{{- $fullName := include "registration-service.fullname" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-{{ $fullName }}-runtimecfg
+data:
+  runtimeconfig.json: |-
+    {
+      "apiUrl": "https://{{ .Values.frontend.hostName }}.{{ .Values.fqdn }}",
+      "fachdienstMetaUrl": "https://{{ .Values.frontend.fachdienstMetaHostName }}.{{ .Values.fqdn }}",
+      "keycloakUrl": "https://{{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}",
+      "orgAdminUrl": "https://{{ .Values.frontend.orgAdminHostName }}.{{ .Values.fqdn }}",
+      "redirectUrl": "https://{{ .Values.frontend.hostName }}.{{ .Values.fqdn }}"
+    }

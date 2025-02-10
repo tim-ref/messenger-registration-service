@@ -1,0 +1,117 @@
+{{- $fullName := include "registration-service.fullname" . }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    "helm.sh/hook": "post-install,post-upgrade,post-rollback"
+    "helm.sh/hook-delete-policy": "before-hook-creation"
+  {{- with .Values.keycloakConfigCli.annotations }}
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ $fullName }}-kcc
+  labels:
+  {{- include "registration-service.labels" . | nindent 4 }}
+spec:
+  backoffLimit: {{ .Values.keycloakConfigCli.backoffLimit }}
+  template:
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: Never
+      containers:
+        - name: keycloak-config-cli
+          image: "{{ .Values.keycloakConfigCli.image.registry }}/{{ .Values.keycloakConfigCli.image.repository }}:{{ .Values.keycloakConfigCli.image.tag }}"
+          imagePullPolicy: {{ .Values.keycloakConfigCli.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - |
+              exec java $JAVA_OPTS -jar /app/keycloak-config-cli.jar $0 $@
+          {{- with .Values.keycloakConfigCli.resources }}
+          resources:
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          env:
+            - name: "SMTP_FROM_ADDRESS"
+              value: {{ .Values.keycloakConfigCli.config.smtpServer.from | quote }}
+            - name: "SMTP_FROM_DISPLAY_NAME"
+              value: {{ .Values.keycloakConfigCli.config.smtpServer.fromDisplayName | quote }}
+            - name: "SMTP_REPLYTO_ADDRESS"
+              value: {{ .Values.keycloakConfigCli.config.smtpServer.replyto | quote }}
+            - name: "SMTP_REPLYTO_DISPLAY_NAME"
+              value: {{ .Values.keycloakConfigCli.config.smtpServer.replytoDisplayName | quote }}
+            - name: "ACTION_TOKEN_ADMIN_LIFESPAN"
+              value: {{ .Values.keycloakConfigCli.config.actionTokenGeneratedByAdminLifespan | quote }}
+            - name: "SMTP_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.SMTP_CONFIG_SECRET }}"
+                  key: "password"
+            - name: "KEYCLOAK_URL"
+              value: "https://{{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}/"
+            - name: "KEYCLOAK_READINESS_ENDPOINT"
+              value: "http://registration-service-keycloak:{{ .Values.keycloak.managementPort }}/health/ready"
+            - name: "KEYCLOAK_USER"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.keycloak.config.adminExistingSecret }}"
+                  key: "username"
+            - name: "KEYCLOAK_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.keycloak.config.adminExistingSecret }}"
+                  key: "password"
+            - name: "REGISTRATION_SERVICE_USER_USER"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.KEYCLOAK_TEST_USER }}"
+                  key: "username"
+            - name: "REGISTRATION_SERVICE_USER_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.KEYCLOAK_TEST_USER }}"
+                  key: "password"
+            - name: "IMPORT_VARSUBSTITUTION_ENABLED"
+              value: "true"
+            - name: "KEYCLOAK_AVAILABILITYCHECK_ENABLED"
+              value: "true"
+            - name: "KEYCLOAK_AVAILABILITYCHECK_TIMEOUT"
+              value: "300s"
+            - name: "KEYCLOAK_CLIENT_REGISTRATION_SERVICE_LIFETIME_CHECK"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.KEYCLOAK_CLIENT_REGISTRATION_SERVICE_LIFETIME_CHECK }}"
+                  key: "secret"
+            - name: "KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET }}"
+                  key: "secret"
+            - name: KEYCLOAK_IDENTITY_PROVIDOR_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  key: clientid
+                  name: keycloak-azuread-oidc
+            - name: KEYCLOAK_IDENTITY_PROVIDOR_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: clientsecret
+                  name: keycloak-azuread-oidc
+          {{- with .Values.keycloakConfigCli.securityContext }}
+          securityContext:
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          configMap:
+            name: {{ $fullName }}-kc-import
+            defaultMode: 0555
+      serviceAccountName: {{ include "registration-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.frontend.podSecurityContext | nindent 8 }}

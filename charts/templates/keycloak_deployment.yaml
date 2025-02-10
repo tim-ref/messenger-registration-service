@@ -1,0 +1,113 @@
+{{- $postgresHost := include "registration-service.keycloak.postgresql.host" . }}
+{{- $postgresSecret := include "registration-service.keycloak.postgresql.secret" . }}
+{{- $fullName := include "registration-service.fullname" . }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ $fullName }}-keycloak"
+  labels:
+    {{- include "registration-service.labels" . | nindent 4 }}
+    app.kubernetes.io/app: {{ $fullName }}-keycloak
+spec:
+  replicas: {{ .Values.keycloak.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "registration-service.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/app: {{ $fullName }}-keycloak
+  template:
+    metadata:
+      {{- if .Values.rollMe.enabled }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- with .Values.keycloak.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      labels:
+        {{- include "registration-service.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/app: {{ $fullName }}-keycloak
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "registration-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.keycloak.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-keycloak
+          image: "{{ .Values.keycloak.image.registry }}/{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag | default .Chart.AppVersion }}"
+          args: ["start", "--db=postgres", "--proxy=edge" ]
+          env:
+            - name: KC_CACHE
+              value: "local" # ispn (default), local
+            - name: KC_CACHE_STACK
+              value: "kubernetes" # tcp, udp (default), kubernetes, ec2, azure, google
+            - name: KC_TRANSACTION_XA_ENABLED
+              value: "true" # true (default), false
+            - name: KC_HOSTNAME
+              value: "{{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_PROXY_HEADERS
+              value: "xforwarded"
+            - name: KC_PROXY
+              value: "edge"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+            - name: KEYCLOAK_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.keycloak.config.adminExistingSecret }}"
+                  key: "username"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.keycloak.config.adminExistingSecret }}"
+                  key: "password"
+            - name: KC_DB
+              value: "keycloak"
+            - name: KC_DB_URL
+              value: "{{ $postgresHost }}"
+            - name: KC_DB_USERNAME
+              value: "keycloak"
+            - name: KC_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ $postgresSecret }}"
+                  key: password
+          resources:
+            {{- toYaml .Values.keycloak.resources | nindent 12 }}
+          ports:
+          - name: keycloak
+            containerPort: 8080
+          - name: management
+            containerPort: 9000
+          {{- if .Values.keycloak.config.healthEnabled }}
+          startupProbe:
+            httpGet:
+              path: /health
+              port: management
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: management
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: management
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          {{- end }}

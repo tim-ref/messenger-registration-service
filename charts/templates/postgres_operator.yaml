@@ -1,0 +1,31 @@
+{{- if .Values.postgresOperator.enabled }}
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: acid-registrationservice
+spec:
+  allowedSourceRanges: null
+  databases:
+    keycloak: keycloak
+    backend: backend
+  enableShmVolume: true
+  numberOfInstances: 3
+  patroni:
+    initdb:
+      encoding: UTF8
+      lc-collate: C
+      lc-ctype: C
+  postgresql:
+    version: "14"
+  teamId: acid
+  users:
+    nx2:
+      - superuser
+    keycloak:
+      - createdb
+    backend:
+      - createdb
+  volume:
+    size: 5Gi
+    storageClass: vsphere-storage
+{{- end }}

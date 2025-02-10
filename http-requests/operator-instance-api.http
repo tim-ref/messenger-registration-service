@@ -1,0 +1,49 @@
+### Erzeuge eine Messenger-Instanz
+POST {{registrationService.baseUrl}}/operator/mi/create
+Authorization: Basic {{registrationService.basicAuthCredentials}}
+Content-Type: application/json
+
+{
+  "instanceName": "martinlocalhost",
+  "publicHomeserverFQDN": "martin.localhost",
+  "telematikId": "3-SMC-B-Testkarte-883110000129069",
+  "professionOid": "1.2.276.0.76.4.54",
+  "userId": "test"
+}
+
+### Erzeuge einen Eintrag in der Föderationsliste
+POST {{registrationService.baseUrl}}/operator/mi/create/flu
+Authorization: Basic {{registrationService.basicAuthCredentials}}
+Content-Type: application/json
+
+{
+  "instanceName": "martinlocalhost",
+  "publicHomeserverFQDN": "martin.localhost",
+  "telematikId": "3-SMC-B-Testkarte-883110000129069",
+  "professionOid": "1.2.276.0.76.4.54"
+}
+
+### Erzeuge einen Realm in Keycloak für eine Messenger-Instanz
+POST {{registrationService.baseUrl}}/operator/mi/create/realm
+Authorization: Basic {{registrationService.basicAuthCredentials}}
+Content-Type: application/json
+
+{
+  "instanceName": "martinlocalhost",
+  "realmName": "martin",
+  "synapseClientRootUrl": "http://martin.localhost"
+}
+
+### Erzeuge orgAdmin für eine Messenger-Instanz
+POST {{registrationService.baseUrl}}/operator/mi/create/admin
+Authorization: Basic {{registrationService.basicAuthCredentials}}
+Content-Type: application/json
+
+{
+  "instanceName": "martinlocalhost",
+  "orgAdminEmailAddress": "martin@localhost.org"
+}
+
+### Lösche eine Messenger-Instanz
+DELETE {{registrationService.baseUrl}}/operator/mi/martinlocalhost
+Authorization: Basic {{registrationService.basicAuthCredentials}}

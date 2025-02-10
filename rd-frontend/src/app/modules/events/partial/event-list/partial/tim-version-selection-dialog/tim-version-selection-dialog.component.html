@@ -1,0 +1,53 @@
+<!--
+  ~ Copyright (C) 2025 akquinet GmbH
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<div id="tim-version-selection-dialog.component.html" class="flex flex-col w-72">
+  <h2 class="header text-lg">
+    {{ "ADMIN.INSTANCE_LIST.TIM_VARIANT_DIALOG.TITLE" | translate }}
+  </h2>
+
+  <div
+    *ngIf="loading"
+    class="absolute inset-0 bg-white/50 flex justify-center items-center">
+    <div class="loading-spinner w-10 h-10"></div>
+  </div>
+
+  <form [formGroup]="formGroup">
+    <label for="timVariantSelector">{{ "ADMIN.INSTANCE_LIST.TIM_VARIANT_DIALOG.VARIANT" | translate }}</label>
+    <select formControlName="timVariantSelector" id="timVariantSelector">
+      <option [value]="timVariantOptions.classic">
+        {{ timVariantOptions.classic }}
+      </option>
+      <option [value]="timVariantOptions.pro">
+        {{ timVariantOptions.pro }}
+      </option>
+    </select>
+  </form>
+
+  <generic-button
+    id="request-instance-button"
+    [disabled]="loading"
+    (click)="requestInstance()"
+    icon="fa-plus-circle"
+    iconColor="white"
+    class="mt-4 mb-4 w-full"
+  >{{
+      "ADMIN.INSTANCE_LIST.TIM_VARIANT_DIALOG.REQUEST_INSTANCE_BUTTON" | translate
+    }}
+  </generic-button
+  >
+</div>

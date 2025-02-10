@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023-2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,10 @@ import {
   MessengerInstanceService
 } from "../../../../../../build/openapi/messengerinstance";
 import {LoggingService} from "../../../../../../build/openapi/logging";
+import {
+  TimVersionSelectionDialogComponent
+} from "./partial/tim-version-selection-dialog/tim-version-selection-dialog.component";
+import {timVariantOptions, TimVariantRef} from "./partial/tim-version-selection-dialog/tim-variant-options";
 
 @Component({
     selector: 'admin-messenger-service-list',
@@ -367,9 +371,32 @@ export class MessengerInstancesListComponent implements OnInit {
         });
     }
 
-    createMessengerInstance(): void {
-        this.isLoadingCreateInstance = true;
-      this.messengerInstanceService.requestMessengerInstance()
+    requestMessengerInstance(): void {
+
+      this.dialogService.openDialog(TimVersionSelectionDialogComponent, {
+        closeOnOutsideClick: true,
+        showCloseButton: true,
+      });
+
+      this.dialogService.dialogClose$.subscribe((dialogResponse) => {
+        if (dialogResponse == undefined){
+          this.isLoadingCreateInstance = false;
+          return;
+        }
+        if (dialogResponse.createInstance == true) {
+          this.createMessengerInstance(dialogResponse.timVersion);
+        }
+      });
+    }
+
+
+    createMessengerInstance(variant: String){
+
+      let variantEnumString: TimVariantRef = this.extractTimVariantEnumStringFromVariantSelection(variant);
+
+
+      this.isLoadingCreateInstance = true;
+      this.messengerInstanceService.requestMessengerInstance(variantEnumString)
         .pipe(
           tap((response: string) => {
             this.dialogService.closeDialog(response);
@@ -421,4 +448,21 @@ export class MessengerInstancesListComponent implements OnInit {
           },
         });
     }
+
+  extractTimVariantEnumStringFromVariantSelection(variant: String) {
+    let variantEnumString: TimVariantRef;
+    switch (variant) {
+      case timVariantOptions.classic:
+        variantEnumString = "ref_1";
+        break;
+      case timVariantOptions.pro:
+        variantEnumString = "ref_2";
+        break;
+      default:
+        throw Error('Ungültige Tim Variante ausgewählt');
+    }
+    return variantEnumString;
+  }
+
 }
+

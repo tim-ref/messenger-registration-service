@@ -1,0 +1,252 @@
+{{- $postgresHost := include "registration-service.backend.postgresql.host" . }}
+{{- $postgresSecret := include "registration-service.backend.postgresql.secret" . }}
+{{- $fullName := include "registration-service.fullname" . }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ $fullName }}-backend"
+  labels:
+    {{- include "registration-service.labels" . | nindent 4 }}
+    app.kubernetes.io/app: {{ $fullName }}-backend
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "registration-service.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/app: {{ $fullName }}-backend
+  template:
+    metadata:
+      {{- if .Values.rollMe.enabled }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
+      {{- with .Values.backend.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      labels:
+        {{- include "registration-service.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/app: {{ $fullName }}-backend
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "registration-service.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.backend.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}-backend
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.backend.image.registry }}/{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          env:
+            - name: "REGISTRATION_SERVICE_DB_HOST"
+              value: "{{ $postgresHost }}"
+            - name: "REGISTRATION_SERVICE_DB_PORT"
+              value: "5432"
+            - name: "REGISTRATION_SERVICE_DB_NAME"
+              value: "backend"
+            - name: "REGISTRATION_SERVICE_DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ $postgresSecret }}"
+                  key: password
+            - name: "REGISTRATION_SERVICE_DB_USER"
+              value: "backend"
+            - name: "REGISTRATION_SERVICE_VZD_URL"
+              value: {{ required "You must set Values.backend.config.registrationServiceVZDUrl for Registration-Service to work" .Values.backend.config.registrationServiceVZDUrl | quote }}
+            - name: "REGISTRATION_SERVICE_VZD_TOKEN_URL"
+              value: {{ required "You must set Values.backend.config.registrationServiceVZDTokenUrl for Registration-Service to work" .Values.backend.config.registrationServiceVZDTokenUrl | quote }}
+            - name: "REGISTRATION_SERVICE_VZD_TOKEN_PATH"
+              value: "/auth/realms/TI-Provider/protocol/openid-connect/token"
+            - name: "REGISTRATION_SERVICE_VZD_AUTHENTICATION_PATH"
+              value: "/ti-provider-authenticate"
+            - name: "REGISTRATION_SERVICE_VZD_HEALTH_PATH"
+              value: "/ti-provider-authenticate/health/"
+            - name: "REGISTRATION_SERVICE_VZD_FEDERATIONLIST_PATH"
+              value: "/tim-provider-services/FederationList/federationList.jws"
+            - name: "REGISTRATION_SERVICE_VZD_FEDERATIONCHECK_PATH"
+              value: "/tim-provider-services/federationCheck"
+            - name: "REGISTRATION_SERVICE_VZD_USER_WHERE_PATH"
+              value: "/tim-provider-services/localization"
+            - name: "REGISTRATION_SERVICE_VZD_FEDERATIONLIST_CHECK_REVOCATION_STATUS"
+              value: "{{ .Values.backend.config.registrationServiceVZDCheckRevocationStatus }}"
+            - name: "REGISTRATION_SERVICE_VZD_ADD_DOMAIN_TO_FEDERATIONLIST_PATH"
+              value: "/tim-provider-services/federation"
+            - name: "REGISTRATION_SERVICE_VZD_DELETE_DOMAIN_FROM_FEDERATIONLIST_PATH"
+              value: "/tim-provider-services/federation/"
+            - name: "REGISTRATION_SERVICE_VZD_CLIENT_ID"
+              value: "{{ .Values.backend.config.registrationServiceVZDClientId }}"
+            - name: "REGISTRATION_SERVICE_VZD_CLIENT_SECRET"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.REGISTRATION_SERVICE_VZD_CLIENT_SECRET }}"
+                  key: "secret"
+            - name: "REGISTRATION_SERVICE_VZD_TRUST_STORE_PATH"
+              value: "/app/config/komp-truststore.p12"
+            - name: "REGISTRATION_SERVICE_VZD_TRUST_STORE_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: "komp-truststore-password"
+                  key: "password"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "kubernetes"
+            - name: REGISTRATION_SERVICE_KEYCLOAK_REALM
+              value: "timref"
+            - name: FRONTEND_HOST_URL
+              value: "https://{{ .Values.frontend.hostName }}.{{ .Values.fqdn }}/"
+            - name: LOGGING_SERVICE_PROTOCOL
+              value: "{{ .Values.rawdata.config.protocol }}"
+            - name: LOGGING_SERVICE_HOST
+              value: "{{ .Values.rawdata.config.service }}.{{ .Values.rawdata.config.namespace }}.svc.cluster.local"
+            - name: LOGGING_SERVICE_PATH
+              value: "{{ .Values.rawdata.config.path }}"
+            - name: LOGGING_SERVICE_PORT
+              value: "{{ .Values.rawdata.config.port }}"
+            - name: LOGGING_SERVICE_INSTANCE_ID
+              value: "{{ .Values.rawdata.config.instanceID }}"
+            - name: REGISTRATION_SERVICE_KEYCLOAK_CLIENT_ID
+              value: "registrationservice-frontend"
+            - name: REGISTRATION_SERVICE_KEYCLOAK_URL
+              value: "https://{{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}/"
+            - name: REGISTRATION_SERVICE_KEYCLOAK_SECRET
+              value: "fsDYqo93bT7vYUO3GIkPPilYNquhTgPY"
+            - name: REGISTRATION_SERVICE_ISSUER_URI
+              value: "https://{{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}/realms/timref"
+            - name: REGISTRATION_SERVICE_JWK_SET_URI
+              value: "https://{{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}/realms/timref/protocol/openid-connect/certs"
+            - name: REGISTRATION_SERVICE_OPENID_TOKEN_PRIVKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendTempSecretOverride.REGISTRATION_SERVICE_OPENID_TOKEN_SECRET }}
+                  key: privkey
+            - name: REGISTRATION_SERVICE_OPENID_TOKEN_CERT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendTempSecretOverride.REGISTRATION_SERVICE_OPENID_TOKEN_SECRET }}
+                  key: cert
+            - name: REGISTRATION_SERVICE_OPENID_TOKEN_CACERT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendTempSecretOverride.REGISTRATION_SERVICE_OPENID_TOKEN_SECRET }}
+                  key: cacert
+            - name: REGISTRATION_SERVICE_OPENID_TOKEN_ISSUER
+              value: "https://{{ .Values.frontend.hostName }}.{{ .Values.fqdn }}/backend/regservice/openid"
+            - name: REGISTRATION_SERVICE_OPENID_TOKEN_AUDIENCE
+              value: "{{ .Values.backend.config.registrationServiceVZDUrl }}/owner-authenticate"
+            - name: REGSERVICE_MATRIX_CLIENT_SCHEME
+              value: "{{ .Values.backend.config.matrixClientScheme }}"
+            - name: REGSERVICE_MATRIX_CLIENT_PORT
+              value: "{{ .Values.backend.config.matrixClientPort }}"
+            - name: REGSERVICE_MATRIX_SERVER_SCHEME
+              value: "{{ .Values.backend.config.matrixServerScheme }}"
+            - name: REGSERVICE_MATRIX_SERVER_PORT
+              value: "{{ .Values.backend.config.matrixServerPort }}"
+            - name: OPERATOR_HOST_URL
+              value: "{{ .Values.backend.config.operatorHostURLProtocol }}://{{ .Values.backend.config.operatorHostURLService }}.{{ .Values.backend.config.operatorHostURLNamespace }}.svc.cluster.local"
+            - name: OPERATOR_HOST_PORT
+              value: "{{ .Values.backend.config.operatorHostPort }}"
+            - name: OPERATOR_CREATE_PATH
+              value: "/homeservers"
+            - name: OPERATOR_DELETE_PATH
+              value: "/homeservers"
+            - name: OPERATOR_PARTIAL_FQDN
+              value: "{{ .Values.backend.config.operatorPartialFQDN }}"
+            - name: OPERATOR_MESSENGER_INSTANCE_API_USERNAME
+              value: operator
+            - name: OPERATOR_MESSENGER_INSTANCE_API_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: operator-instance-api-password
+                  key: password
+            - name: OPERATOR_REGISTRATION_SERVICE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendTempSecretOverride.OPERATOR_REGISTRATION_SERVICE_USERNAME }}
+                  key: username
+            - name: OPERATOR_REGISTRATION_SERVICE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backendTempSecretOverride.OPERATOR_REGISTRATION_SERVICE_USERNAME }}
+                  key: password
+            - name: APPLICATION_ORG_ADMIN_ORIGINS
+              value: "{{ .Values.backend.config.orgAdminOrigins }}"
+            # TODO: ACTUAL VALUES FROM CONFIG
+            - name: LOKI_SERVICE_PROTOCOL
+              value: "http"
+            - name: LOKI_SERVICE_HOST
+              value: "loki-stack.loki-stack.svc.cluster.local"
+            - name: LOKI_SERVICE_PATH
+              value: "/loki/api/v1/query_range"
+            - name: LOKI_SERVICE_PORT
+              value: "3100"
+            - name: SMTP_FROM_ADDRESS
+              value: "{{ .Values.backend.config.smtpServer.from }} "
+            - name: SMTP_FROM_DISPLAY_NAME
+              value: "{{ .Values.backend.config.smtpServer.fromDisplayName }}"
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.SMTP_CONFIG_SECRET }}"
+                  key: "password"
+            - name: "KEYCLOAK_URL"
+              value: "https://{{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}/"
+            - name: "KEYCLOAK_READINESS_ENDPOINT"
+              value: "http://registration-service-keycloak:{{ .Values.keycloak.managementPort }}/health/ready"
+            - name: "KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET }}"
+                  key: "secret"
+            - name: "KEYCLOAK_CLIENT_REGISTRATION_SERVICE_LIFETIME_CHECK"
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.backendTempSecretOverride.KEYCLOAK_CLIENT_REGISTRATION_SERVICE_LIFETIME_CHECK }}"
+                  key: "secret"
+            - name: METRICS_ENABLED
+              value: "{{ .Values.backend.config.metricsEnabled }}"
+            - name: BACKEND_PERIOD_OF_VALIDITY_CHECK
+              value: "{{ .Values.backend.config.backendPeriodOfValidityCheck }}"
+          ports:
+            - name: backend-http
+              containerPort: 8080
+              protocol: TCP
+            - name: health
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: health
+            failureThreshold: 5
+            initialDelaySeconds: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: health
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          volumeMounts:
+            - mountPath: "/app/config/"
+              name: komp-truststore
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+      volumes:
+        - name: komp-truststore
+          secret:
+            secretName: komp-truststore
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

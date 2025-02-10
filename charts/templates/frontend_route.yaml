@@ -1,0 +1,24 @@
+{{- if .Values.frontend.openshift.route.enabled }}
+{{ $fullName := include "registration-service.fullname" . }}
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: "{{ $fullName }}-frontend-route"
+  {{- with .Values.frontend.openshift.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.frontend.hostName }}.{{ .Values.fqdn }}
+  path: /
+  to:
+    kind: Service
+    name: {{ $fullName }}-frontend
+    weight: 100
+  port:
+    targetPort: {{ .Values.frontend.service.port }}
+  tls:
+    termination: edge
+  wildcardPolicy: {{ .Values.frontend.openshift.route.wildcardPolicy }}
+{{- end }}

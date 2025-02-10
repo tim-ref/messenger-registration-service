@@ -1,0 +1,66 @@
+{{- if .Values.backend.openshift.route.enabled }}
+{{ $fullName := include "registration-service.fullname" . }}
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: "{{ $fullName }}-backend-route"
+  {{- with .Values.backend.openshift.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.frontend.hostName }}.{{ .Values.fqdn }}
+  path: "/backend"
+  to:
+    kind: Service
+    name: {{ $fullName }}-backend
+    weight: 100
+  port:
+    targetPort: {{ .Values.backend.service.port }}
+  tls:
+    termination: edge
+  wildcardPolicy: {{ .Values.backend.openshift.route.wildcardPolicy }}
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: "{{ $fullName }}-federation-route"
+  {{- with .Values.backend.openshift.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.frontend.hostName }}.{{ .Values.fqdn }}
+  path: "/backend/federation"
+  to:
+    kind: Service
+    name: does-not-exist
+    weight: 100
+  port:
+    targetPort: 80
+  tls:
+    termination: edge
+  wildcardPolicy: {{ .Values.backend.openshift.route.wildcardPolicy }}
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: "{{ $fullName }}-vzdinvite-route"
+  {{- with .Values.backend.openshift.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.frontend.hostName }}.{{ .Values.fqdn }}
+  path: "/backend/vzd/invite"
+  to:
+    kind: Service
+    name: does-not-exist
+    weight: 100
+  port:
+    targetPort: 80
+  tls:
+    termination: edge
+  wildcardPolicy: {{ .Values.backend.openshift.route.wildcardPolicy }}
+{{- end }}

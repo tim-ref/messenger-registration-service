@@ -1,0 +1,24 @@
+{{- if .Values.keycloak.openshift.route.enabled }}
+{{ $fullName := include "registration-service.fullname" . }}
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: "{{ $fullName }}-kc-route"
+  {{- with .Values.keycloak.openshift.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  host: {{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}
+  path: /
+  to:
+    kind: Service
+    name: {{ $fullName }}-keycloak
+    weight: 100
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+  wildcardPolicy: {{ .Values.keycloak.openshift.route.wildcardPolicy }}
+{{- end }}

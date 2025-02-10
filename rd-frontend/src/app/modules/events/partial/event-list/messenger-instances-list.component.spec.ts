@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023-2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import {
 import {LogLevelDialogComponent} from "./partial/log-level-dialog/log-level-dialog.component";
 import {AppConfigurationService} from "../../../../services/appConfiguration.service";
 import {MessengerInstanceDto} from "../../../../../../build/openapi/messengerinstance";
+import {timVariantOptions} from "./partial/tim-version-selection-dialog/tim-variant-options";
 
 let instances: MessengerInstanceDto[] = [
   {
@@ -543,10 +544,10 @@ describe('MessengerInstancesListComponent', () => {
 
   it('should create a new messenger instance', () => {
     spyOn(appService, 'showToast');
-    component.createMessengerInstance();
+    component.createMessengerInstance(timVariantOptions.classic);
 
     const adminRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + "?timVariant=ref_1"
     );
     expect(adminRequest.request.method).toBe('POST');
     adminRequest.flush(
@@ -560,10 +561,10 @@ describe('MessengerInstancesListComponent', () => {
 
   it('should return BAD_REQUEST on creating a new instance', () => {
     spyOn(appService, 'showToast');
-    component.createMessengerInstance();
+    component.createMessengerInstance(timVariantOptions.classic);
 
     const createRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + "?timVariant=ref_1"
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -579,12 +580,19 @@ describe('MessengerInstancesListComponent', () => {
     });
   });
 
+  it('should throw exception when receiving invalid tim variant', () => {
+    spyOn(appService, 'showToast');
+    expect(() => {
+      component.createMessengerInstance('tim_invalid_pro');
+    }).toThrowError('Ungültige Tim Variante ausgewählt');
+  });
+
   it('should return NOT_FOUND on creating a new instance', () => {
     spyOn(appService, 'showToast');
-    component.createMessengerInstance();
+    component.createMessengerInstance(timVariantOptions.pro);
 
     const createRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + "?timVariant=ref_2"
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -601,10 +609,10 @@ describe('MessengerInstancesListComponent', () => {
 
   it('should return CONFLICT on creating a new instance', () => {
     spyOn(appService, 'showToast');
-    component.createMessengerInstance();
+    component.createMessengerInstance(timVariantOptions.classic);
 
     const createRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + "?timVariant=ref_1"
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -621,10 +629,10 @@ describe('MessengerInstancesListComponent', () => {
 
   it('should return PRECONDITION_FAILED on creating a new instance', () => {
     spyOn(appService, 'showToast');
-    component.createMessengerInstance();
+    component.createMessengerInstance(timVariantOptions.classic);
 
     const createRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + "?timVariant=ref_1"
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -642,10 +650,10 @@ describe('MessengerInstancesListComponent', () => {
 
   it('should return FORBIDDEN on creating a new instance', () => {
     spyOn(appService, 'showToast');
-    component.createMessengerInstance();
+    component.createMessengerInstance(timVariantOptions.classic);
 
     const createRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + "?timVariant=ref_1"
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -662,10 +670,10 @@ describe('MessengerInstancesListComponent', () => {
 
   it('should return INTERNAL_SERVER_ERROR on creating a new instance', () => {
     spyOn(appService, 'showToast');
-    component.createMessengerInstance();
+    component.createMessengerInstance(timVariantOptions.classic);
 
     const createRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + "?timVariant=ref_1"
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush(component.internalServerErrorDescription, {
@@ -683,10 +691,10 @@ describe('MessengerInstancesListComponent', () => {
 
   it('should return INTERNAL_SERVER_ERROR on creating a new instance', () => {
     spyOn(appService, 'showToast');
-    component.createMessengerInstance();
+    component.createMessengerInstance(timVariantOptions.classic);
 
     const createRequest = httpMock.expectOne(
-      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate
+      appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceCreate + "?timVariant=ref_1"
     );
     expect(createRequest.request.method).toBe('POST');
     createRequest.flush([{}], {
@@ -782,7 +790,6 @@ describe('MessengerInstancesListComponent', () => {
     spyOn(appService, 'showToast');
     const postRequest = httpMock.expectOne(
       appConfigService.appConfig.apiUrl + ApiRoutes.messengerInstanceLogging + '/' + akquinetTestServer + '/level'
-
     );
     expect(postRequest.request.method).toBe('POST');
     postRequest.flush(

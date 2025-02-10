@@ -1,0 +1,162 @@
+{
+  "realm": "master",
+  "bruteForceProtected": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "de",
+    "en"
+  ],
+  "defaultLocale": "de",
+  "identityProviders": [
+    {
+      "alias": "AzureAD",
+      "displayName": "AzureAD",
+      "providerId": "oidc",
+      "enabled": true,
+      "updateProfileFirstLoginMode": "on",
+      "trustEmail": false,
+      "storeToken": false,
+      "addReadTokenRoleOnCreate": false,
+      "authenticateByDefault": false,
+      "linkOnly": false,
+      "firstBrokerLoginFlowAlias": "first broker login",
+      "config": {
+        "userInfoUrl": "https://graph.microsoft.com/oidc/userinfo",
+        "validateSignature": "true",
+        "hideOnLoginPage": "false",
+        "tokenUrl": "https://login.microsoftonline.com/f91b031f-ccfc-41c1-ae4f-d9c5cdd70c85/oauth2/v2.0/token",
+        "acceptsPromptNoneForwardFromClient": "false",
+        "clientId": "$(env:KEYCLOAK_IDENTITY_PROVIDOR_CLIENT_ID)",
+        "uiLocales": "false",
+        "jwksUrl": "https://login.microsoftonline.com/f91b031f-ccfc-41c1-ae4f-d9c5cdd70c85/discovery/v2.0/keys",
+        "backchannelSupported": "false",
+        "issuer": "https://login.microsoftonline.com/f91b031f-ccfc-41c1-ae4f-d9c5cdd70c85/v2.0",
+        "useJwksUrl": "true",
+        "loginHint": "false",
+        "pkceEnabled": "false",
+        "clientAuthMethod": "client_secret_post",
+        "disableUserInfo": "false",
+        "authorizationUrl": "https://login.microsoftonline.com/f91b031f-ccfc-41c1-ae4f-d9c5cdd70c85/oauth2/v2.0/authorize",
+        "logoutUrl": "https://login.microsoftonline.com/f91b031f-ccfc-41c1-ae4f-d9c5cdd70c85/oauth2/v2.0/logout",
+        "syncMode": "FORCE",
+        "clientSecret": "$(env:KEYCLOAK_IDENTITY_PROVIDOR_CLIENT_SECRET)",
+        "passMaxAge": "false",
+        "allowedClockSkew": "0"
+      }
+    }
+  ],
+  "identityProviderMappers": [
+    {
+      "name": "TIMRefAdmins",
+      "identityProviderAlias": "AzureAD",
+      "identityProviderMapper": "oidc-role-idp-mapper",
+      "config": {
+        "are.claim.values.regex": "false",
+        "role": "admin",
+        "claim.value": "dbb97443-1096-44f7-a4f6-233e2b0f9c11",
+        "claims": "[{\"key\":\"\",\"value\":\"\"}]",
+        "syncMode": "INHERIT",
+        "claim": "groups",
+        "attributes": "[]"
+      }
+    },
+    {
+      "name": "TIMRefDev",
+      "identityProviderAlias": "AzureAD",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "claims": "[{\"key\":\"groups\",\"value\":\"404884e0-9190-4603-aea2-336ca74391fe\"}]",
+        "group": "/timref-admin"
+      }
+    },
+    {
+      "name": "TIMRefSpoc",
+      "identityProviderAlias": "AzureAD",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "claims": "[{\"key\":\"groups\",\"value\":\"33ba7454-8203-4d6c-83cf-a68478101a10\"}]",
+        "group": "/timref-admin"
+      }
+    },
+    {
+      "name": "TIMRefUHD",
+      "identityProviderAlias": "AzureAD",
+      "identityProviderMapper": "oidc-advanced-group-idp-mapper",
+      "config": {
+        "syncMode": "INHERIT",
+        "claims": "[{\"key\":\"groups\",\"value\":\"4ec55265-09ac-4439-9efd-ba4098690992\"}]",
+        "group": "/timref-admin"
+      }
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "registration-service",
+      "name": "Registrierungsdienst",
+      "description": "",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "$(env:KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET)",
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "publicClient": false
+    }
+  ],
+  "users": [
+    {
+      "username": "service-account-registration-service",
+      "enabled": true,
+      "serviceAccountClientId": "registration-service",
+      "disableableCredentialTypes": [],
+      "requiredActions": [],
+      "realmRoles": [
+        "create-realm",
+        "default-roles-master"
+      ],
+      "clientRoles": {
+        "registration-service": [
+          "uma_protection"
+        ]
+      }
+    }
+  ],
+  "groups": [
+    {
+      "name": "timref-admin",
+      "path": "/timref-admin",
+      "clientRoles": {
+        "timref-realm": [
+          "view-users",
+          "view-clients",
+          "manage-authorization",
+          "manage-realm",
+          "view-events",
+          "manage-identity-providers",
+          "view-authorization",
+          "impersonation",
+          "manage-clients",
+          "query-users",
+          "query-clients",
+          "manage-events",
+          "manage-users",
+          "create-client",
+          "view-realm",
+          "query-groups",
+          "view-identity-providers",
+          "query-realms"
+        ],
+        "master-realm": [
+          "view-realm"
+        ]
+      }
+    }
+  ],
+  "loginTheme": "Akquinet"
+}

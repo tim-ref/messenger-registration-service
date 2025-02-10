@@ -1,0 +1,102 @@
+{{- if .Values.cloudnativePGkeycloak.enabled }}
+{{- $fullName := include "registration-service.keycloak.postgresql.fullname" . }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: "{{ $fullName }}"
+  labels:
+    {{- include "registration-service.keycloak.postgresql.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+    {{- if .Values.cloudnativePGkeycloak.backup.enabled }}
+    velero.io/exclude-from-backup: "true"
+    {{- end }}
+spec:
+  logLevel: {{ .Values.cloudnativePGkeycloak.logLevel }}
+  nodeMaintenanceWindow:
+    inProgress: false
+    reusePVC: true
+  imageName: registry-ghcr.au.timref.akquinet.nx2.dev/cloudnative-pg/postgresql:16.4
+  monitoring:
+    customQueriesConfigMap:
+      - key: queries
+        name: cnpg-default-monitoring
+    disableDefaultQueries: false
+    enablePodMonitor: true
+  bootstrap:
+    initdb:
+      database: keycloak
+      encoding: UTF8
+      localeCType: C
+      localeCollate: C
+      owner: keycloak
+  postgresql:
+    parameters:
+      log_truncate_on_rotation: 'false'
+      archive_mode: 'on'
+      log_filename: postgres
+      archive_timeout: 5min
+      max_replication_slots: '32'
+      log_rotation_size: '0'
+      shared_preload_libraries: ''
+      logging_collector: 'on'
+      wal_receiver_timeout: 5s
+      ssl_min_protocol_version: TLSv1
+      log_directory: /controller/log
+      log_destination: csvlog
+      wal_sender_timeout: 5s
+      max_worker_processes: '32'
+      max_parallel_workers: '32'
+      log_rotation_age: '0'
+      shared_memory_type: mmap
+      dynamic_shared_memory_type: posix
+      wal_keep_size: 512MB
+      ssl_max_protocol_version: TLSv1.3
+  {{- if .Values.cloudnativePGkeycloak.backup.enabled }}
+  backup:
+    target: "prefer-standby"
+    barmanObjectStore:
+      destinationPath: "{{ .Values.cloudnativePGkeycloak.backup.destinationPath }}"
+      endpointURL: "https://s3-de.hse365.de"
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-aws-creds
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-aws-creds
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: gzip
+        encryption: AES256
+    retentionPolicy: "30d"
+  {{- end }}
+  {{- if  .Values.cloudnativePGkeycloak.walStorage.enabled }}
+  walStorage:
+    storageClass: {{ .Values.cloudnativePGkeycloak.walStorage.storageClass }}
+    resizeInUseVolumes: {{ .Values.cloudnativePGkeycloak.walStorage.resizeInUseVolumes }}
+    size: {{ .Values.cloudnativePGkeycloak.walStorage.size }}
+  {{- end }}
+  storage:
+    storageClass: {{ .Values.cloudnativePGkeycloak.storage.storageClass }}
+    resizeInUseVolumes: {{ .Values.cloudnativePGkeycloak.storage.resizeInUseVolumes }}
+    size: {{ .Values.cloudnativePGkeycloak.storage.size }}
+  instances: {{ .Values.cloudnativePGkeycloak.instances }}
+  {{- if eq .Values.cloudnativePGkeycloak.instances "1" }}
+  enablePDB: false
+  {{- end }}
+{{- if .Values.cloudnativePGkeycloak.backup.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: "backup-{{ $fullName }}"
+  labels:
+    {{- include "registration-service.keycloak.database.labels" . | nindent 4 }}
+spec:
+  schedule: "0 0 0 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: {{ $fullName }}
+{{- end }}
+{{- end }}

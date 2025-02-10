@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023-2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import de.akquinet.tim.registrationservice.openapi.api.mi.server.MessengerInstan
 import de.akquinet.tim.registrationservice.openapi.model.mi.*
 import de.akquinet.tim.registrationservice.api.messengerservice.model.getOverrideConfigurationProxyFromResponseModel
 import de.akquinet.tim.registrationservice.api.messengerservice.model.getOverrideConfigurationResponseFromModel
+import de.akquinet.tim.registrationservice.openapi.model.operator.TimVariant
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -73,8 +74,14 @@ class MessengerInstanceApiDelegateImpl @Autowired constructor(
     }
 
 
-    override fun requestMessengerInstance(): ResponseEntity<Unit> {
-        val response = messengerInstanceService.requestNewInstance()
+    override fun requestMessengerInstance(timVariant: String): ResponseEntity<Unit> {
+        val variant = when (timVariant) {
+            "ref_1" -> TimVariant.ref_1
+            "ref_2" -> TimVariant.ref_2
+            else -> TimVariant.ref_2
+        }
+
+        val response = messengerInstanceService.requestNewInstance(variant)
 
         return ResponseEntity
             .status(response.statusCode)

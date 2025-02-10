@@ -287,6 +287,22 @@ components:
         professionOid:
           type: string
           description: "The ProfessionOid to which the instance should be assigned."
+        timVariant:
+          default: "classic"
+          nullable: true
+          allOf:
+            - $ref: "#/components/schemas/TimVariant"
+    TimVariant:
+      type: string
+      enum:
+        - classic
+        - epa_1_0_0
+        - epa_1_1_0
+        - pro_1_0_0
+        - ref_1
+        - ref_2
+      default: classic
+      nullable: true
     SynapseOverrideConfiguration:
       type: object
       required:

@@ -33,6 +33,8 @@ paths:
       operationId: requestMessengerInstance
       tags:
         - MessengerInstance
+      parameters:
+        - $ref: "#/components/parameters/TimVariantParam"
       responses:
         '201':
           description: "Die Messenger-Instanz wurde erfolgreich angefragt"
@@ -167,7 +169,6 @@ paths:
         '500':
           description: "Die Berechtigungskonzept Konfiguration konnte wegen eines Fehlers im Operator nicht gefunden werden."
 
-
 components:
   parameters:
     instanceNameParam:
@@ -177,6 +178,12 @@ components:
       required: true
       schema:
         type: string
+    TimVariantParam:
+      name: timVariant
+      in: query
+      required: false
+      schema:
+        $ref: "./openapi-operator.yaml#/components/schemas/TimVariant"
   schemas:
     MessengerInstanceDto:
       type: object

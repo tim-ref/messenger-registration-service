@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023-2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,9 @@ import {LogLevelDialogComponent} from "./partial/event-list/partial/log-level-di
 import {
   AuthorizationConceptDialogComponent
 } from "./partial/event-list/partial/authorization-concept-dialog/authorization-concept-dialog.component";
+import {
+  TimVersionSelectionDialogComponent
+} from "./partial/event-list/partial/tim-version-selection-dialog/tim-version-selection-dialog.component";
 @NgModule({
   declarations: [
     MessengerInstanceComponent,
@@ -42,7 +45,9 @@ import {
     LogLevelDialogComponent,
     AdminCreatedDialogComponent,
     LogDownloadDialogComponent,
-    AuthorizationConceptDialogComponent
+    AuthorizationConceptDialogComponent,
+    TimVersionSelectionDialogComponent
+
   ],
   imports: [
     ButtonModule,

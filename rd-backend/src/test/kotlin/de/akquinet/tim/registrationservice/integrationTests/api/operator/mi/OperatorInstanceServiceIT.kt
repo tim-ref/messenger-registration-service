@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 - 2024 akquinet GmbH
+ * Copyright (C) 2023 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import de.akquinet.tim.registrationservice.api.messengerservice.OperatorInstance
 import de.akquinet.tim.registrationservice.integrationTests.configuration.WiremockConfiguration
 import de.akquinet.tim.registrationservice.openapi.model.mi.CreateAdminUserRequest
 import de.akquinet.tim.registrationservice.openapi.model.mi.CreateMessengerInstanceRequest
+import de.akquinet.tim.registrationservice.openapi.model.operator.TimVariant
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
 import de.akquinet.tim.registrationservice.persistance.orgAdmin.OrgAdminRepository
 import io.kotest.core.spec.style.DescribeSpec
@@ -278,7 +279,7 @@ class OperatorInstanceServiceIT(
                 setupAuthenticationInfosJwt(12, 10)
 
                 messengerInstanceService.run {
-                    messengerInstanceService.requestNewInstance().statusCode shouldBe HttpStatus.PAYMENT_REQUIRED
+                    messengerInstanceService.requestNewInstance(TimVariant.ref_1).statusCode shouldBe HttpStatus.PAYMENT_REQUIRED
                 }
             }
 
@@ -337,7 +338,7 @@ class OperatorInstanceServiceIT(
                 }
 
                 messengerInstanceService.run {
-                    messengerInstanceService.requestNewInstance().statusCode shouldBe HttpStatus.PAYMENT_REQUIRED
+                    messengerInstanceService.requestNewInstance(TimVariant.ref_1).statusCode shouldBe HttpStatus.PAYMENT_REQUIRED
                     getAllInstancesForCurrentUser(createRequestParams3.userId).also {
                         it shouldHaveSize 3
 

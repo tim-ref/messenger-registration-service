@@ -1,0 +1,12 @@
+{{- $fullName := include "registration-service.fullname" . }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}-kc-import
+  labels:
+    {{- include "registration-service.labels" . | nindent 4 }}
+    app.kubernetes.io/app: {{ $fullName }}-keycloak
+data:
+{{ (tpl (.Files.Glob "conf/import/01_realm-registrationservice.json").AsConfig . ) | indent 2 }}
+{{ (tpl (.Files.Glob "conf/import/02_realm-master.json").AsConfig . ) | indent 2 }}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023-2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import de.akquinet.tim.registrationservice.openapi.api.operator.client.SynapseOp
 import de.akquinet.tim.registrationservice.openapi.model.mi.MessengerInstanceDto
 import de.akquinet.tim.registrationservice.openapi.model.operator.CreateRequest
 import de.akquinet.tim.registrationservice.openapi.model.operator.SynapseOverrideConfigurationProxy
+import de.akquinet.tim.registrationservice.openapi.model.operator.TimVariant
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
 import de.akquinet.tim.registrationservice.util.UserService
 import org.openapitools.client.infrastructure.ClientError
@@ -148,7 +149,7 @@ class MessengerInstanceService @Autowired constructor(
         )
     }
 
-    fun requestNewInstance(): ResponseEntity<Unit> {
+    fun requestNewInstance(timVariant: TimVariant): ResponseEntity<Unit> {
         val allowedCheckResponse = checkNewInstanceAllowed(getCreateParams())
         return if (allowedCheckResponse.first.is2xxSuccessful) {
             val response = if (regServiceConfig.callExternalServices) {
@@ -156,7 +157,8 @@ class MessengerInstanceService @Autowired constructor(
                     CreateRequest(
                         instanceOwner = userService.getUserIdFromContext(),
                         telematikId = userService.loadUserAttributeByClaim("telematik_id"),
-                        professionOid = userService.loadUserAttributeByClaim("profession_oid")
+                        professionOid = userService.loadUserAttributeByClaim("profession_oid"),
+                        timVariant = timVariant
                     )
                 )
             } else {

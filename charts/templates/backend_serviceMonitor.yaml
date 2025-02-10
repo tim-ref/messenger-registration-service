@@ -1,0 +1,18 @@
+{{- if .Values.backend.config.metricsEnabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "registration-service.fullname" . }}-backend
+spec:
+  namespaceSelector:
+    matchNames:
+    - {{ .Release.Namespace }}
+  endpoints:
+    - targetPort: {{ .Values.backend.healthService.port }}
+      path: /actuator/prometheus
+      interval: 30s
+  selector:
+    matchLabels:
+      {{- include "registration-service.labels" . | nindent 6 }}
+      app.kubernetes.io/app: registration-service-backend
+{{- end }}

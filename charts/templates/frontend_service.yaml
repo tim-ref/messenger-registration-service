@@ -1,0 +1,19 @@
+{{- $fullName := include "registration-service.fullname" . }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}-frontend
+  labels:
+    {{- include "registration-service.labels" . | nindent 4 }}
+    app.kubernetes.io/app: {{ $fullName }}-frontend
+spec:
+  type: {{ .Values.frontend.service.type }}
+  ports:
+    - port: {{ .Values.frontend.service.port }}
+      targetPort: frontend-http
+      protocol: TCP
+      name: frontend-http
+  selector:
+    {{- include "registration-service.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/app: registration-service-frontend

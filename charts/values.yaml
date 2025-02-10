@@ -1,0 +1,256 @@
+# Default values for registration-service.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+fqdn: eu.timref.akquinet.nx2.dev
+
+rollMe:
+  enabled: false
+
+frontend:
+  orgAdminHostName: org-admin-client
+  hostName: registrierungs-dienst
+  fachdienstMetaHostName: fachdienst-meta
+  image:
+    registry: registry-spree.au.timref.akquinet.nx2.dev
+    repository: akquinet/health/timref/registration-service/rd-frontend
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 80
+  openshift:
+    route:
+      enabled: false
+      annotations: { }
+      #openshift.io/host.generated: 'true'
+      wildcardPolicy: "None"
+  replicaCount: 1
+  podAnnotations: {}
+  podSecurityContext: {}
+  # fsGroup: 2000
+
+# ToDo: Fix after migrating to argo.
+backendTempSecretOverride:
+  REGISTRATION_SERVICE_VZD_CLIENT_SECRET: registration-service-vzd-client-secret
+  REGISTRATION_SERVICE_OPENID_TOKEN_SECRET: registration-service-openid
+  OPERATOR_REGISTRATION_SERVICE_USERNAME: operator-auth-user
+  SMTP_CONFIG_SECRET: registration-service-smtp-password
+  KEYCLOAK_CLIENT_REGISTRATION_SERVICE_SECRET: keycloak-client-registration-service
+  KEYCLOAK_CLIENT_REGISTRATION_SERVICE_LIFETIME_CHECK: keycloak-client-registration-service-lifetime-check
+  KEYCLOAK_TEST_USER: registration-service-user-password
+
+backend:
+  config:
+    registrationServiceVZDUrl: "vzd-mock.vzd-mock:8080"
+    registrationServiceVZDTokenUrl: "vzd-mock.vzd-mock:8080"
+    registrationServiceVZDCheckRevocationStatus: false
+    registrationServiceVZDClientId: "akquinet_timref"
+    operatorHostURLNamespace: synapse-operator-api
+    operatorHostURLService: synapse-operator-api
+    operatorHostURLProtocol: "http"
+    operatorHostPort: "8000"
+    operatorPartialFQDN: "eu.timref.akquinet.nx2.dev"
+    operatorRegistrationServiceUsername: "admin"
+    orgAdminOrigins: https://org-admin-client.eu.timref.akquinet.nx2.dev,http://localhost:3000
+    matrixClientScheme: "https"
+    matrixClientPort: "443"
+    matrixServerScheme: "https"
+    matrixServerPort: "443"
+    smtpServer:
+      from: ""
+      fromDisplayName: ""
+    metricsEnabled: true
+    backendPeriodOfValidityCheck: "0 0 21 * * *"
+  image:
+    registry: registry-spree.au.timref.akquinet.nx2.dev
+    repository: akquinet/health/timref/registration-service/rd-backend
+    pullPolicy: Always
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  service:
+    type: ClusterIP
+    port: 8080
+  openshift:
+    route:
+      enabled: false
+      annotations: { }
+      #openshift.io/host.generated: 'true'
+      wildcardPolicy: "None"
+  healthService:
+    type: ClusterIP
+    port: 8081
+  replicaCount: 1
+  podAnnotations: {}
+  podSecurityContext: {}
+  # fsGroup: 2000
+
+keycloak:
+  hostName: auth
+  image:
+    registry: registry-spree.au.timref.akquinet.nx2.dev
+    repository: akquinet/health/timref/registration-service/keycloak
+    tag: ""
+    pullPolicy: Always
+  config:
+    adminExistingSecret: keycloak-admin-user
+  managementPort: 9000
+  resources:
+    limits:
+      memory: 1024M
+      cpu: 1000m
+    requests:
+      memory: 1024M
+      cpu: 1000m
+  whitelist:
+    10.151.28.0/25,
+    10.151.28.128/25,
+    213.238.49.206/32,
+    185.6.254.149/32,
+  replicaCount: 1
+  podAnnotations: {}
+  podSecurityContext: {}
+  openshift:
+    route:
+      enabled: false
+      annotations: { }
+      #openshift.io/host.generated: 'true'
+      wildcardPolicy: "None"
+  # fsGroup: 2000
+
+keycloakConfigCli:
+  image:
+    registry: registry-dockerhub.au.timref.akquinet.nx2.dev
+    repository: adorsys/keycloak-config-cli
+    tag: 6.1.6-25
+    pullPolicy: IfNotPresent
+  backoffLimit: 1
+  resources: {}
+  podLabels: {}
+  annotations:
+    "helm.sh/hook": "post-install,post-upgrade,post-rollback"
+    "helm.sh/hook-delete-policy": "hook-succeeded,before-hook-creation"
+    "helm.sh/hook-weight": "5"
+  podAnnotations: {}
+  securityContext: {}
+  config:
+    actionTokenGeneratedByAdminLifespan: ""
+    smtpServer:
+      from: ""
+      fromDisplayName: ""
+      replyto: ""
+      replytoDisplayName: ""
+
+
+###############################
+## Zalando Postgres-Operator ##
+###############################
+postgresOperator:
+  enabled: true
+  controllerIPs:
+    - "10.151.88.10/32"
+    - "10.151.88.11/32"
+    - "10.151.88.12/32"
+
+#################################
+## CloudNativePG Configuration ##
+#################################
+cloudnativePG:
+  enabled: false
+  logLevel: info
+  backup:
+    enabled: false
+    destinationPath: "s3://timp-eu-rd-db/"
+  walStorage:
+    enabled: false
+    storageClass: ""
+    resizeInUseVolumes: true
+    size: 5Gi
+  storage:
+    storageClass: ""
+    resizeInUseVolumes: true
+    size: 10Gi
+  instances: "3"
+
+cloudnativePGkeycloak:
+  enabled: false
+  logLevel: info
+  backup:
+    enabled: false
+    destinationPath: "s3://timp-eu-regservice-db/"
+  walStorage:
+    enabled: false
+    storageClass: ""
+    resizeInUseVolumes: true
+    size: 5Gi
+  storage:
+    storageClass: ""
+    resizeInUseVolumes: true
+    size: 10Gi
+  instances: "3"
+
+rawdata:
+  config:
+    protocol: "http"
+    namespace: "rawdata-master"
+    service: "rawdata-master"
+    path: "/add-performance-data"
+    port: "9020"
+    instanceID: "TIM-registration-service"
+
+ingress:
+  enabled: true
+  className: "nginx-external"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    kubernetes.io/tls-acme: "true"
+#    nginx.ingress.kubernetes.io/configuration-snippet: |
+#      add_header Content-Security-Policy "default-src 'none'; font-src 'self'; script-src 'self'; img-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' *.timref.akquinet.nx2.dev:*;" always;
+#      add_header X-Frame-Options "SAMEORIGIN" always;
+#      add_header X-XSS-Protection "1; mode=block" always;
+#      add_header X-Content-Type-Options "nosniff" always;
+#      add_header Referrer-Policy same-origin always;
+
+
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

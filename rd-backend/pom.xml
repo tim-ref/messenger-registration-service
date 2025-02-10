@@ -22,12 +22,12 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.4.0</version>
+        <version>0.5.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-backend</artifactId>
-    <version>0.4.0</version>
+    <version>0.5.0</version>
     <name>Registrierungsdienst - Backend</name>
     <description>Backend für den Registrierungsdienst der TIM-Referenzimplementierung</description>
 

@@ -1,0 +1,13 @@
+backend:
+  config:
+    registrationServiceVZDUrl: "akquinet.de"
+    registrationServiceVZDTokenUrl: "akquinet.de"
+
+cloudnativePG:
+  enabled: true
+
+cloudnativePGkeycloak:
+  enabled: true
+
+postgresOperator:
+  enabled: false

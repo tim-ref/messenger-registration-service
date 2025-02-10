@@ -121,6 +121,13 @@
         "PUBLIC_BASE_URL": "Basis-URL",
         "SERVER_NAME": "Servername",
         "USER_MANAGEMENT": "Nutzerverwaltung"
+      },
+      "TIM_VARIANT_DIALOG": {
+        "TITLE": "Auswahl der TIM Variante",
+        "DESCRIPTION": "Wählen Sie die gewünschte TIM Variante für die Instanz aus, die der zu Grunde liegenden Spezifikation entspricht.",
+        "REQUEST_INSTANCE_BUTTON": "Instanz anfragen",
+        "VARIANT": "TIM Variante:",
+        "UNKNOWN_LOAD": "Es gab einen Fehler beim Laden der verfügbaren TIM Varianten."
       }
     }
   }

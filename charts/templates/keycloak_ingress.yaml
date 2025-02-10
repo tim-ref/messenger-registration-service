@@ -1,0 +1,39 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "registration-service.fullname" . }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-keycloak
+  labels:
+    {{- include "registration-service.labels" . | nindent 4 }}
+    app.kubernetes.io/app: {{ $fullName }}-keycloak
+  annotations:
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 1M
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 512k
+    nginx.ingress.kubernetes.io/proxy-max-temp-file-size: 1024m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      client_header_buffer_size 100k;
+      large_client_header_buffers 4 100k;
+  {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+  - hosts:
+    - {{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}
+    secretName: tls-keycloak-general
+  rules:
+  - host: {{ .Values.keycloak.hostName }}.{{ .Values.fqdn }}
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ $fullName }}-keycloak
+              port:
+                number: 8080
+{{- end }}
