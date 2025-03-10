@@ -20,11 +20,11 @@ This project contains the `TIM reference implementation` of a `Fachdienst`. It i
 In the local environment one can create `messenger service` instances in the registration service frontend. 
 Please note that these are not connected to the `messenger service` instances started with`docker compose` in the `Messenger Proxy` project._ 
 
-2. If you choose to use `maven-wrapper` please make sure that it uses JDK 17 and not above. You can verify this with following command:
+2. If you choose to use `maven-wrapper` please make sure that it uses JDK 21 and not above. You can verify this with following command:
 ```bash
 $  ./mvnw --version
 Maven home: [...]
-Java version: 17, [...] 
+Java version: 21, [...] 
 Default locale: de_DE, platform encoding: UTF-8
 OS name: [...]
 ```

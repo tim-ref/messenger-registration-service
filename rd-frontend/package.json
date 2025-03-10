@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "scripts": {
     "ng": "ng",
     "start": "npm run gen && ng serve",
@@ -15,7 +15,8 @@
     "generate:messenger-instance-api-client": "openapi-generator-cli generate --generator-key messenger-instance-api",
     "generate:api-clients": "openapi-generator-cli generate",
     "generate:operator-instance-api-client": "openapi-generator-cli generate --generator-key operator-instance-api",
-    "generate:logging-api-client": "openapi-generator-cli generate --generator-key logging-api"
+    "generate:logging-api-client": "openapi-generator-cli generate --generator-key logging-api",
+    "generate:well-known-support-api-client": "openapi-generator-cli generate --generator-key well-known-support-api"
   },
   "private": true,
   "dependencies": {

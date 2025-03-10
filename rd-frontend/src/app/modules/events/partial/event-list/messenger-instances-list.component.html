@@ -50,6 +50,7 @@
         <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.LOGS.HOMESERVER" | translate }}</th>
         <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.ADMIN" | translate }}</th>
         <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.USER_MANAGEMENT" | translate }}</th>
+        <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.WELL_KNOWN_SUPPORT" | translate }}</th>
         <th class="text-right">{{ "ADMIN.INSTANCE_LIST.TABLE_HEADS.DELETE" | translate }}</th>
       </tr>
       </thead>
@@ -132,6 +133,16 @@
               color="white"
               iconColor="primary"
               (click)="openKeycloakRealmConsole(messengerInstance.instanceName)"
+            ></generic-button>
+          </td>
+          <td class="text-right">
+            <generic-button
+              id="well-known-support-button-{{messengerInstance.instanceName}}"
+              variant="icon"
+              icon="fa-headset"
+              color="white"
+              iconColor="primary"
+              (click)="openWellKnownSupportDialog(messengerInstance.instanceName)"
             ></generic-button>
           </td>
           <td class="text-right">

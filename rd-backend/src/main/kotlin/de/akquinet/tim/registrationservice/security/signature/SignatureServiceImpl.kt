@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,15 @@ import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.cert.*
 
-
 sealed interface JwsVerificationResult {
     data class Valid(val federationList: FederationList) : JwsVerificationResult
+
     object Invalid : JwsVerificationResult
 }
 
 sealed interface JwsSignatureVerificationResult {
     data class Valid(val jws: JsonWebSignature) : JwsSignatureVerificationResult
+
     data class Invalid(val message: String?) : JwsSignatureVerificationResult
 }
 
@@ -71,10 +72,8 @@ class SignatureServiceImpl(
         return trustStore
     }
 
-    fun buildPkixParameters(checkRevocationStatus: Boolean = false): PKIXParameters = PKIXParameters(getTrustAnchors()).also {
-        // TODO: gematik would like to provide an OCSP responder at a later date, in which case this parameter should be replaced
-        it.isRevocationEnabled = checkRevocationStatus
-    }
+    fun buildPkixParameters(): PKIXParameters =
+        PKIXParameters(getTrustAnchors())
 
     override fun createJwsString(payload: String, headers: List<Pair<String, Any>>, privateKey: PrivateKey): String {
         val jws = JsonWebSignature()
@@ -113,7 +112,6 @@ class SignatureServiceImpl(
             else {
                 JwsSignatureVerificationResult.Invalid("Verification returned invalid")
             }
-
         } catch (e: InvalidJwtException) {
             logger.error("Exception during parsing: ", e)
             JwsSignatureVerificationResult.Invalid("Error during signature verification: ${e.message}")
@@ -122,12 +120,29 @@ class SignatureServiceImpl(
 
     override fun verifyCertificatePath(
         certs: List<X509Certificate>,
-        checkRevocationStatus: Boolean
     ): CertPathValidationResult = try {
         // Verification fails if the rootCA cert is included in the verification path.
-        val pkixParameters = buildPkixParameters(checkRevocationStatus)
+        val pkixParameters = buildPkixParameters()
 
-        val certPathValidator = CertPathValidator.getInstance("PKIX")
+        /*
+        NOTE: have to use SUN provider, the BC provider's implementation of PKIXRevocationChecker doesn't accept the OCSP responder certificates
+        (invalid key usage; the gematik responder certs only have non-repudiation and not digital signature key usage flags).
+        possible workaround: setting the responder cert on revocationChecker.ocspResponderCert doesn't run into this issue with the BC provider, but it
+        would be less flexible and would require having the responder cert locally.
+        */
+        val certPathValidator = CertPathValidator.getInstance("PKIX", "SUN")
+        if (vzdConfig.checkRevocationStatus) {
+            val revocationChecker = certPathValidator.revocationChecker as PKIXRevocationChecker
+            // Don't fall back to CRL
+            revocationChecker.options = setOf(PKIXRevocationChecker.Option.NO_FALLBACK)
+            if (vzdConfig.ocspResponder != null) {
+                revocationChecker.ocspResponder = vzdConfig.ocspResponder
+            }
+            pkixParameters.certPathCheckers = listOf(revocationChecker)
+            pkixParameters.isRevocationEnabled = true
+        } else {
+            pkixParameters.isRevocationEnabled = false
+        }
         val certFactory = CertificateFactory.getInstance("X509")
         val certPath = certFactory.generateCertPath(certs)
 

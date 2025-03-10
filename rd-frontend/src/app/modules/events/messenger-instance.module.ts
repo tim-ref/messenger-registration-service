@@ -28,6 +28,7 @@ import { DeleteMessengerInstancesDialogComponent } from './partial/event-list/pa
 import { ButtonModule } from '../../components/button/button.module';
 import { InputModule } from '../../components/input/input.module';
 import { DialogModule } from '../../components/dialog/dialog.module';
+import { SelectModule } from "../../components/select/select.module";
 import {AdminCreatedDialogComponent} from "./partial/event-list/partial/admin-created-dialog/admin-created-dialog.component";
 import {LogDownloadDialogComponent} from "./partial/event-list/partial/log-download-dialog/log-download-dialog.component";
 import {LogLevelDialogComponent} from "./partial/event-list/partial/log-level-dialog/log-level-dialog.component";
@@ -37,6 +38,10 @@ import {
 import {
   TimVersionSelectionDialogComponent
 } from "./partial/event-list/partial/tim-version-selection-dialog/tim-version-selection-dialog.component";
+import {
+  WellKnownSupportDialogComponent
+} from "./partial/event-list/partial/well-known-support-dialog/well-known-support-dialog.component";
+
 @NgModule({
   declarations: [
     MessengerInstanceComponent,
@@ -46,13 +51,14 @@ import {
     AdminCreatedDialogComponent,
     LogDownloadDialogComponent,
     AuthorizationConceptDialogComponent,
-    TimVersionSelectionDialogComponent
-
+    TimVersionSelectionDialogComponent,
+    WellKnownSupportDialogComponent
   ],
   imports: [
     ButtonModule,
     CommonModule,
     InputModule,
+    SelectModule,
     DialogModule,
     RouterModule.forChild(MessengerInstanceRouting),
     TranslateModule,
@@ -61,6 +67,6 @@ import {
     LoadingIndicatorModule,
     ReactiveFormsModule,
   ],
-  exports: [MessengerInstanceComponent],
+  exports: [MessengerInstanceComponent, WellKnownSupportDialogComponent],
 })
 export class MessengerInstanceModule {}

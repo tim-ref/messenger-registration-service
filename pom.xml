@@ -21,7 +21,7 @@
 
     <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
     <artifactId>rd-parent</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
     <packaging>pom</packaging>
 
     <name>Registrierungsdienst - Parent</name>
@@ -35,7 +35,7 @@
     </modules>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -251,7 +251,7 @@
     <scm>
         <connection>${env.CI_SCM_CONNECTION}</connection>
         <developerConnection>${env.CI_SCM_DEVELOPER_CONNECTION}</developerConnection>
-        <tag>0.5.0</tag>
+        <tag>0.6.0</tag>
         <url>${env.CI_SCM_URL}</url>
     </scm>
 

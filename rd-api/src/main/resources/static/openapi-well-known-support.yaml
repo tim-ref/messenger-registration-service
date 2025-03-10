@@ -1,0 +1,119 @@
+openapi: 3.1.0
+
+info:
+  title: TI-Messenger/Fachdienst/Registrierungsdienst/WellKnownSupport
+  description: |-
+    Server admin contact and support page of the domain.
+  version: ${project.version}
+
+servers:
+  - url: "http://localhost:8080"
+    description: "Lokale Entwicklungsmaschine"
+
+paths:
+  /well-known-support/{serverName}:
+    get:
+      tags:
+        - WellKnownSupport
+      operationId: retrieveSupportInformation
+      summary: "Gets server admin contact and support page of the domain."
+      parameters:
+        - $ref: "#/components/parameters/serverNameParam"
+      responses:
+        '200':
+          description: "Die Suche war erfolgreich. Die angefragten Informationen sind im Response Body."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServerSupportInformation"
+        '404':
+          description: "Für den angefragten Server sind keine Informationen vorhanden."
+        '500':
+          description: "Bei dem Abrufen der Daten im Server ist ein Fehler aufgetreten. Details sind im Response-Body enthalten."
+    put:
+      tags:
+        - WellKnownSupport
+      summary: "Sets server admin contact and support page of the domain."
+      operationId: setSupportInformation
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: "#/components/parameters/serverNameParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServerSupportInformation'
+      responses:
+        '200':
+          description: "Die Support Informationen wurden erfolgreich gespeichert."
+        '400':
+          description: "Die Anfrage ist fehlerhaft, die Daten können nicht verarbeitet werden."
+        '401':
+          description: "Die Authentifizierungsinformationen fehlen oder sind ungültig."
+        '403':
+          description: "Es ist Ihnen nicht erlaubt, diese Informationen zu ändern."
+        '500':
+          description: "Bei der Verarbeitung im Server ist ein Fehler aufgetreten. Details sind im Response-Body enthalten."
+  
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    serverNameParam:
+      name: serverName
+      description: "Name of the server to request support information for."
+      in: path
+      schema:
+        type: string
+      required: true
+
+  schemas:
+
+    ServerSupportInformation:
+      type: object
+      description: "Server support information"
+      properties:
+        contacts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Contact"
+          description: "Ways to contact the server administrator."
+        support_page:
+          type: string
+          description: "The URL of a page to give users help specific to the homeserver, like extra login/registration steps."
+      anyOf:
+        - required: [ contacts ]
+        - required: [ support_page ]
+
+    Contact:
+      type: object
+      description: "Ways to contact the server administrator."
+      required:
+        - role
+      properties:
+        email_address:
+          type: string
+          description: "An email address to reach the administrator."
+        matrix_id:
+          type: string
+          description: "A Matrix User ID representing the administrator. It could be an account registered on a different homeserver so the administrator can be contacted when the homeserver is down."
+        role:
+          description: "An informal description of what the contact methods are used for. m.role.admin is a catch-all role for any queries and m.role.security is intended for sensitive requests. Unspecified roles are permitted through the use of Namespaced Identifiers."
+          allOf:
+            - $ref: "#/components/schemas/ContactRole"
+      anyOf:
+        - required: [ email_address ]
+        - required: [ matrix_id ]
+
+    ContactRole:
+      type: string
+      enum:
+        - "m.role.admin"
+        - "m.role.security"

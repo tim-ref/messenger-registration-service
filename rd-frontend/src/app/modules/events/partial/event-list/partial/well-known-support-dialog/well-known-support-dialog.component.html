@@ -1,0 +1,106 @@
+<!--
+  ~ Copyright (C) 2025 akquinet GmbH
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<div id="well-known-support-dialog" class="flex flex-col w-90">
+  <h2 class="header text-lg">
+    {{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.TITLE' | translate }}
+  </h2>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="relative pt-4">
+    <generic-input
+      id="supportpage-input"
+      [control]="form.get('page')"
+      name="{{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.PAGE_LABEL' | translate }}">
+    </generic-input>
+    <h3 class="my-2">{{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.CONTACTS_HEADER' | translate }}</h3>
+    <div formArrayName="contacts">
+      <div *ngFor="let contact of contacts.controls; index as i" [formGroupName]="i">
+        <div class="flex flex-row items-baseline">
+          <div class="flex flex-col w-full mr-1">
+            <generic-input
+              name="{{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.EMAIL_LABEL' | translate }}"
+              id="contact-{{i}}-email-input"
+              [control]="contact.get('email')"
+              class="mr-1">
+            </generic-input>
+            <span class="text-xs text-primary" *ngIf="contact.get('email')?.errors?.['email']">
+              {{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.ERROR.EMAIL_INVALID' | translate }}
+            </span>
+          </div>
+          <div class="flex flex-col w-full mr-1">
+          <generic-input
+            name="{{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.MXID_LABEL' | translate }}"
+            id="contact-{{i}}-mxid-input"
+            [control]="contact.get('mxId')"
+            class="mr-1">
+          </generic-input>
+            <span class="text-xs text-primary" *ngIf="contact.get('mxId')?.errors?.['pattern']">
+              {{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.ERROR.MXID_INVALID' | translate }}
+            </span>
+          </div>
+          <generic-select
+            name="{{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.ROLE_LABEL' | translate }}"
+            id="contact-{{i}}-role-select"
+            [control]="contact.get('role')"
+            [options]="contactRoles">
+          </generic-select>
+          <generic-button
+            id="contact-{{i}}-remove-button"
+            [disabled]="isLoading"
+            (click)="removeContact(i)"
+            variant="icon"
+            icon="fa-trash"
+            color="white"
+            iconColor="primary">
+          </generic-button>
+        </div>
+        <span class="text-xs text-primary" *ngIf="contact?.touched && contact.errors?.['atLeastOneRequired']">
+            {{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.ERROR.CONTACT_INVALID' | translate }}</span>
+      </div>
+    </div>
+    <div
+      *ngIf="isLoading"
+      class="absolute inset-0 bg-white/50 flex justify-center items-center">
+      <div class="loading-spinner w-10 h-10"></div>
+    </div>
+  </form>
+
+  <generic-button
+    id="add-contact-button"
+    [disabled]="isLoading"
+    (click)="addContact()"
+    variant="outline"
+    icon="fa-plus-circle"
+    iconColor="primary"
+    color="accent"
+    class="my-4">
+    {{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.ADD_BUTTON' | translate }}
+  </generic-button>
+
+  <span class="text-xs text-primary" *ngIf="form?.touched && form.errors?.['atLeastOneRequired']">
+      {{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.ERROR.SUPPORT_INFO_INVALID' | translate }}</span>
+
+  <generic-button
+    id="save-support-info-button"
+    type="submit"
+    [disabled]="!form.valid || isLoading"
+    (click)="onSubmit()"
+    icon="fa-floppy-disk"
+    iconColor="white"
+    class="my-4">
+    {{ 'ADMIN.INSTANCE_LIST.WELLKNOWN_SUPPORT_INFO_DIALOG.SAVE_BUTTON' | translate }}
+  </generic-button>
+</div>

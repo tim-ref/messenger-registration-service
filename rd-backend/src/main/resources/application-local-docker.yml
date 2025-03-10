@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023 - 2024 akquinet GmbH
+# Copyright (C) 2023 - 2025 akquinet GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -101,6 +101,7 @@ vzd:
   federationCheckPath: "/tim-provider-services/federationCheck"
   userWhereIsPath: "/tim-provider-services/localization"
   checkRevocationStatus: false
+  ocspResponder: null
   addDomainPath: "/tim-provider-services/federation"
   deleteDomainPath: "/tim-provider-services/federation/"
   clientId: "regService"

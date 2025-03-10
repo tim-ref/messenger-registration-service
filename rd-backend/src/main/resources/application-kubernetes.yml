@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2023 - 2024 akquinet GmbH
+# Copyright (C) 2023 - 2025 akquinet GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -87,6 +87,7 @@ vzd:
   federationCheckPath: ${REGISTRATION_SERVICE_VZD_FEDERATIONCHECK_PATH}
   userWhereIsPath: ${REGISTRATION_SERVICE_VZD_USER_WHERE_PATH}
   checkRevocationStatus: ${REGISTRATION_SERVICE_VZD_FEDERATIONLIST_CHECK_REVOCATION_STATUS}
+  ocspResponder: ${REGISTRATION_SERVICE_VZD_FEDERATIONLIST_OCSP_RESPONDER}
   addDomainPath: ${REGISTRATION_SERVICE_VZD_ADD_DOMAIN_TO_FEDERATIONLIST_PATH}
   deleteDomainPath: ${REGISTRATION_SERVICE_VZD_DELETE_DOMAIN_FROM_FEDERATIONLIST_PATH}
   clientId: ${REGISTRATION_SERVICE_VZD_CLIENT_ID}

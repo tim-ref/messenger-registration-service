@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 - 2024 akquinet GmbH
+ * Copyright (C) 2023 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,8 @@ class WebSecurityConfig(
                     "/v3/api-docs/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
-                    "/actuator/**"
+                    "/actuator/**",
+                    "/well-known-support/**"
                 ).permitAll()
                 requestMatchers(HttpMethod.POST, REGSERVICE_OPENID_TOKEN_PATH).permitAll()
                 requestMatchers(HttpMethod.POST, INVITE_PERMISSION_PATH).permitAll()

@@ -120,7 +120,8 @@
         },
         "PUBLIC_BASE_URL": "Basis-URL",
         "SERVER_NAME": "Servername",
-        "USER_MANAGEMENT": "Nutzerverwaltung"
+        "USER_MANAGEMENT": "Nutzerverwaltung",
+        "WELL_KNOWN_SUPPORT": "Support Informationen"
       },
       "TIM_VARIANT_DIALOG": {
         "TITLE": "Auswahl der TIM Variante",
@@ -128,6 +129,28 @@
         "REQUEST_INSTANCE_BUTTON": "Instanz anfragen",
         "VARIANT": "TIM Variante:",
         "UNKNOWN_LOAD": "Es gab einen Fehler beim Laden der verfügbaren TIM Varianten."
+      },
+      "WELLKNOWN_SUPPORT_INFO_DIALOG": {
+        "TITLE": "Support Informationen",
+        "PAGE_LABEL": "Support Seite",
+        "CONTACTS_HEADER": "Kontaktdaten",
+        "EMAIL_LABEL": "E-Mail",
+        "MXID_LABEL": "Matrix-ID",
+        "ROLE_LABEL": "Rolle",
+        "ADD_BUTTON": "Kontakt hinzufügen",
+        "SAVE_BUTTON": "Speichern",
+        "SUCCESS": "Support Informationen aktualisiert",
+        "ERROR": {
+          "BAD_REQUEST": "Die Anfrage ist fehlerhaft.",
+          "UNAUTHORIZED": "Die Authentifizierungsinformationen fehlen oder sind ungültig.",
+          "FORBIDDEN": "Es ist Ihnen nicht erlaubt, diese Informationen zu ändern.",
+          "INTERNAL_SERVER_ERROR": "Ein Serverfehler ist aufgetreten.",
+          "UNKNOWN": "Ein unbekannter Fehler ist aufgetreten.",
+          "SUPPORT_INFO_INVALID": "Bitte fügen Sie eine Support Seite oder Kontaktdaten hinzu.",
+          "CONTACT_INVALID": "Bitte fügen Sie eine E-Mail-Adresse oder Matrix-ID hinzu.",
+          "EMAIL_INVALID": "Bitte geben Sie eine gültige E-Mail-Adresse ein. (name@server.com)",
+          "MXID_INVALID": "Bitte geben Sie eine gültige Matrix-Id ein. (@userId:server)"
+        }
       }
     }
   }

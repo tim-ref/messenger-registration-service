@@ -12,7 +12,7 @@
           "apiModulePrefix": "MessengerInstance",
           "configurationPrefix": "MessengerInstance",
           "supportsES6": "true",
-          "ngVersion": "17.0.9",
+          "ngVersion": "17.3.8",
           "stringEnums": "true",
           "basePath": "/backend"
         },
@@ -28,7 +28,23 @@
           "apiModulePrefix": "Logging",
           "configurationPrefix": "Logging",
           "supportsES6": "true",
-          "ngVersion": "17.0.9",
+          "ngVersion": "17.3.8",
+          "stringEnums": "true",
+          "basePath": "/backend"
+        },
+        "type-mappings": {
+          "set" : "Array"
+        }
+      },
+      "well-known-support-api": {
+        "inputSpec": "build/resources/static/openapi-well-known-support.yaml",
+        "output": "build/openapi/wellknownsupport",
+        "generatorName": "typescript-angular",
+        "additionalProperties": {
+          "apiModulePrefix": "WellKnownSupport",
+          "configurationPrefix": "WellKnownSupport",
+          "supportsES6": "true",
+          "ngVersion": "17.3.8",
           "stringEnums": "true",
           "basePath": "/backend"
         },

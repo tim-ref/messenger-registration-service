@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 package de.akquinet.tim.registrationservice.config
 import org.springframework.boot.context.properties.ConfigurationProperties
+import java.net.URI
 
 @ConfigurationProperties(prefix = "vzd")
 data class VZDConfig(
@@ -29,6 +30,7 @@ data class VZDConfig(
     val federationCheckPath: String,
     val userWhereIsPath: String,
     val checkRevocationStatus: Boolean,
+    val ocspResponder: URI? = null,
     val addDomainPath: String,
     val deleteDomainPath: String,
     val clientId: String,

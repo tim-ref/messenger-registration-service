@@ -53,6 +53,8 @@ backend:
     registrationServiceVZDUrl: "vzd-mock.vzd-mock:8080"
     registrationServiceVZDTokenUrl: "vzd-mock.vzd-mock:8080"
     registrationServiceVZDCheckRevocationStatus: false
+    # https://gemspec.gematik.de/docs/gemSpec/gemSpec_TI-M_Basis/gemSpec_TI-M_Basis_V1.1.1/#6.5.1
+    registrationServiceVZDOcspResponder: "http://download.crl.ti-dienste.de/ocsp/ec"
     registrationServiceVZDClientId: "akquinet_timref"
     operatorHostURLNamespace: synapse-operator-api
     operatorHostURLService: synapse-operator-api

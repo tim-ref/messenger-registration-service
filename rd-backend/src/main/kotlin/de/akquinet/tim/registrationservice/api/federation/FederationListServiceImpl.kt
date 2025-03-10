@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,10 +90,7 @@ class FederationListServiceImpl(
             signatureService.parseAndVerifySignature(jwsString, certPath.first().publicKey)
 
         if (jwsSignatureVerificationResult is JwsSignatureVerificationResult.Valid) {
-            val certPathIsValid = signatureService.verifyCertificatePath(
-                certPath,
-                vzdConfig.checkRevocationStatus
-            ) is CertPathValidationResult.Valid
+            val certPathIsValid = signatureService.verifyCertificatePath(certPath) is CertPathValidationResult.Valid
 
             if (certPathIsValid) {
                 val federationListJson =

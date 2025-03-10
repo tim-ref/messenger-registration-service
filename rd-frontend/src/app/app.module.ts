@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023-2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,10 @@ import {
   BASE_PATH as MESSENGER_INSTANCE_BASE_PATH,
   MessengerInstanceApiModule
 } from "../../build/openapi/messengerinstance";
+import {
+  BASE_PATH as WELL_KNOWN_SUPPORT_BASE_PATH,
+  WellKnownSupportApiModule
+} from "../../build/openapi/wellknownsupport";
 
 
 const ConfigDependentServices = new InjectionToken<(() => Function)[]>('ConfigDependentServices');
@@ -54,6 +58,7 @@ const ConfigDependentServices = new InjectionToken<(() => Function)[]>('ConfigDe
     LoggingApiModule,
     MessengerInstanceModule,
     MessengerInstanceApiModule,
+    WellKnownSupportApiModule,
     HttpClientModule,
     AppRoutingModule,
     NoopAnimationsModule,
@@ -92,6 +97,13 @@ const ConfigDependentServices = new InjectionToken<(() => Function)[]>('ConfigDe
     },
     {
       provide: MESSENGER_INSTANCE_BASE_PATH,
+      useFactory: (appConfigService: AppConfigurationService) => {
+        return appConfigService.appConfig.apiUrl + "/backend"
+      },
+      deps: [AppConfigurationService]
+    },
+    {
+      provide: WELL_KNOWN_SUPPORT_BASE_PATH,
       useFactory: (appConfigService: AppConfigurationService) => {
         return appConfigService.appConfig.apiUrl + "/backend"
       },

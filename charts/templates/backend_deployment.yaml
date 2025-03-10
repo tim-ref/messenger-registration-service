@@ -73,6 +73,8 @@ spec:
               value: "/tim-provider-services/localization"
             - name: "REGISTRATION_SERVICE_VZD_FEDERATIONLIST_CHECK_REVOCATION_STATUS"
               value: "{{ .Values.backend.config.registrationServiceVZDCheckRevocationStatus }}"
+            - name: "REGISTRATION_SERVICE_VZD_FEDERATIONLIST_OCSP_RESPONDER"
+              value: "{{ .Values.backend.config.registrationServiceVZDOcspResponder }}"
             - name: "REGISTRATION_SERVICE_VZD_ADD_DOMAIN_TO_FEDERATIONLIST_PATH"
               value: "/tim-provider-services/federation"
             - name: "REGISTRATION_SERVICE_VZD_DELETE_DOMAIN_FROM_FEDERATIONLIST_PATH"

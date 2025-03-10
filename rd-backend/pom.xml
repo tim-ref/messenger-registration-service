@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2023 akquinet GmbH
+  ~ Copyright (C) 2023 - 2025 akquinet GmbH
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-backend</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
     <name>Registrierungsdienst - Backend</name>
     <description>Backend für den Registrierungsdienst der TIM-Referenzimplementierung</description>
 
@@ -232,6 +232,11 @@
             <version>4.2.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.skyscreamer</groupId>
+            <artifactId>jsonassert</artifactId>
+            <scope>test</scope>
+        </dependency>
         <!-- required for io.kotest.matchers.types.shouldBeInstanceOf -->
         <dependency>
             <groupId>io.kotest</groupId>
@@ -415,6 +420,19 @@
                             <apiPackage>${openapi.package.base}.api.federation.server</apiPackage>
                             <supportingFilesToGenerate>ApiUtil.kt</supportingFilesToGenerate>
                             <inputSpec>${project.build.directory}/static/openapi-federation.yaml</inputSpec>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-well-known-support-api</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <modelPackage>${openapi.package.base}.model.wellknownsupport</modelPackage>
+                            <apiPackage>${openapi.package.base}.api.wellknownsupport.server</apiPackage>
+                            <supportingFilesToGenerate>ApiUtil.kt</supportingFilesToGenerate>
+                            <inputSpec>${project.build.directory}/static/openapi-well-known-support.yaml</inputSpec>
                         </configuration>
                     </execution>
                 </executions>

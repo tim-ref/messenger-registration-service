@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 akquinet GmbH
+ * Copyright (C) 2023 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,7 @@ import java.security.PublicKey
 import java.security.cert.X509Certificate
 
 interface SignatureService {
-    fun verifyCertificatePath(
-            certs: List<X509Certificate>,
-            checkRevocationStatus: Boolean
-    ): CertPathValidationResult
+    fun verifyCertificatePath(certs: List<X509Certificate>): CertPathValidationResult
 
     fun parseAndVerifySignature(jwsRaw: String, publicKey: PublicKey): JwsSignatureVerificationResult
 

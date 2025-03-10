@@ -26,4 +26,8 @@ export default class ApiRoutes {
   public static messengerInstanceTimAuthConceptConfig(instanceName: string): string {
     return `/backend/messenger-instance/${instanceName}/tim-auth-concept-config`;
   };
+
+  public static wellKnownSupport(instanceName: string): string {
+    return `/backend/well-known-support/${instanceName}`;
+  };
 }

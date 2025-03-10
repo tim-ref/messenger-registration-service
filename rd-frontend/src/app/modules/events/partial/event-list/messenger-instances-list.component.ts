@@ -19,15 +19,13 @@ import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import de from './assets/i18n/de.json';
 import {I18nService} from '../../../../services/i18n.service';
-import {RestService} from '../../../../services/rest.service';
-import ApiRoutes from '../../../../resources/api/api-routes';
 import {AppService} from '../../../../services/app.service';
 import {DialogService} from '../../../../services/dialog.service';
 import {
     DeleteMessengerInstancesDialogComponent
 } from './partial/delete-messenger-instance-dialog/delete-messenger-instances-dialog.component';
 import {tap} from 'rxjs';
-import {HttpHeaders, HttpStatusCode} from '@angular/common/http';
+import {HttpStatusCode} from '@angular/common/http';
 import {saveAs} from 'file-saver';
 import {AdminCreatedDialogComponent} from './partial/admin-created-dialog/admin-created-dialog.component';
 import {LogLevelDialogComponent} from './partial/log-level-dialog/log-level-dialog.component';
@@ -46,6 +44,7 @@ import {
   TimVersionSelectionDialogComponent
 } from "./partial/tim-version-selection-dialog/tim-version-selection-dialog.component";
 import {timVariantOptions, TimVariantRef} from "./partial/tim-version-selection-dialog/tim-variant-options";
+import {WellKnownSupportDialogComponent} from "./partial/well-known-support-dialog/well-known-support-dialog.component";
 
 @Component({
     selector: 'admin-messenger-service-list',
@@ -464,5 +463,12 @@ export class MessengerInstancesListComponent implements OnInit {
     return variantEnumString;
   }
 
+  openWellKnownSupportDialog(serverName: string) {
+    this.dialogService.openDialog(WellKnownSupportDialogComponent,{
+      closeOnOutsideClick: true,
+      showCloseButton: true,
+      data: [serverName],
+    });
+  }
 }
 
