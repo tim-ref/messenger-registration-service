@@ -1,7 +1,7 @@
 package de.akquinet.tim.registrationservice.repository
 
 /*
- * Copyright (C) 2024 akquinet GmbH
+ * Copyright (C) 2024 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package de.akquinet.tim.registrationservice.repository
  */
 
 import de.akquinet.tim.registrationservice.persistance.federation.FederationListRepository
-import de.akquinet.tim.registrationservice.persistance.federation.model.DomainEntity
 import de.akquinet.tim.registrationservice.persistance.federation.model.FederationListEntity
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
@@ -40,36 +39,28 @@ class FederationListRepositoryIT : DescribeSpec() {
     init {
         this.describe("Federation Repository Test") {
 
-            it("should return the latest federation list when version parameter is passed") {
+            it("should return max version of federation lists") {
 
                 val dummyOldFederationList = FederationListEntity(
                     version = 10L,
-                    domainList = listOf(
-                        DomainEntity(domain = "example1.com", isInsurance = true, telematikID = "telematikID1"),
-                        DomainEntity(domain = "example2.com", isInsurance = false, telematikID = "telematikID2")
-                    )
+                    domainList = emptyList()
                 )
 
                 val dummyNewFederationList = FederationListEntity(
                     version = 11L,
-                    domainList = listOf(
-                        DomainEntity(domain = "example1.com", isInsurance = true, telematikID = "telematikID3"),
-                        DomainEntity(domain = "example2.com", isInsurance = false, telematikID = "telematikID4")
-                    )
+                    domainList = emptyList()
                 )
 
                 val dummyFederationEntityList = listOf(dummyOldFederationList, dummyNewFederationList)
-                val federationListVersion = 9L
-                val expectedFederationListVersion = 11L
 
                 federationListRepository.saveAll(dummyFederationEntityList)
 
-                val federationListEntity = federationListRepository.getFirstByVersionGreaterThanOrderByVersionDesc(federationListVersion)
+                val actualVersion =
+                    federationListRepository.findMaxVersion()
 
-                federationListEntity?.let { federationEntity ->
-                    federationEntity.version shouldBe   expectedFederationListVersion
-                }
+                actualVersion shouldBe 11L
             }
+
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 akquinet GmbH
+ * Copyright (C) 2024 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,16 +34,12 @@ class FederationApiDelegateImpl @Autowired constructor(
 ) : FederationApiDelegate {
 
     override fun retrieveFederationList(version: Long?): ResponseEntity<FederationList> {
-        return version?.let {
-            val federationEntity = federationListRepository.getFirstByVersionGreaterThanOrderByVersionDesc(it)
-            federationEntity?.let { federationListEntity ->
-                ResponseEntity.ok(federationListEntity.toModel())
-            } ?: run {
-                ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-                    .body(federationListRepository.findFirstByOrderByVersionDesc().toModel())
-            }
-        } ?: run {
-            ResponseEntity.ok(federationListRepository.findFirstByOrderByVersionDesc().toModel())
+        val latestVersion = federationListRepository.findMaxVersion()
+        return if (version != null && version == latestVersion) {
+            ResponseEntity.status(HttpStatus.NOT_MODIFIED).build()
+        } else {
+            val listWithLatestVersion = federationListRepository.findFirstByOrderByVersionDesc()
+            ResponseEntity.ok(listWithLatestVersion.toModel())
         }
     }
 

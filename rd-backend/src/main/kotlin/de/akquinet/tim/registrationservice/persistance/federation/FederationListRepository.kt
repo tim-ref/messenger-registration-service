@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package de.akquinet.tim.registrationservice.persistance.federation
 import de.akquinet.tim.registrationservice.persistance.federation.model.FederationListEntity
 import jakarta.transaction.Transactional
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -28,5 +29,7 @@ interface FederationListRepository : JpaRepository<FederationListEntity, String>
 
     fun deleteAllByVersionNot(version: Long)
     fun findFirstByOrderByVersionDesc(): FederationListEntity
-    fun getFirstByVersionGreaterThanOrderByVersionDesc(version: Long): FederationListEntity?
+
+    @Query("SELECT max(e.version) FROM FederationListEntity e")
+    fun findMaxVersion(): Long?
 }

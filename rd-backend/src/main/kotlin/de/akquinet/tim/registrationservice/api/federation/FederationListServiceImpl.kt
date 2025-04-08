@@ -182,7 +182,7 @@ class FederationListServiceImpl(
 
     fun saveFederationListToRepository(federationList: FederationList) {
         federationRepository.deleteAllByVersionNot(federationList.version)
-        if (federationRepository.findAll().isEmpty()) {
+        if (federationRepository.count() == 0L) {
             federationRepository.save(federationList.toEntity())
         }
     }
@@ -241,13 +241,9 @@ class FederationListServiceImpl(
     @Scheduled(cron = "0 */5 * * * *")
     override fun getLatestFederationListFromVzd() {
         val uri = vzdConfig.serviceUrl + vzdConfig.federationListPath
-        val connection: HttpURLConnection = if (federationRepository.findAll().isEmpty()) {
-            connectToVzd(uri, null)
-        } else {
-            val paramMap = mutableMapOf<String, Any>()
-            paramMap["version"] = federationRepository.findAll().first().version
-            connectToVzd(uri, paramMap)
-        }
+        val localVersion = federationRepository.findMaxVersion()
+        val queryParameters = localVersion?.let { mapOf("version" to it) }
+        val connection: HttpURLConnection = connectToVzd(uri, queryParameters)
 
         if (connection.responseCode == 200) {
             val jwsVerificationResult = getVerifiedFederationListFromRemote(connection)
