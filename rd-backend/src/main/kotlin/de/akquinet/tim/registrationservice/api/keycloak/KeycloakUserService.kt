@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 akquinet GmbH
+ * Copyright (C) 2023 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,9 @@
 
 package de.akquinet.tim.registrationservice.api.keycloak
 
-import com.google.gson.Gson
 import de.akquinet.tim.registrationservice.api.messengerservice.MessengerInstanceService.Companion.ORG_ADMIN_ERROR_LOG_TEMPLATE
-import de.akquinet.tim.registrationservice.api.operator.AdminUser
 import de.akquinet.tim.registrationservice.api.operator.OperatorService
 import de.akquinet.tim.registrationservice.config.KeycloakAdminConfig
-import de.akquinet.tim.registrationservice.config.RegServiceConfig
 import de.akquinet.tim.registrationservice.openapi.model.mi.CreateAdminUser201Response
 import de.akquinet.tim.registrationservice.openapi.model.mi.CreateAdminUserRequest
 import de.akquinet.tim.registrationservice.openapi.model.operator.GetMessengerInstanceInitialAdminCreds200Response
@@ -30,7 +27,6 @@ import de.akquinet.tim.registrationservice.persistance.messengerInstance.Messeng
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
 import de.akquinet.tim.registrationservice.persistance.orgAdmin.model.OrgAdminEntity
 import de.akquinet.tim.registrationservice.service.orgadmin.OrgAdminManagementService
-import de.akquinet.tim.registrationservice.util.UserService
 import jakarta.ws.rs.WebApplicationException
 import org.keycloak.admin.client.CreatedResponseUtil
 import org.keycloak.admin.client.Keycloak
@@ -46,17 +42,13 @@ import org.springframework.stereotype.Service
 @Service
 class KeycloakUserService @Autowired constructor(
     private val logger: Logger,
-    private val regServiceConfig: RegServiceConfig,
     @Qualifier("master") private val keycloakMaster: Keycloak,
     @Qualifier("tim") private val keycloakTim: Keycloak,
     private val keycloakProperties: KeycloakAdminConfig.Properties,
-    private val userService: UserService,
     private val messengerInstanceRepository: MessengerInstanceRepository,
     private val orgAdminManagementService: OrgAdminManagementService,
     private val operatorService: OperatorService,
 ) {
-
-    private val gson = Gson()
 
     fun createKeycloakAdminUser(
         realmName: String,
@@ -178,9 +170,16 @@ class KeycloakUserService @Autowired constructor(
     private fun getOrgAdminCredentials(serverName: String): GetMessengerInstanceInitialAdminCreds200Response =
         operatorService.getOrgAdminCredentials(serverName)
 
-    fun getEnabledMessengerInstanceOrderUsers(): List<UserRepresentation> {
+    fun getEnabledOrderUsersWithAttributes(): List<UserRepresentation> {
         val timRealm = keycloakTim.realm(keycloakProperties.timRealm.realmName)
-        return timRealm.users().searchByAttributes("enabled=true")
+        val users = timRealm.users().searchByAttributes("enabled=true")
+        return users.filter {
+            it.attributes.keys.containsAll(
+                KeycloakUserAttributeKey.entries.map { attributeKey ->
+                    attributeKey.value
+                }
+            )
+        }
     }
 
     private fun createOrgAdminEntity(

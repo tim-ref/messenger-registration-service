@@ -38,6 +38,7 @@ issue_ocsp_signer() {
 
 	openssl x509 \
 		-new \
+		-days 3650 \
 		-CA "$signer_crt" -CAkey "$signer_key" \
 		-set_subject /CN="$name" \
 		-force_pubkey priv-key."$name".pkcs8.pem \

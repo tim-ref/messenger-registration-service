@@ -22,12 +22,12 @@
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.6.1</version>
+        <version>0.6.2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>rd-keycloak</artifactId>
-    <version>0.6.1</version>
+    <version>0.6.2</version>
     <name>Registrierungsdienst - Keycloak</name>
     <description>Vorkonfigurierter Keycloak für den Registrierungsdienst</description>
 

@@ -3,14 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>rd-api</artifactId>
-    <version>0.6.1</version>
+    <version>0.6.2</version>
     <name>Registrierungsdienst - OpenAPI</name>
     <description>OpenAPI Spec-Dateien für den Registrierungsdienst des TI-Messengers</description>
 
     <parent>
         <groupId>de.akquinet.timref.fachdienst.registrierungsdienst</groupId>
         <artifactId>rd-parent</artifactId>
-        <version>0.6.1</version>
+        <version>0.6.2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

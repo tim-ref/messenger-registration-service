@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 - 2025 akquinet GmbH
+ * Copyright (C) 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
  *
  */
 
-package de.akquinet.tim.registrationservice.api.keycloak
+package de.akquinet.tim.registrationservice.util
 
-enum class KeycloakUserAttributeKey(val value: String) {
-    TELEMATIK_ID("TelematikID"),
-    PROFESSION_OID("ProfessionOID"),
-    ORDER_LENGTH("Laufzeit"),
-    DATE_OF_ORDER("Bestelldatum");
-}
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+val ddMMyyyyDateTimeFormatter: DateTimeFormatter =  DateTimeFormatter.ofPattern("dd.MM.yyyy", Locale.GERMAN)

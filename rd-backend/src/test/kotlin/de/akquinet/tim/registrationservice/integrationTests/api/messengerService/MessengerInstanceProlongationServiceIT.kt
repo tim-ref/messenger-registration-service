@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 akquinet GmbH
+ * Copyright (C) 2024 - 2025 akquinet GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.ninjasquad.springmockk.MockkBean
 import de.akquinet.tim.registrationservice.api.keycloak.KeycloakUserService
 import de.akquinet.tim.registrationservice.api.messengerservice.MessengerInstanceProlongationService
 import de.akquinet.tim.registrationservice.persistance.messengerInstance.MessengerInstanceRepository
+import de.akquinet.tim.registrationservice.util.ddMMyyyyDateTimeFormatter
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
@@ -31,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.shaded.org.awaitility.Awaitility.await
+import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -56,7 +58,7 @@ class MessengerInstanceProlongationServiceIT : DescribeSpec() {
 
         beforeEach {
             // check EoL date is set to 10 years after order date
-            isEndOfLifeDateSetToOrderDatePlusPeriodOfValidity(120) shouldBe true
+            allInstancesEOLEquals(120) shouldBe true
         }
 
         this.describe("period of validity change by method call") {
@@ -68,64 +70,99 @@ class MessengerInstanceProlongationServiceIT : DescribeSpec() {
 
                 messengerInstanceProlongationService.alignOrderLengthFromKeycloakAttributeToRegistrationServiceDatabase()
 
-                isEndOfLifeDateSetToOrderDatePlusPeriodOfValidity(periodOfValidityInMonths) shouldBe true
+                allInstancesEOLEquals(periodOfValidityInMonths) shouldBe true
             }
 
-            it("period of validity was reduced, should change EoL date"){
+            it("period of validity was reduced, should change EoL date") {
                 val periodOfValidityInMonths: Long = 1
 
                 preparePeriodOfValidityChange(1)
 
                 messengerInstanceProlongationService.alignOrderLengthFromKeycloakAttributeToRegistrationServiceDatabase()
 
-                isEndOfLifeDateSetToOrderDatePlusPeriodOfValidity(periodOfValidityInMonths) shouldBe true
+                allInstancesEOLEquals(periodOfValidityInMonths) shouldBe true
             }
 
-            it("period of validity was not changed, should not update instance"){
+            it("period of validity was not changed, should not update instance") {
                 val periodOfValidityInMonths: Long = 120
 
                 preparePeriodOfValidityChange(periodOfValidityInMonths)
 
                 messengerInstanceProlongationService.alignOrderLengthFromKeycloakAttributeToRegistrationServiceDatabase()
 
-                isEndOfLifeDateSetToOrderDatePlusPeriodOfValidity(periodOfValidityInMonths) shouldBe true // should verify never call save after date check
+                allInstancesEOLEquals(periodOfValidityInMonths) shouldBe true // should verify never call save after date check
+            }
+
+            it("date of order was changed, should change EoL date") {
+                val periodOfValidityInMonths: Long = 120
+                val dateOfOrder = "01.01.2025"
+
+                preparePeriodOfValidityChange(periodOfValidityInMonths, dateOfOrder)
+
+                messengerInstanceProlongationService.alignOrderLengthFromKeycloakAttributeToRegistrationServiceDatabase()
+
+                allInstancesDateOfOrderEquals(
+                    LocalDate.parse(dateOfOrder, ddMMyyyyDateTimeFormatter)
+                )
+                allInstancesEOLEquals(120)
             }
         }
 
-        this.describe("period of validity change by scheduled task"){
+        this.describe("period of validity change by scheduled task") {
             it("period of validity was extended, should change EoL date automatically") {
                 val periodOfValidityInMonths: Long = 132
+                val dateOfOrder = "31.12.2025"
 
                 preparePeriodOfValidityChange(periodOfValidityInMonths)
 
                 await().atMost(10, TimeUnit.SECONDS).until {
-                    isEndOfLifeDateSetToOrderDatePlusPeriodOfValidity(periodOfValidityInMonths)
+                    allInstancesDateOfOrderEquals(
+                        LocalDate.parse(dateOfOrder, ddMMyyyyDateTimeFormatter)
+                    )
+                    allInstancesEOLEquals(periodOfValidityInMonths)
+                }
+            }
+
+            it("date of order was changed, should change date of order and EoL date automatically") {
+                val periodOfValidityInMonths: Long = 10
+                val dateOfOrder = "31.12.2020"
+
+                preparePeriodOfValidityChange(periodOfValidityInMonths, dateOfOrder)
+
+                await().atMost(10, TimeUnit.SECONDS).until {
+                    allInstancesDateOfOrderEquals(
+                        LocalDate.parse(dateOfOrder, ddMMyyyyDateTimeFormatter)
+                    )
+                    allInstancesEOLEquals(periodOfValidityInMonths)
                 }
             }
         }
     }
 
-    private fun isEndOfLifeDateSetToOrderDatePlusPeriodOfValidity(periodOfValidityInMonths: Long):Boolean {
-        messengerInstanceRepository.findByUserIdAndTelematikIdAndProfessionId(username, telematikID, professionOID)
-            .let { instances ->
-                instances.forEach {
-                    if(it.endDate != it.dateOfOrder.plusMonths(periodOfValidityInMonths)) return false
-                }
-            }
-        return true
+    private fun allInstancesDateOfOrderEquals(date: LocalDate): Boolean {
+        val instances =
+            messengerInstanceRepository.findByUserIdAndTelematikIdAndProfessionId(username, telematikID, professionOID)
+        return instances.all { it.dateOfOrder == date }
     }
 
-    private fun preparePeriodOfValidityChange(periodOfValidityInMonths: Long){
+    private fun allInstancesEOLEquals(periodOfValidityInMonths: Long): Boolean {
+        val instances =
+            messengerInstanceRepository.findByUserIdAndTelematikIdAndProfessionId(username, telematikID, professionOID)
+        return instances.all { it.endDate == it.dateOfOrder.plusMonths(periodOfValidityInMonths) }
+    }
+
+    private fun preparePeriodOfValidityChange(periodOfValidityInMonths: Long, dateOfOrder: String = "15.03.2022") {
         val userAttributes = mapOf(
-            Pair("TelematikID", listOf(telematikID)),
-            Pair("ProfessionOID", listOf(professionOID)),
-            Pair("Laufzeit", listOf("$periodOfValidityInMonths")) // set to new [periodOfValidityInMonths] testdata is initialized with 10 years
+            "TelematikID" to listOf(telematikID),
+            "ProfessionOID" to listOf(professionOID),
+            "Laufzeit" to listOf("$periodOfValidityInMonths"), // set to new [periodOfValidityInMonths] testdata is initialized with 10 years
+            "Bestelldatum" to listOf(dateOfOrder)
         )
 
         val userRepresentation = UserRepresentation()
         userRepresentation.username = username
         userRepresentation.attributes = userAttributes
 
-        every { keycloakUserService.getEnabledMessengerInstanceOrderUsers() }.returns(listOf(userRepresentation))
+        every { keycloakUserService.getEnabledOrderUsersWithAttributes() }.returns(listOf(userRepresentation))
     }
 }
